@@ -1,5 +1,3 @@
-
-
 # unit tests. $R=1 for race flag
 .PHONY: test
 test:
