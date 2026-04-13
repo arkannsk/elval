@@ -17,43 +17,42 @@ func (v *Person) Validate() error {
 	// Валидация поля Name
 	{
 
-		rules := []validator.ValidationRule[string]{}
-		rules = append(rules, validator.Required[string]())
-		rules = append(rules, validator.MinLen(2))
-		rules = append(rules, validator.MaxLen(100))
-		if err := validator.ValidateFunc("Name", v.Name, rules...); err != nil {
+		builder := validator.New[string]("Name")
+		builder.AddRule(validator.Required[string]())
+		builder.AddRule(validator.MinLen(2))
+		builder.AddRule(validator.MaxLen(100))
+		if err := builder.Validate(v.Name); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	// Валидация поля Email
 	{
 
-		rules := []validator.ValidationRule[string]{}
-		rules = append(rules, validator.Required[string]())
-		rules = append(rules, validator.Email())
-		if err := validator.ValidateFunc("Email", v.Email, rules...); err != nil {
+		builder := validator.New[string]("Email")
+		builder.AddRule(validator.Required[string]())
+		builder.AddRule(validator.Email())
+		if err := builder.Validate(v.Email); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	// Валидация поля Age
 	{
 
-		rules := []validator.ValidationRule[int]{}
-		rules = append(rules, validator.Required[int]())
-		rules = append(rules, validator.Min[int](18))
-		rules = append(rules, validator.Max[int](120))
-		if err := validator.ValidateFunc("Age", v.Age, rules...); err != nil {
+		builder := validator.New[int]("Age")
+		builder.AddRule(validator.Required[int]())
+		builder.AddRule(validator.Min[int](18))
+		builder.AddRule(validator.Max[int](120))
+		if err := builder.Validate(v.Age); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	// Валидация поля Phone
 	{
 
-		rules := []validator.ValidationRule[string]{}
-		rules = append(rules, validator.Phone())
-		// Поле опционально - проверяем только если не пустое
+		builder := validator.New[string]("Phone")
+		builder.AddRule(validator.Phone())
 		if v.Phone != "" {
-			if err := validator.ValidateFunc("Phone", v.Phone, rules...); err != nil {
+			if err := builder.Validate(v.Phone); err != nil {
 				errs = append(errs, err)
 			}
 		}
@@ -61,29 +60,29 @@ func (v *Person) Validate() error {
 	// Валидация поля BirthDate
 	{
 
-		rules := []validator.ValidationRule[time.Time]{}
-		rules = append(rules, validator.Required[time.Time]())
-		rules = append(rules, validator.After("2006-01-02", "1900-01-01"))
-		rules = append(rules, validator.Before("2006-01-02", "2024-12-31"))
-		if err := validator.ValidateFunc("BirthDate", v.BirthDate, rules...); err != nil {
+		builder := validator.New[time.Time]("BirthDate")
+		builder.AddRule(validator.Required[time.Time]())
+		builder.AddRule(validator.After("2006-01-02", "1900-01-01"))
+		builder.AddRule(validator.Before("2006-01-02", "2024-12-31"))
+		if err := builder.Validate(v.BirthDate); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	// Валидация поля Tags
 	{
-		sliceValidator := validator.NewSliceValidator[string]("Tags")
-		sliceValidator.Required()
-		sliceValidator.Min(1)
-		sliceValidator.Max(10)
-		if err := sliceValidator.Validate(v.Tags); err != nil {
+		builder := validator.NewSliceValidator[string]("Tags")
+		builder.Required()
+		builder.Min(1)
+		builder.Max(10)
+		if err := builder.Validate(v.Tags); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	// Валидация поля Scores
 	{
-		sliceValidator := validator.NewSliceValidator[int]("Scores")
-		sliceValidator.NotZero()
-		if err := sliceValidator.Validate(v.Scores); err != nil {
+		builder := validator.NewSliceValidator[int]("Scores")
+		builder.NotZero()
+		if err := builder.Validate(v.Scores); err != nil {
 			errs = append(errs, err)
 		}
 	}
