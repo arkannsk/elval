@@ -2,6 +2,7 @@ package validator
 
 import (
 	"regexp"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -86,6 +87,36 @@ func NotEmpty() ValidationRule[string] {
 	return func(value string) error {
 		if value == "" {
 			return ErrRequired
+		}
+		return nil
+	}
+}
+
+// Contains проверяет что строка содержит подстроку
+func Contains(substr string) ValidationRule[string] {
+	return func(value string) error {
+		if !strings.Contains(value, substr) {
+			return NewValidationError("contains", "строка должна содержать '%s'", substr)
+		}
+		return nil
+	}
+}
+
+// StartsWith проверяет что строка начинается с префикса
+func StartsWith(prefix string) ValidationRule[string] {
+	return func(value string) error {
+		if !strings.HasPrefix(value, prefix) {
+			return NewValidationError("starts_with", "строка должна начинаться с '%s'", prefix)
+		}
+		return nil
+	}
+}
+
+// EndsWith проверяет что строка заканчивается суффиксом
+func EndsWith(suffix string) ValidationRule[string] {
+	return func(value string) error {
+		if !strings.HasSuffix(value, suffix) {
+			return NewValidationError("ends_with", "строка должна заканчиваться на '%s'", suffix)
 		}
 		return nil
 	}

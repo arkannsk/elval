@@ -12,17 +12,20 @@ type DirectiveType string
 
 // Константы директив
 const (
-	DirRequired DirectiveType = "required"
-	DirOptional DirectiveType = "optional"
-	DirMin      DirectiveType = "min"
-	DirMax      DirectiveType = "max"
-	DirLen      DirectiveType = "len"
-	DirMinMax   DirectiveType = "min-max"
-	DirPattern  DirectiveType = "pattern"
-	DirNotZero  DirectiveType = "not-zero"
-	DirEnum     DirectiveType = "enum"   // проверка на вхождение в список
-	DirBefore   DirectiveType = "before" // для time.Time: должно быть до указанной даты
-	DirAfter    DirectiveType = "after"  // для time.Time: должно быть после указанной даты
+	DirRequired   DirectiveType = "required"
+	DirOptional   DirectiveType = "optional"
+	DirMin        DirectiveType = "min"
+	DirMax        DirectiveType = "max"
+	DirLen        DirectiveType = "len"
+	DirMinMax     DirectiveType = "min-max"
+	DirPattern    DirectiveType = "pattern"
+	DirNotZero    DirectiveType = "not-zero"
+	DirEnum       DirectiveType = "enum"   // проверка на вхождение в список
+	DirBefore     DirectiveType = "before" // для time.Time: должно быть до указанной даты
+	DirAfter      DirectiveType = "after"  // для time.Time: должно быть после указанной даты
+	DirContains   DirectiveType = "contains"
+	DirStartsWith DirectiveType = "starts_with"
+	DirEndsWith   DirectiveType = "ends_with"
 
 	DirEq  DirectiveType = "eq"  // равно
 	DirNeq DirectiveType = "neq" // не равно
@@ -98,6 +101,24 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64"},
 		ParamCount:   1, // параметры через запятую: enum:active,inactive,pending
 		Example:      "@evl:validate enum:active,inactive,pending",
+	},
+	DirContains: {
+		Description:  "строка должна содержать подстроку",
+		AllowedTypes: []string{"string"},
+		ParamCount:   1,
+		Example:      "@evl:validate contains:admin",
+	},
+	DirStartsWith: {
+		Description:  "строка должна начинаться с префикса",
+		AllowedTypes: []string{"string"},
+		ParamCount:   1,
+		Example:      "@evl:validate starts_with:https://",
+	},
+	DirEndsWith: {
+		Description:  "строка должна заканчиваться суффиксом",
+		AllowedTypes: []string{"string"},
+		ParamCount:   1,
+		Example:      "@evl:validate ends_with:.go",
 	},
 	DirNotZero: {
 		Description:  "значение не должно быть нулевым (для слайсов - не пустым, для Time - не zero time)",
@@ -250,13 +271,13 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 
 	case string(DirMinMax):
 		if len(dir.Params) == 2 {
-			min := dir.Params[0]
-			max := dir.Params[1]
+			minVal := dir.Params[0]
+			maxVal := dir.Params[1]
 
 			// Для строк проверяем что min и max - числа и min <= max
 			if ft.IsSlice || ft.Name == "string" {
-				minInt, errMin := strconv.Atoi(min)
-				maxInt, errMax := strconv.Atoi(max)
+				minInt, errMin := strconv.Atoi(minVal)
+				maxInt, errMax := strconv.Atoi(maxVal)
 				if errMin != nil || errMax != nil {
 					return fmt.Errorf("min и max должны быть целыми числами")
 				}
@@ -265,8 +286,8 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 				}
 			} else {
 				// Для чисел проверяем что min <= max
-				minFloat, errMin := strconv.ParseFloat(min, 64)
-				maxFloat, errMax := strconv.ParseFloat(max, 64)
+				minFloat, errMin := strconv.ParseFloat(minVal, 64)
+				maxFloat, errMax := strconv.ParseFloat(maxVal, 64)
 				if errMin != nil || errMax != nil {
 					return fmt.Errorf("min и max должны быть числами")
 				}
