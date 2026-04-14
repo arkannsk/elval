@@ -99,7 +99,6 @@ func (v *Company) Validate() error {
 	if err := Company_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-	// SLICE DETECTED: Addresses
 
 	// Валидация слайса Addresses
 	if true && len(v.Addresses) == 0 {
@@ -125,8 +124,6 @@ func (v *Company) Validate() error {
 			}
 		}
 	}
-
-	// SLICE DETECTED: Users
 
 	// Валидация слайса Users
 	if len(v.Users) > 0 {

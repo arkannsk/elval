@@ -114,7 +114,6 @@ func (v *Order) Validate() error {
 	if err := Order_TotalValidator.Validate(v.Total); err != nil {
 		return err
 	}
-	// SLICE DETECTED: Items
 
 	// Валидация слайса Items
 	if len(v.Items) > 0 {

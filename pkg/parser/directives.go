@@ -29,6 +29,7 @@ const (
 	DirURL        DirectiveType = "url"
 	DirHTTPURL    DirectiveType = "http_url"
 	DirDSN        DirectiveType = "dsn"
+	DirDate       DirectiveType = "date"
 
 	DirEq  DirectiveType = "eq"  // равно
 	DirNeq DirectiveType = "neq" // не равно
@@ -158,6 +159,12 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 		AllowedTypes: []string{"time.Time"},
 		ParamCount:   1,
 		Example:      "@evl:validate after:2020-01-01",
+	},
+	DirDate: {
+		Description:  "проверка что строка является валидной датой в одном из указанных форматов",
+		AllowedTypes: []string{"string"},
+		ParamCount:   1, // форматы через запятую: date:RFC3339,RFC3339Nano,2006-01-02
+		Example:      "@evl:validate date:RFC3339,2006-01-02",
 	},
 	DirEq: {
 		Description:  "значение должно быть равно указанному",

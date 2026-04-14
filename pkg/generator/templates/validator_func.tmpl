@@ -72,6 +72,8 @@
             v.AddRule(validator.HTTPURL())
         {{- else if eq $directive.Type "dsn" }}
             v.AddRule(validator.DSN())
+        {{- else if eq $directive.Type "date" }}
+            v.AddRule(validator.Date({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
         {{- else if eq $directive.Type "enum" }}
             {{- if eq $.Type.Name "string" }}
                 v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))

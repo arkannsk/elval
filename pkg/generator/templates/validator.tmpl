@@ -12,7 +12,6 @@
     func (v *{{ $struct.Name }}) Validate() error {
     {{- range $field := $struct.Fields }}
         {{- if $field.Type.IsSlice }}
-            // SLICE DETECTED: {{ $field.Name }}
             {{ template "slice_validate" $field }}
         {{- else if $field.Type.IsPointer }}
             {{- $hasOptional := false }}

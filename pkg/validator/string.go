@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -217,4 +218,70 @@ func EndsWith(suffix string) ValidationRule[string] {
 		}
 		return nil
 	}
+}
+
+// Date проверяет что строка является валидной датой в одном из форматов
+func Date(formats ...string) ValidationRule[string] {
+	// Предопределённые форматы
+	predefined := map[string]string{
+		"RFC3339":     time.RFC3339,
+		"RFC3339Nano": time.RFC3339Nano,
+		"RFC1123":     time.RFC1123,
+		"RFC1123Z":    time.RFC1123Z,
+		"RFC822":      time.RFC822,
+		"RFC822Z":     time.RFC822Z,
+		"RFC850":      time.RFC850,
+		"Kitchen":     time.Kitchen,
+		"Stamp":       time.Stamp,
+		"StampMilli":  time.StampMilli,
+		"StampMicro":  time.StampMicro,
+		"StampNano":   time.StampNano,
+		"ANSIC":       time.ANSIC,
+		"UnixDate":    time.UnixDate,
+		"RubyDate":    time.RubyDate,
+	}
+
+	// Разворачиваем форматы
+	expandedFormats := make([]string, 0, len(formats))
+	for _, f := range formats {
+		if predefinedFormat, ok := predefined[f]; ok {
+			expandedFormats = append(expandedFormats, predefinedFormat)
+		} else {
+			expandedFormats = append(expandedFormats, f)
+		}
+	}
+
+	return func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		for _, format := range expandedFormats {
+			if _, err := time.Parse(format, value); err == nil {
+				return nil
+			}
+		}
+
+		return NewValidationError("date", "невалидная дата. Ожидаемые форматы: %v", formats)
+	}
+}
+
+// DateRFC3339 проверяет RFC3339 формат
+func DateRFC3339() ValidationRule[string] {
+	return Date("RFC3339")
+}
+
+// DateRFC3339Nano проверяет RFC3339Nano формат
+func DateRFC3339Nano() ValidationRule[string] {
+	return Date("RFC3339Nano")
+}
+
+// DateISO проверяет ISO формат (2006-01-02)
+func DateISO() ValidationRule[string] {
+	return Date("2006-01-02")
+}
+
+// DateTimeISO проверяет ISO формат с временем (2006-01-02T15:04:05)
+func DateTimeISO() ValidationRule[string] {
+	return Date("2006-01-02T15:04:05")
 }
