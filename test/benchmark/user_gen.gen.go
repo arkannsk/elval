@@ -4,6 +4,7 @@
 package benchmark
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -31,6 +32,11 @@ var (
 		return v
 	}()
 )
+
+func (v *UserGen) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *UserGen) Validate() error {
 

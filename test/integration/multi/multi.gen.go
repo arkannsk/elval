@@ -4,6 +4,7 @@
 package multi
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -30,6 +31,11 @@ var (
 		return v
 	}()
 )
+
+func (v *User) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *User) Validate() error {
 
@@ -70,6 +76,11 @@ var (
 	}()
 )
 
+func (v *Product) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Product) Validate() error {
 
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
@@ -109,6 +120,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Order) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Order) Validate() error {
 

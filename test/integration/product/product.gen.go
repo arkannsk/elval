@@ -4,6 +4,7 @@
 package product
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -65,28 +66,41 @@ var (
 	}()
 )
 
+func (v *Product) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Product) Validate() error {
+
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
+
 	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
+
 	if err := Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
+
 	if err := Product_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
+
 	if err := Product_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
+
 	if err := Product_ScoreValidator.Validate(v.Score); err != nil {
 		return err
 	}
+
 	if err := Product_DiscountValidator.Validate(v.Discount); err != nil {
 		return err
 	}
+
 	if err := Product_TaxValidator.Validate(v.Tax); err != nil {
 		return err
 	}

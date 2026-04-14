@@ -4,10 +4,16 @@
 package main
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
 var ()
+
+func (v *Product) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Product) Validate() error {
 

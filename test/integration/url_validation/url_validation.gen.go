@@ -4,6 +4,7 @@
 package url_validation
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -33,6 +34,11 @@ var (
 	}()
 )
 
+func (v *Link) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Link) Validate() error {
 
 	if err := Link_WebsiteValidator.Validate(v.Website); err != nil {
@@ -58,6 +64,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Profile) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Profile) Validate() error {
 
@@ -98,6 +109,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Config) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Config) Validate() error {
 

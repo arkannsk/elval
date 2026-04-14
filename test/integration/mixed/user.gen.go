@@ -4,6 +4,7 @@
 package mixed
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -30,6 +31,11 @@ var (
 		return v
 	}()
 )
+
+func (v *User) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *User) Validate() error {
 

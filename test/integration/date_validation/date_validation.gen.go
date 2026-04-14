@@ -4,6 +4,7 @@
 package date_validation
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -38,6 +39,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Event) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Event) Validate() error {
 
@@ -76,6 +82,11 @@ var (
 		return v
 	}()
 )
+
+func (v *LogEntry) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *LogEntry) Validate() error {
 

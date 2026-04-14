@@ -103,6 +103,7 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					Name:       fieldName,
 					Type:       fieldType,
 					Directives: directives,
+					Decorators: p.parseFieldDecorators(field),
 					Line:       p.fset.Position(field.Pos()).Line,
 				})
 			}

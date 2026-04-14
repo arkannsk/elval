@@ -2,8 +2,7 @@ package parser
 
 // FieldType представляет тип поля с поддержкой слайсов и указателей
 type FieldType struct {
-	Name      string // полное имя типа (mo.Option[string])
-	BaseName  string // базовое имя без дженериков (mo.Option)
+	Name      string
 	IsSlice   bool
 	IsPointer bool
 	IsStruct  bool
@@ -32,6 +31,7 @@ type Field struct {
 	Name       string      // имя поля
 	Type       FieldType   // тип поля
 	Directives []Directive // список директив валидации
+	Decorators []Decorator // декораторы
 	Line       int         // номер строки в файле (для ошибок)
 	Tag        string      // оригинальный тег поля (если есть)
 }

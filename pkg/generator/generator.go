@@ -72,6 +72,42 @@ func NewGenerator(outputDir string) (*Generator, error) {
 				return strings.HasPrefix(dirType, "x-")
 
 			},
+			"hasHTTPContext": func(structs []parser.Struct) bool {
+				for _, s := range structs {
+					for _, f := range s.Fields {
+						for _, d := range f.Decorators {
+							if d.Type == "httpctx-get" {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			},
+			"hasEnvGet": func(structs []parser.Struct) bool {
+				for _, s := range structs {
+					for _, f := range s.Fields {
+						for _, d := range f.Decorators {
+							if d.Type == "env-get" {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			},
+			"hasUUIDGen": func(structs []parser.Struct) bool {
+				for _, s := range structs {
+					for _, f := range s.Fields {
+						for _, d := range f.Decorators {
+							if d.Type == "uuid-gen" {
+								return true
+							}
+						}
+					}
+				}
+				return false
+			},
 		})
 
 	// Рекурсивно обходим все файлы шаблонов

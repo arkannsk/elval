@@ -17,6 +17,13 @@
     {{- end }}
     )
 
+    func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
+    {{- range $field := $struct.Fields }}
+        {{ template "decorators" $field }}
+    {{- end }}
+    return nil
+    }
+
     func (v *{{ $struct.Name }}) Validate() error {
     {{- range $field := $struct.Fields }}
         {{- if $field.Type.IsSlice }}

@@ -4,6 +4,7 @@
 package person
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 	"time"
 )
@@ -50,23 +51,32 @@ var (
 	}()
 )
 
+func (v *Person) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Person) Validate() error {
+
 	if err := Person_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+
 	if err := Person_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
+
 	if err := Person_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
+
 	if err := Person_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
+
 	if err := Person_BirthDateValidator.Validate(v.BirthDate); err != nil {
 		return err
 	}
-	// SLICE DETECTED: Tags
 
 	// Валидация слайса Tags
 	if true && len(v.Tags) == 0 {
@@ -97,8 +107,6 @@ func (v *Person) Validate() error {
 	if err := sliceValidator.Validate(v.Tags); err != nil {
 		return err
 	}
-
-	// SLICE DETECTED: Scores
 
 	// Валидация слайса Scores
 	if len(v.Scores) > 0 {

@@ -1,0 +1,29 @@
+{{ define "decorators" }}
+    {{- range .Decorators }}
+        {{- if eq .Type "ctx-get" }}
+            if val := ctx.Value("{{ index .Params 0 }}"); val != nil {
+            if str, ok := val.(string); ok {
+            v.{{ $.Name }} = str
+            }
+            }
+        {{- else if eq .Type "ctx-get-int" }}
+            if val := ctx.Value("{{ index .Params 0 }}"); val != nil {
+            if num, ok := val.(int); ok {
+            v.{{ $.Name }} = num
+            }
+            }
+        {{- else if eq .Type "httpctx-get" }}
+            if r := ctx.Value("http.request"); r != nil {
+            if req, ok := r.(*http.Request); ok {
+            v.{{ $.Name }} = req.Header.Get("{{ index .Params 0 }}")
+            }
+            }
+        {{- else if eq .Type "env-get" }}
+            v.{{ $.Name }} = os.Getenv("{{ index .Params 0 }}")
+        {{- else if eq .Type "time-now" }}
+            v.{{ $.Name }} = time.Now()
+        {{- else if eq .Type "uuid-gen" }}
+            v.{{ $.Name }} = uuid.New().String()
+        {{- end }}
+    {{- end }}
+{{ end }}

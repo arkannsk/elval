@@ -4,8 +4,18 @@
 package {{ .Package }}
 
 import (
+"context"
 {{- if hasTime .Structs }}
     "time"
+{{- end }}
+{{- if hasHTTPContext .Structs }}
+    "net/http"
+{{- end }}
+{{- if hasEnvGet .Structs }}
+    "os"
+{{- end }}
+{{- if hasUUIDGen .Structs }}
+    "github.com/google/uuid"
 {{- end }}
 "github.com/arkannsk/elval/pkg/validator"
 )

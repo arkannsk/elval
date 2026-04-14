@@ -4,6 +4,7 @@
 package nested
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -31,6 +32,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Address) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Address) Validate() error {
 
@@ -63,6 +69,11 @@ var (
 		return v
 	}()
 )
+
+func (v *User) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *User) Validate() error {
 
@@ -104,6 +115,11 @@ var (
 		return v
 	}()
 )
+
+func (v *Company) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *Company) Validate() error {
 

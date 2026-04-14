@@ -4,6 +4,7 @@
 package string_checks
 
 import (
+	"context"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -40,6 +41,11 @@ var (
 	}()
 )
 
+func (v *Document) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Document) Validate() error {
 
 	if err := Document_NameValidator.Validate(v.Name); err != nil {
@@ -75,6 +81,11 @@ var (
 		return v
 	}()
 )
+
+func (v *File) Decorate(ctx context.Context) error {
+
+	return nil
+}
 
 func (v *File) Validate() error {
 
