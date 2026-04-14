@@ -1,0 +1,5 @@
+{{ define "field_validate" }}
+    if err := {{ .Name }}Validator.Validate(v.{{ .Name }}); err != nil {
+    return err
+    }
+{{ end }}

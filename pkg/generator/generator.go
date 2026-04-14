@@ -27,10 +27,17 @@ func NewGenerator(outputDir string) (*Generator, error) {
 			"hasTime": func(structs []parser.Struct) bool {
 				for _, s := range structs {
 					for _, f := range s.Fields {
-						name := f.Type.Name
-						if name == "time.Time" || name == "time.Duration" {
+						if f.Type.Name == "time.Time" || f.Type.Name == "time.Duration" {
 							return true
 						}
+					}
+				}
+				return false
+			},
+			"hasOptional": func(directives []parser.Directive) bool {
+				for _, d := range directives {
+					if d.Type == "optional" {
+						return true
 					}
 				}
 				return false

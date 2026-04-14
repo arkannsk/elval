@@ -4,103 +4,94 @@
 package person
 
 import (
-	"fmt"
 	"github.com/arkannsk/elval/pkg/validator"
 	"time"
 )
 
+var (
+	NameValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Name")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.MinLen(2))
+		v.AddRule(validator.MaxLen(100))
+		return v
+	}()
+
+	EmailValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Email")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.Email())
+		return v
+	}()
+
+	AgeValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Age")
+		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Min[int](18))
+		v.AddRule(validator.Max[int](120))
+		return v
+	}()
+
+	PhoneValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Phone")
+		v.AddRule(validator.Phone())
+		original := v
+		v = validator.New[string]("Phone")
+		v.AddRule(validator.SkipIfZero(original.Validate))
+		return v
+	}()
+
+	BirthDateValidator = func() *validator.FieldValidator[time.Time] {
+		v := validator.New[time.Time]("BirthDate")
+		v.AddRule(validator.Required[time.Time]())
+		v.AddRule(validator.After("2006-01-02", "1900-01-01"))
+		v.AddRule(validator.Before("2006-01-02", "2024-12-31"))
+		return v
+	}()
+)
+
 // Validate проверяет структуру Person
 func (v *Person) Validate() error {
-	var errs []error
-	// Валидация поля Name
 
+	if err := NameValidator.Validate(v.Name); err != nil {
+		return err
+	}
+
+	if err := EmailValidator.Validate(v.Email); err != nil {
+		return err
+	}
+
+	if err := AgeValidator.Validate(v.Age); err != nil {
+		return err
+	}
+
+	if err := PhoneValidator.Validate(v.Phone); err != nil {
+		return err
+	}
+
+	if err := BirthDateValidator.Validate(v.BirthDate); err != nil {
+		return err
+	}
+
+	// Валидация слайса Tags
 	{
-
-		builder := validator.New[string]("Name")
-		builder.AddRule(validator.Required[string]())
-		builder.AddRule(validator.MinLen(2))
-		builder.AddRule(validator.MaxLen(100))
-		if err := builder.Validate(v.Name); err != nil {
-			errs = append(errs, err)
+		sliceValidator := validator.NewSliceValidator[string]("Tags")
+		sliceValidator.Required()
+		sliceValidator.Min(1)
+		sliceValidator.Max(10)
+		if err := sliceValidator.Validate(v.Tags); err != nil {
+			return err
 		}
 	}
 
-	// Валидация поля Email
-
+	// Валидация слайса Scores
 	{
-
-		builder := validator.New[string]("Email")
-		builder.AddRule(validator.Required[string]())
-		builder.AddRule(validator.Email())
-		if err := builder.Validate(v.Email); err != nil {
-			errs = append(errs, err)
+		sliceValidator := validator.NewSliceValidator[int]("Scores")
+		sliceValidator.NotZero()
+		if err := sliceValidator.Validate(v.Scores); err != nil {
+			return err
 		}
 	}
 
-	// Валидация поля Age
-
-	{
-
-		builder := validator.New[int]("Age")
-		builder.AddRule(validator.Required[int]())
-		builder.AddRule(validator.Min[int](18))
-		builder.AddRule(validator.Max[int](120))
-		if err := builder.Validate(v.Age); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// Валидация поля Phone
-
-	{
-
-		builder := validator.New[string]("Phone")
-		builder.AddRule(validator.Phone())
-		if v.Phone != "" {
-			if err := builder.Validate(v.Phone); err != nil {
-				errs = append(errs, err)
-			}
-		}
-	}
-
-	// Валидация поля BirthDate
-
-	{
-
-		builder := validator.New[time.Time]("BirthDate")
-		builder.AddRule(validator.Required[time.Time]())
-		builder.AddRule(validator.After("2006-01-02", "1900-01-01"))
-		builder.AddRule(validator.Before("2006-01-02", "2024-12-31"))
-		if err := builder.Validate(v.BirthDate); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// Валидация поля Tags
-
-	{
-		builder := validator.NewSliceValidator[string]("Tags")
-		builder.Required()
-		builder.Min(1)
-		builder.Max(10)
-		if err := builder.Validate(v.Tags); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// Валидация поля Scores
-
-	{
-		builder := validator.NewSliceValidator[int]("Scores")
-		builder.NotZero()
-		if err := builder.Validate(v.Scores); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if len(errs) > 0 {
-		return fmt.Errorf("ошибки валидации: %v", errs)
-	}
 	return nil
-
 }

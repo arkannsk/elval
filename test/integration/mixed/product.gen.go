@@ -4,52 +4,46 @@
 package mixed
 
 import (
-	"fmt"
 	"github.com/arkannsk/elval/pkg/validator"
+)
+
+var (
+	StatusValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Status")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.Eq[string]("active"))
+		return v
+	}()
+
+	QuantityValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Quantity")
+		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Min[int](1))
+		v.AddRule(validator.Max[int](100))
+		return v
+	}()
+
+	PriceValidator = func() *validator.FieldValidator[float64] {
+		v := validator.New[float64]("Price")
+		v.AddRule(validator.Gt[float64](0))
+		return v
+	}()
 )
 
 // Validate проверяет структуру Product
 func (v *Product) Validate() error {
-	var errs []error
-	// Валидация поля Status
 
-	{
-
-		builder := validator.New[string]("Status")
-		builder.AddRule(validator.Required[string]())
-		builder.AddRule(validator.Eq("active"))
-		if err := builder.Validate(v.Status); err != nil {
-			errs = append(errs, err)
-		}
+	if err := StatusValidator.Validate(v.Status); err != nil {
+		return err
 	}
 
-	// Валидация поля Quantity
-
-	{
-
-		builder := validator.New[int]("Quantity")
-		builder.AddRule(validator.Required[int]())
-		builder.AddRule(validator.Min[int](1))
-		builder.AddRule(validator.Max[int](100))
-		if err := builder.Validate(v.Quantity); err != nil {
-			errs = append(errs, err)
-		}
+	if err := QuantityValidator.Validate(v.Quantity); err != nil {
+		return err
 	}
 
-	// Валидация поля Price
-
-	{
-
-		builder := validator.New[float64]("Price")
-		builder.AddRule(validator.Gt[float64](0))
-		if err := builder.Validate(v.Price); err != nil {
-			errs = append(errs, err)
-		}
+	if err := PriceValidator.Validate(v.Price); err != nil {
+		return err
 	}
 
-	if len(errs) > 0 {
-		return fmt.Errorf("ошибки валидации: %v", errs)
-	}
 	return nil
-
 }

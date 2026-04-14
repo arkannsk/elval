@@ -4,111 +4,101 @@
 package product
 
 import (
-	"fmt"
 	"github.com/arkannsk/elval/pkg/validator"
+)
+
+var (
+	StatusValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Status")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.Eq[string]("active"))
+		return v
+	}()
+
+	QuantityValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Quantity")
+		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Min[int](1))
+		v.AddRule(validator.Max[int](100))
+		return v
+	}()
+
+	PriceValidator = func() *validator.FieldValidator[float64] {
+		v := validator.New[float64]("Price")
+		v.AddRule(validator.Required[float64]())
+		v.AddRule(validator.Gt[float64](0))
+		return v
+	}()
+
+	AgeValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Age")
+		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Gte[int](18))
+		return v
+	}()
+
+	RoleValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Role")
+		v.AddRule(validator.Eq[string]("admin"))
+		original := v
+		v = validator.New[string]("Role")
+		v.AddRule(validator.SkipIfZero(original.Validate))
+		return v
+	}()
+
+	ScoreValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Score")
+		v.AddRule(validator.Neq[int](0))
+		return v
+	}()
+
+	DiscountValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Discount")
+		v.AddRule(validator.Lt[int](100))
+		return v
+	}()
+
+	TaxValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Tax")
+		v.AddRule(validator.Lte[int](50))
+		return v
+	}()
 )
 
 // Validate проверяет структуру Product
 func (v *Product) Validate() error {
-	var errs []error
-	// Валидация поля Status
 
-	{
-
-		builder := validator.New[string]("Status")
-		builder.AddRule(validator.Required[string]())
-		builder.AddRule(validator.Eq("active"))
-		if err := builder.Validate(v.Status); err != nil {
-			errs = append(errs, err)
-		}
+	if err := StatusValidator.Validate(v.Status); err != nil {
+		return err
 	}
 
-	// Валидация поля Quantity
-
-	{
-
-		builder := validator.New[int]("Quantity")
-		builder.AddRule(validator.Required[int]())
-		builder.AddRule(validator.Min[int](1))
-		builder.AddRule(validator.Max[int](100))
-		if err := builder.Validate(v.Quantity); err != nil {
-			errs = append(errs, err)
-		}
+	if err := QuantityValidator.Validate(v.Quantity); err != nil {
+		return err
 	}
 
-	// Валидация поля Price
-
-	{
-
-		builder := validator.New[float64]("Price")
-		builder.AddRule(validator.Required[float64]())
-		builder.AddRule(validator.Gt[float64](0))
-		if err := builder.Validate(v.Price); err != nil {
-			errs = append(errs, err)
-		}
+	if err := PriceValidator.Validate(v.Price); err != nil {
+		return err
 	}
 
-	// Валидация поля Age
-
-	{
-
-		builder := validator.New[int]("Age")
-		builder.AddRule(validator.Required[int]())
-		builder.AddRule(validator.Gte[int](18))
-		if err := builder.Validate(v.Age); err != nil {
-			errs = append(errs, err)
-		}
+	if err := AgeValidator.Validate(v.Age); err != nil {
+		return err
 	}
 
-	// Валидация поля Role
-
-	{
-
-		builder := validator.New[string]("Role")
-		builder.AddRule(validator.Eq("admin"))
-		if v.Role != "" {
-			if err := builder.Validate(v.Role); err != nil {
-				errs = append(errs, err)
-			}
-		}
+	if err := RoleValidator.Validate(v.Role); err != nil {
+		return err
 	}
 
-	// Валидация поля Score
-
-	{
-
-		builder := validator.New[int]("Score")
-		builder.AddRule(validator.Neq[int](0))
-		if err := builder.Validate(v.Score); err != nil {
-			errs = append(errs, err)
-		}
+	if err := ScoreValidator.Validate(v.Score); err != nil {
+		return err
 	}
 
-	// Валидация поля Discount
-
-	{
-
-		builder := validator.New[int]("Discount")
-		builder.AddRule(validator.Lt[int](100))
-		if err := builder.Validate(v.Discount); err != nil {
-			errs = append(errs, err)
-		}
+	if err := DiscountValidator.Validate(v.Discount); err != nil {
+		return err
 	}
 
-	// Валидация поля Tax
-
-	{
-
-		builder := validator.New[int]("Tax")
-		builder.AddRule(validator.Lte[int](50))
-		if err := builder.Validate(v.Tax); err != nil {
-			errs = append(errs, err)
-		}
+	if err := TaxValidator.Validate(v.Tax); err != nil {
+		return err
 	}
 
-	if len(errs) > 0 {
-		return fmt.Errorf("ошибки валидации: %v", errs)
-	}
 	return nil
-
 }

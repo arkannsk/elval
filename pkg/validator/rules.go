@@ -22,3 +22,14 @@ func Optional[T any]() ValidationRule[T] {
 func Custom[T any](fn func(T) error) ValidationRule[T] {
 	return fn
 }
+
+// SkipIfZero пропускает валидацию если значение zero
+func SkipIfZero[T comparable](rule ValidationRule[T]) ValidationRule[T] {
+	var zero T
+	return func(value T) error {
+		if value == zero {
+			return nil
+		}
+		return rule(value)
+	}
+}

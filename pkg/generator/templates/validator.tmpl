@@ -1,25 +1,23 @@
 {{ template "header" . }}
 
 {{ range $struct := .Structs }}
-    // Validate проверяет структуру {{ $struct.Name }}
-    func (v *{{ $struct.Name }}) Validate() error {
-    var errs []error
-
+    var (
     {{- range $field := $struct.Fields }}
-        // Валидация поля {{ $field.Name }}
-        {{- if $field.Type.IsSlice }}
-            {{ template "slice_validation" $field }}
-        {{- else if eq $field.Type.Name "string" }}
-            {{ template "string_validation" $field }}
-        {{- else if eq $field.Type.Name "time.Time" }}
-            {{ template "time_validation" $field }}
-        {{- else if eq $field.Type.Name "time.Duration" }}
-            {{ template "duration_validation" $field }}
-        {{- else }}
-            {{ template "numeric_validation" $field }}
+        {{- if not $field.Type.IsSlice }}
+            {{ $field.Name }}Validator = {{ template "validator_func" $field }}
         {{- end }}
     {{- end }}
+    )
 
-    {{ template "error_check" }}
+    // Validate проверяет структуру {{ $struct.Name }}
+    func (v *{{ $struct.Name }}) Validate() error {
+    {{- range $field := $struct.Fields }}
+        {{- if $field.Type.IsSlice }}
+            {{ template "slice_validate" $field }}
+        {{- else }}
+            {{ template "field_validate" $field }}
+        {{- end }}
+    {{- end }}
+    return nil
     }
 {{ end }}
