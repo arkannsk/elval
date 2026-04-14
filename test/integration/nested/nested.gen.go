@@ -33,12 +33,15 @@ var (
 )
 
 func (v *Address) Validate() error {
+
 	if err := Address_CityValidator.Validate(v.City); err != nil {
 		return err
 	}
+
 	if err := Address_StreetValidator.Validate(v.Street); err != nil {
 		return err
 	}
+
 	if err := Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
 		return err
 	}
@@ -62,12 +65,16 @@ var (
 )
 
 func (v *User) Validate() error {
+
 	if err := User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+
 	if err := User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
+
+	// Вложенная структура Address
 	if err := v.Address.Validate(); err != nil {
 		return &validator.ValidationError{
 			Field:   "Address",
@@ -75,6 +82,8 @@ func (v *User) Validate() error {
 			Message: "поле Address: " + err.Error(),
 		}
 	}
+
+	// Указатель BillingAddress
 	if v.BillingAddress != nil {
 		if err := v.BillingAddress.Validate(); err != nil {
 			return &validator.ValidationError{
@@ -84,6 +93,7 @@ func (v *User) Validate() error {
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -96,6 +106,7 @@ var (
 )
 
 func (v *Company) Validate() error {
+
 	if err := Company_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}

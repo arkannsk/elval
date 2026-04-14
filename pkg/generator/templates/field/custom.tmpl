@@ -1,0 +1,22 @@
+{{ define "custom_validation" }}
+    {{- $hasCustom := false }}
+    {{- range $directive := .Directives }}
+        {{- if isCustomDirective $directive.Type }}
+            {{- $hasCustom = true }}
+        {{- end }}
+    {{- end }}
+    {{- if $hasCustom }}
+        // Кастомная валидация поля {{ .Name }}
+        {{- range $directive := .Directives }}
+            {{- if isCustomDirective $directive.Type }}
+                if err := validator.ValidateCustom("{{ $directive.Type }}", v.{{ $.Name }}, {{ if $directive.Params }}{{ index $directive.Params 0 | printf "%q" }}{{ else }}""{{ end }}); err != nil {
+                return &validator.ValidationError{
+                Field: "{{ $.Name }}",
+                Rule:  "{{ $directive.Type }}",
+                Message: err.Error(),
+                }
+                }
+            {{- end }}
+        {{- end }}
+    {{- end }}
+{{ end }}

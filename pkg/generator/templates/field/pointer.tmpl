@@ -1,0 +1,33 @@
+{{ define "pointer_validate" }}
+    // Указатель {{ .Name }}
+    {{- $hasOptional := false }}
+    {{- range .Directives }}
+        {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
+    {{- end }}
+    {{- if $hasOptional }}
+        if v.{{ .Name }} != nil {
+        if err := v.{{ .Name }}.Validate(); err != nil {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "nested",
+        Message: "поле {{ .Name }}: " + err.Error(),
+        }
+        }
+        }
+    {{- else }}
+        if v.{{ .Name }} == nil {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "required",
+        Message: "поле {{ .Name }} обязательно",
+        }
+        }
+        if err := v.{{ .Name }}.Validate(); err != nil {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "nested",
+        Message: "поле {{ .Name }}: " + err.Error(),
+        }
+        }
+    {{- end }}
+{{ end }}

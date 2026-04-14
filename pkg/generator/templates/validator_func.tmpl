@@ -81,7 +81,7 @@
         {{- else if eq $directive.Type "date" }}
             v.AddRule(validator.Date({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
         {{- else if isCustomDirective $directive.Type }}
-            v.AddRule(func(value {{ $.Type.Name }}) error {
+            v.AddRule(func(value any) error {
             return validator.ValidateCustom("{{ $directive.Type }}", value, {{ if $directive.Params }}{{ index $directive.Params 0 | printf "%q" }}{{ else }}""{{ end }})
             })
         {{- end }}

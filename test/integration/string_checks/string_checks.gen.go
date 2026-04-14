@@ -41,15 +41,19 @@ var (
 )
 
 func (v *Document) Validate() error {
+
 	if err := Document_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+
 	if err := Document_URLValidator.Validate(v.URL); err != nil {
 		return err
 	}
+
 	if err := Document_ContentValidator.Validate(v.Content); err != nil {
 		return err
 	}
+
 	if err := Document_ImageNameValidator.Validate(v.ImageName); err != nil {
 		return err
 	}
@@ -73,9 +77,11 @@ var (
 )
 
 func (v *File) Validate() error {
+
 	if err := File_PathValidator.Validate(v.Path); err != nil {
 		return err
 	}
+
 	if err := File_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}

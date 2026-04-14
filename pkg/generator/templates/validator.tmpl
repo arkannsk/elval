@@ -4,7 +4,15 @@
     var (
     {{- range $field := $struct.Fields }}
         {{- if and (not $field.Type.IsSlice) (not $field.Type.IsStruct) (not $field.Type.IsPointer) }}
-            {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
+            {{- $hasCustom := false }}
+            {{- range $directive := $field.Directives }}
+                {{- if isCustomDirective $directive.Type }}
+                    {{- $hasCustom = true }}
+                {{- end }}
+            {{- end }}
+            {{- if not $hasCustom }}
+                {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
+            {{- end }}
         {{- end }}
     {{- end }}
     )
@@ -14,48 +22,22 @@
         {{- if $field.Type.IsSlice }}
             {{ template "slice_validate" $field }}
         {{- else if $field.Type.IsPointer }}
-            {{- $hasOptional := false }}
-            {{- range $field.Directives }}
-                {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
-            {{- end }}
-            {{- if $hasOptional }}
-                if v.{{ $field.Name }} != nil {
-                if err := v.{{ $field.Name }}.Validate(); err != nil {
-                return &validator.ValidationError{
-                Field: "{{ $field.Name }}",
-                Rule:  "nested",
-                Message: "поле {{ $field.Name }}: " + err.Error(),
-                }
-                }
-                }
-            {{- else }}
-                if v.{{ $field.Name }} == nil {
-                return &validator.ValidationError{
-                Field: "{{ $field.Name }}",
-                Rule:  "required",
-                Message: "поле {{ $field.Name }} обязательно",
-                }
-                }
-                if err := v.{{ $field.Name }}.Validate(); err != nil {
-                return &validator.ValidationError{
-                Field: "{{ $field.Name }}",
-                Rule:  "nested",
-                Message: "поле {{ $field.Name }}: " + err.Error(),
-                }
-                }
-            {{- end }}
+            {{ template "pointer_validate" $field }}
         {{- else if $field.Type.IsStruct }}
-            if err := v.{{ $field.Name }}.Validate(); err != nil {
-            return &validator.ValidationError{
-            Field: "{{ $field.Name }}",
-            Rule:  "nested",
-            Message: "поле {{ $field.Name }}: " + err.Error(),
-            }
-            }
+            {{ template "struct_validate" $field }}
         {{- else }}
-            if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
-            return err
-            }
+            {{ template "custom_validation" $field }}
+            {{- $hasCustom := false }}
+            {{- range $directive := $field.Directives }}
+                {{- if isCustomDirective $directive.Type }}
+                    {{- $hasCustom = true }}
+                {{- end }}
+            {{- end }}
+            {{- if not $hasCustom }}
+                if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+                return err
+                }
+            {{- end }}
         {{- end }}
     {{- end }}
     return nil

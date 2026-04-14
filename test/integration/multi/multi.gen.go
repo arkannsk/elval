@@ -32,12 +32,15 @@ var (
 )
 
 func (v *User) Validate() error {
+
 	if err := User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+
 	if err := User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
+
 	if err := User_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
@@ -68,12 +71,15 @@ var (
 )
 
 func (v *Product) Validate() error {
+
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
+
 	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
+
 	if err := Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
@@ -105,12 +111,15 @@ var (
 )
 
 func (v *Order) Validate() error {
+
 	if err := Order_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
+
 	if err := Order_UserIDValidator.Validate(v.UserID); err != nil {
 		return err
 	}
+
 	if err := Order_TotalValidator.Validate(v.Total); err != nil {
 		return err
 	}

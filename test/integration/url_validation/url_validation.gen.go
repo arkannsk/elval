@@ -34,12 +34,15 @@ var (
 )
 
 func (v *Link) Validate() error {
+
 	if err := Link_WebsiteValidator.Validate(v.Website); err != nil {
 		return err
 	}
+
 	if err := Link_BlogValidator.Validate(v.Blog); err != nil {
 		return err
 	}
+
 	if err := Link_APIValidator.Validate(v.API); err != nil {
 		return err
 	}
@@ -57,6 +60,7 @@ var (
 )
 
 func (v *Profile) Validate() error {
+
 	if err := Profile_SecureURLValidator.Validate(v.SecureURL); err != nil {
 		return err
 	}
@@ -96,15 +100,19 @@ var (
 )
 
 func (v *Config) Validate() error {
+
 	if err := Config_AnyURLValidator.Validate(v.AnyURL); err != nil {
 		return err
 	}
+
 	if err := Config_WebURLValidator.Validate(v.WebURL); err != nil {
 		return err
 	}
+
 	if err := Config_DatabaseURLValidator.Validate(v.DatabaseURL); err != nil {
 		return err
 	}
+
 	if err := Config_ClickHouseURLValidator.Validate(v.ClickHouseURL); err != nil {
 		return err
 	}
