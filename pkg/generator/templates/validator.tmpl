@@ -4,7 +4,7 @@
     var (
     {{- range $field := $struct.Fields }}
         {{- if not $field.Type.IsSlice }}
-            {{ $field.Name }}Validator = {{ template "validator_func" $field }}
+            {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
         {{- end }}
     {{- end }}
     )
@@ -15,7 +15,7 @@
         {{- if $field.Type.IsSlice }}
             {{ template "slice_validate" $field }}
         {{- else }}
-            {{ template "field_validate" $field }}
+            {{ template "field_validate" (dict "Struct" $struct.Name "Field" $field) }}
         {{- end }}
     {{- end }}
     return nil

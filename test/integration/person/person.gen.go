@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	NameValidator = func() *validator.FieldValidator[string] {
+	Person_NameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Name")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.MinLen(2))
@@ -17,14 +17,14 @@ var (
 		return v
 	}()
 
-	EmailValidator = func() *validator.FieldValidator[string] {
+	Person_EmailValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Email")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.Email())
 		return v
 	}()
 
-	AgeValidator = func() *validator.FieldValidator[int] {
+	Person_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
 		v.AddRule(validator.Required[int]())
 		v.AddRule(validator.Min[int](18))
@@ -32,7 +32,7 @@ var (
 		return v
 	}()
 
-	PhoneValidator = func() *validator.FieldValidator[string] {
+	Person_PhoneValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Phone")
 		v.AddRule(validator.Phone())
 		original := v
@@ -41,7 +41,7 @@ var (
 		return v
 	}()
 
-	BirthDateValidator = func() *validator.FieldValidator[time.Time] {
+	Person_BirthDateValidator = func() *validator.FieldValidator[time.Time] {
 		v := validator.New[time.Time]("BirthDate")
 		v.AddRule(validator.Required[time.Time]())
 		v.AddRule(validator.After("2006-01-02", "1900-01-01"))
@@ -53,43 +53,45 @@ var (
 // Validate проверяет структуру Person
 func (v *Person) Validate() error {
 
-	if err := NameValidator.Validate(v.Name); err != nil {
+	if err := Person_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
-	if err := EmailValidator.Validate(v.Email); err != nil {
+	if err := Person_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
 
-	if err := AgeValidator.Validate(v.Age); err != nil {
+	if err := Person_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 
-	if err := PhoneValidator.Validate(v.Phone); err != nil {
+	if err := Person_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
 
-	if err := BirthDateValidator.Validate(v.BirthDate); err != nil {
+	if err := Person_BirthDateValidator.Validate(v.BirthDate); err != nil {
 		return err
 	}
 
-	// Валидация слайса Tags
-	{
-		sliceValidator := validator.NewSliceValidator[string]("Tags")
-		sliceValidator.Required()
-		sliceValidator.Min(1)
-		sliceValidator.Max(10)
-		if err := sliceValidator.Validate(v.Tags); err != nil {
-			return err
-		}
+	sliceValidator := validator.NewSliceValidator[string]("Tags")
+	sliceValidator.Required()
+	sliceValidator.Min(1)
+	sliceValidator.Max(10)
+	if err := sliceValidator.Validate(v.Tags); err != nil {
+		return err
 	}
 
-	// Валидация слайса Scores
-	{
+	if len(v.Scores) > 0 {
 		sliceValidator := validator.NewSliceValidator[int]("Scores")
 		sliceValidator.NotZero()
 		if err := sliceValidator.Validate(v.Scores); err != nil {
 			return err
+		}
+	} else if true {
+		return &validator.ValidationError{
+			Field:   "Scores",
+			Rule:    "not-zero",
+			Message: "поле Scores не может быть пустым",
 		}
 	}
 

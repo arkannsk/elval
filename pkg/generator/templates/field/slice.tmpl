@@ -1,22 +1,54 @@
 {{ define "slice_validate" }}
-    // Валидация слайса {{ .Name }}
-    {
-    sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
-    {{- range $directive := .Directives }}
-        {{- if eq $directive.Type "required" }}
-            sliceValidator.Required()
-        {{- else if eq $directive.Type "min" }}
-            sliceValidator.Min({{ index $directive.Params 0 }})
-        {{- else if eq $directive.Type "max" }}
-            sliceValidator.Max({{ index $directive.Params 0 }})
-        {{- else if eq $directive.Type "len" }}
-            sliceValidator.Len({{ index $directive.Params 0 }})
-        {{- else if eq $directive.Type "not-zero" }}
-            sliceValidator.NotZero()
-        {{- end }}
+    {{- $hasRequired := false }}
+    {{- $hasOptional := false }}
+    {{- $hasNotZero := false }}
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}{{ $hasRequired = true }}{{ end }}
+        {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
+        {{- if eq .Type "not-zero" }}{{ $hasNotZero = true }}{{ end }}
     {{- end }}
-    if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
-    return err
-    }
-    }
+
+    {{- if $hasOptional }}
+        if len(v.{{ .Name }}) > 0 {
+        sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+        {{- range $directive := .Directives }}
+            {{- if eq $directive.Type "min" }}
+                sliceValidator.Min({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "max" }}
+                sliceValidator.Max({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "len" }}
+                sliceValidator.Len({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "not-zero" }}
+                sliceValidator.NotZero()
+            {{- end }}
+        {{- end }}
+        if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+        return err
+        }
+        } else if {{ $hasNotZero }} {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "not-zero",
+        Message: "поле {{ .Name }} не может быть пустым",
+        }
+        }
+    {{- else }}
+        sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+        {{- range $directive := .Directives }}
+            {{- if eq $directive.Type "required" }}
+                sliceValidator.Required()
+            {{- else if eq $directive.Type "min" }}
+                sliceValidator.Min({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "max" }}
+                sliceValidator.Max({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "len" }}
+                sliceValidator.Len({{ index $directive.Params 0 }})
+            {{- else if eq $directive.Type "not-zero" }}
+                sliceValidator.NotZero()
+            {{- end }}
+        {{- end }}
+        if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+        return err
+        }
+    {{- end }}
 {{ end }}

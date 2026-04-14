@@ -15,6 +15,7 @@ var (
 
 // ValidationError кастомная ошибка валидации
 type ValidationError struct {
+	Field   string
 	Rule    string
 	Message string
 }

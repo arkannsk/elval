@@ -1,5 +1,5 @@
 {{ define "field_validate" }}
-    if err := {{ .Name }}Validator.Validate(v.{{ .Name }}); err != nil {
+    if err := {{ .Struct }}_{{ .Field.Name }}Validator.Validate(v.{{ .Field.Name }}); err != nil {
     return err
     }
 {{ end }}

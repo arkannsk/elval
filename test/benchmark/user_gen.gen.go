@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	NameValidator = func() *validator.FieldValidator[string] {
+	UserGen_NameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Name")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.MinLen(2))
@@ -16,14 +16,14 @@ var (
 		return v
 	}()
 
-	EmailValidator = func() *validator.FieldValidator[string] {
+	UserGen_EmailValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Email")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.Email())
 		return v
 	}()
 
-	AgeValidator = func() *validator.FieldValidator[int] {
+	UserGen_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
 		v.AddRule(validator.Required[int]())
 		v.AddRule(validator.Min[int](18))
@@ -35,15 +35,15 @@ var (
 // Validate проверяет структуру UserGen
 func (v *UserGen) Validate() error {
 
-	if err := NameValidator.Validate(v.Name); err != nil {
+	if err := UserGen_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
-	if err := EmailValidator.Validate(v.Email); err != nil {
+	if err := UserGen_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
 
-	if err := AgeValidator.Validate(v.Age); err != nil {
+	if err := UserGen_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 

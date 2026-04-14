@@ -8,14 +8,14 @@ import (
 )
 
 var (
-	StatusValidator = func() *validator.FieldValidator[string] {
+	Product_StatusValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Status")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.Eq[string]("active"))
 		return v
 	}()
 
-	QuantityValidator = func() *validator.FieldValidator[int] {
+	Product_QuantityValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Quantity")
 		v.AddRule(validator.Required[int]())
 		v.AddRule(validator.Min[int](1))
@@ -23,21 +23,21 @@ var (
 		return v
 	}()
 
-	PriceValidator = func() *validator.FieldValidator[float64] {
+	Product_PriceValidator = func() *validator.FieldValidator[float64] {
 		v := validator.New[float64]("Price")
 		v.AddRule(validator.Required[float64]())
 		v.AddRule(validator.Gt[float64](0))
 		return v
 	}()
 
-	AgeValidator = func() *validator.FieldValidator[int] {
+	Product_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
 		v.AddRule(validator.Required[int]())
 		v.AddRule(validator.Gte[int](18))
 		return v
 	}()
 
-	RoleValidator = func() *validator.FieldValidator[string] {
+	Product_RoleValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Role")
 		v.AddRule(validator.Eq[string]("admin"))
 		original := v
@@ -46,19 +46,19 @@ var (
 		return v
 	}()
 
-	ScoreValidator = func() *validator.FieldValidator[int] {
+	Product_ScoreValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Score")
 		v.AddRule(validator.Neq[int](0))
 		return v
 	}()
 
-	DiscountValidator = func() *validator.FieldValidator[int] {
+	Product_DiscountValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Discount")
 		v.AddRule(validator.Lt[int](100))
 		return v
 	}()
 
-	TaxValidator = func() *validator.FieldValidator[int] {
+	Product_TaxValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Tax")
 		v.AddRule(validator.Lte[int](50))
 		return v
@@ -68,35 +68,35 @@ var (
 // Validate проверяет структуру Product
 func (v *Product) Validate() error {
 
-	if err := StatusValidator.Validate(v.Status); err != nil {
+	if err := Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
 
-	if err := QuantityValidator.Validate(v.Quantity); err != nil {
+	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
 
-	if err := PriceValidator.Validate(v.Price); err != nil {
+	if err := Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
 
-	if err := AgeValidator.Validate(v.Age); err != nil {
+	if err := Product_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 
-	if err := RoleValidator.Validate(v.Role); err != nil {
+	if err := Product_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
 
-	if err := ScoreValidator.Validate(v.Score); err != nil {
+	if err := Product_ScoreValidator.Validate(v.Score); err != nil {
 		return err
 	}
 
-	if err := DiscountValidator.Validate(v.Discount); err != nil {
+	if err := Product_DiscountValidator.Validate(v.Discount); err != nil {
 		return err
 	}
 
-	if err := TaxValidator.Validate(v.Tax); err != nil {
+	if err := Product_TaxValidator.Validate(v.Tax); err != nil {
 		return err
 	}
 
