@@ -33,3 +33,18 @@ func SkipIfZero[T comparable](rule ValidationRule[T]) ValidationRule[T] {
 		return rule(value)
 	}
 }
+
+// Enum проверяет что значение входит в список разрешенных
+func Enum[T comparable](allowed ...T) ValidationRule[T] {
+	allowedMap := make(map[T]struct{}, len(allowed))
+	for _, v := range allowed {
+		allowedMap[v] = struct{}{}
+	}
+
+	return func(value T) error {
+		if _, ok := allowedMap[value]; !ok {
+			return NewValidationError("enum", "значение должно быть одним из: %v", allowed)
+		}
+		return nil
+	}
+}

@@ -60,6 +60,12 @@
             {{- else }}
                 v.AddRule(validator.MatchRegexp({{ index $directive.Params 0 | printf "%q" }}))
             {{- end }}
+        {{- else if eq $directive.Type "enum" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
+            {{- else }}
+                v.AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}))
+            {{- end }}
         {{- end }}
     {{- end }}
     {{- if and (not $hasRequired) (hasOptional .Directives) }}

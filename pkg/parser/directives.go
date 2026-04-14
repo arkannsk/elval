@@ -20,6 +20,7 @@ const (
 	DirMinMax   DirectiveType = "min-max"
 	DirPattern  DirectiveType = "pattern"
 	DirNotZero  DirectiveType = "not-zero"
+	DirEnum     DirectiveType = "enum"   // проверка на вхождение в список
 	DirBefore   DirectiveType = "before" // для time.Time: должно быть до указанной даты
 	DirAfter    DirectiveType = "after"  // для time.Time: должно быть после указанной даты
 
@@ -91,6 +92,12 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 			"phone": `^\+?[0-9]{8,15}$`,
 			"uuid":  `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`,
 		},
+	},
+	DirEnum: {
+		Description:  "значение должно быть из указанного списка",
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64"},
+		ParamCount:   1, // параметры через запятую: enum:active,inactive,pending
+		Example:      "@evl:validate enum:active,inactive,pending",
 	},
 	DirNotZero: {
 		Description:  "значение не должно быть нулевым (для слайсов - не пустым, для Time - не zero time)",

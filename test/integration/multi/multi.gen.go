@@ -129,6 +129,8 @@ func (v *Order) Validate() error {
 		return err
 	}
 
+	// Валидация слайса Items
+	// optional поле - проверяем только если не пустое
 	if len(v.Items) > 0 {
 		sliceValidator := validator.NewSliceValidator[string]("Items")
 		sliceValidator.Min(1)

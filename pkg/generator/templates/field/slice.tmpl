@@ -1,4 +1,5 @@
 {{ define "slice_validate" }}
+    // Валидация слайса {{ .Name }}
     {{- $hasRequired := false }}
     {{- $hasOptional := false }}
     {{- $hasNotZero := false }}
@@ -9,6 +10,7 @@
     {{- end }}
 
     {{- if $hasOptional }}
+        // optional поле - проверяем только если не пустое
         if len(v.{{ .Name }}) > 0 {
         sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
         {{- range $directive := .Directives }}
@@ -20,6 +22,13 @@
                 sliceValidator.Len({{ index $directive.Params 0 }})
             {{- else if eq $directive.Type "not-zero" }}
                 sliceValidator.NotZero()
+            {{- else if eq $directive.Type "enum" }}
+                {{- /* Для слайсов enum применяется к каждому элементу */}}
+                {{- if eq $.Type.Name "string" }}
+                    sliceValidator.Each(validator.New[string]("element").AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }})))
+                {{- else }}
+                    sliceValidator.Each(validator.New[{{ $.Type.Name }}]("element").AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }})))
+                {{- end }}
             {{- end }}
         {{- end }}
         if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
@@ -45,6 +54,12 @@
                 sliceValidator.Len({{ index $directive.Params 0 }})
             {{- else if eq $directive.Type "not-zero" }}
                 sliceValidator.NotZero()
+            {{- else if eq $directive.Type "enum" }}
+                {{- if eq $.Type.Name "string" }}
+                    sliceValidator.Each(validator.New[string]("element").AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }})))
+                {{- else }}
+                    sliceValidator.Each(validator.New[{{ $.Type.Name }}]("element").AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }})))
+                {{- end }}
             {{- end }}
         {{- end }}
         if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
