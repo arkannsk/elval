@@ -22,6 +22,13 @@ const (
 	DirNotZero  DirectiveType = "not-zero"
 	DirBefore   DirectiveType = "before" // для time.Time: должно быть до указанной даты
 	DirAfter    DirectiveType = "after"  // для time.Time: должно быть после указанной даты
+
+	DirEq  DirectiveType = "eq"  // равно
+	DirNeq DirectiveType = "neq" // не равно
+	DirLt  DirectiveType = "lt"  // меньше
+	DirLte DirectiveType = "lte" // меньше или равно
+	DirGt  DirectiveType = "gt"  // больше
+	DirGte DirectiveType = "gte" // больше или равно
 )
 
 // DirectiveInfo информация о директиве
@@ -102,6 +109,42 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 		AllowedTypes: []string{"time.Time"},
 		ParamCount:   1,
 		Example:      "@evl:validate after:2020-01-01",
+	},
+	DirEq: {
+		Description:  "значение должно быть равно указанному",
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool"},
+		ParamCount:   1,
+		Example:      "@evl:validate eq:10",
+	},
+	DirNeq: {
+		Description:  "значение не должно быть равно указанному",
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool"},
+		ParamCount:   1,
+		Example:      "@evl:validate neq:0",
+	},
+	DirLt: {
+		Description:  "значение должно быть меньше указанного",
+		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
+		ParamCount:   1,
+		Example:      "@evl:validate lt:100",
+	},
+	DirLte: {
+		Description:  "значение должно быть меньше или равно указанному",
+		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
+		ParamCount:   1,
+		Example:      "@evl:validate lte:100",
+	},
+	DirGt: {
+		Description:  "значение должно быть больше указанного",
+		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
+		ParamCount:   1,
+		Example:      "@evl:validate gt:0",
+	},
+	DirGte: {
+		Description:  "значение должно быть больше или равно указанному",
+		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
+		ParamCount:   1,
+		Example:      "@evl:validate gte:18",
 	},
 }
 

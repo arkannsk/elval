@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"go/format"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/arkannsk/elval/pkg/parser"
 )
 
-//go:embed templates/*.tmpl
+//go:embed templates
 var templatesFS embed.FS
 
 type Generator struct {
@@ -34,16 +35,41 @@ func NewGenerator(outputDir string) (*Generator, error) {
 				}
 				return false
 			},
-			"hasPattern": func(structs []parser.Struct) bool {
-				// regexp не нужен, так как MatchRegexp создает regexp внутри
-				return false
-			},
 			"printf": fmt.Sprintf,
 		})
 
-	tmpl, err := tmpl.ParseFS(templatesFS, "templates/validator.tmpl")
+	// Рекурсивно обходим все файлы шаблонов
+	err := fs.WalkDir(templatesFS, "templates", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".tmpl") {
+			content, err := fs.ReadFile(templatesFS, path)
+			if err != nil {
+				return err
+			}
+			// Извлекаем короткое имя (без пути и расширения)
+			// templates/header.tmpl -> header
+			// templates/field/slice.tmpl -> slice_validation
+			name := strings.TrimPrefix(path, "templates/")
+			name = strings.TrimSuffix(name, ".tmpl")
+			name = strings.ReplaceAll(name, "/", "_")
+
+			// Для field файлов добавляем суффикс для ясности
+			if strings.Contains(path, "/field/") {
+				name = strings.TrimPrefix(name, "field_")
+			}
+
+			_, err = tmpl.New(name).Parse(string(content))
+			if err != nil {
+				return fmt.Errorf("ошибка парсинга %s: %w", path, err)
+			}
+		}
+		return nil
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("ошибка парсинга шаблона: %w", err)
+		return nil, fmt.Errorf("ошибка загрузки шаблонов: %w", err)
 	}
 
 	return &Generator{
@@ -68,7 +94,7 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	var buf strings.Builder
-	if err := g.tmpl.ExecuteTemplate(&buf, "validator.tmpl", data); err != nil {
+	if err := g.tmpl.ExecuteTemplate(&buf, "validator", data); err != nil {
 		return fmt.Errorf("ошибка выполнения шаблона: %w", err)
 	}
 

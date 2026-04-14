@@ -1,0 +1,48 @@
+{{ define "numeric_validation" }}
+    {
+    {{- $hasRequired := false }}
+    {{- $hasOptional := false }}
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}{{ $hasRequired = true }}{{ end }}
+        {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
+    {{- end }}
+
+    builder := validator.New[{{ .Type.Name }}]("{{ .Name }}")
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}
+            builder.AddRule(validator.Required[{{ $.Type.Name }}]())
+        {{- else if eq .Type "min" }}
+            builder.AddRule(validator.Min[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "max" }}
+            builder.AddRule(validator.Max[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "not-zero" }}
+            builder.AddRule(validator.NotZero[{{ $.Type.Name }}]())
+        {{- else if eq .Type "eq" }}
+            builder.AddRule(validator.Eq[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "neq" }}
+            builder.AddRule(validator.Neq[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "lt" }}
+            builder.AddRule(validator.Lt[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "lte" }}
+            builder.AddRule(validator.Lte[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "gt" }}
+            builder.AddRule(validator.Gt[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- else if eq .Type "gte" }}
+            builder.AddRule(validator.Gte[{{ $.Type.Name }}]({{ index .Params 0 }}))
+        {{- end }}
+    {{- end }}
+
+    {{- if and (not $hasRequired) $hasOptional }}
+        var zero {{ $.Type.Name }}
+        if v.{{ .Name }} != zero {
+        if err := builder.Validate(v.{{ .Name }}); err != nil {
+        errs = append(errs, err)
+        }
+        }
+    {{- else }}
+        if err := builder.Validate(v.{{ .Name }}); err != nil {
+        errs = append(errs, err)
+        }
+    {{- end }}
+    }
+{{ end }}

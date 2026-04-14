@@ -1,0 +1,21 @@
+{{ define "slice_validation" }}
+    {
+    builder := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}
+            builder.Required()
+        {{- else if eq .Type "min" }}
+            builder.Min({{ index .Params 0 }})
+        {{- else if eq .Type "max" }}
+            builder.Max({{ index .Params 0 }})
+        {{- else if eq .Type "len" }}
+            builder.Len({{ index .Params 0 }})
+        {{- else if eq .Type "not-zero" }}
+            builder.NotZero()
+        {{- end }}
+    {{- end }}
+    if err := builder.Validate(v.{{ .Name }}); err != nil {
+    errs = append(errs, err)
+    }
+    }
+{{ end }}

@@ -120,7 +120,6 @@ func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 	var directives []Directive
 
-	// Очищаем комментарий
 	text = strings.TrimPrefix(text, "//")
 	text = strings.TrimPrefix(text, "/*")
 	text = strings.TrimSuffix(text, "*/")
@@ -135,7 +134,14 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 			}
 			if len(match) >= 3 && match[2] != "" {
 				// Параметры могут быть разделены запятыми
-				dir.Params = strings.Split(match[2], ",")
+				params := strings.Split(match[2], ",")
+				for i, param := range params {
+					// Удаляем кавычки, если они есть
+					param = strings.TrimSpace(param)
+					param = strings.Trim(param, `"'`)
+					params[i] = param
+				}
+				dir.Params = params
 			}
 			directives = append(directives, dir)
 		}

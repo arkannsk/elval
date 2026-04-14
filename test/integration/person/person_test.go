@@ -34,6 +34,7 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{100},
@@ -47,6 +48,7 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "J",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{100},
@@ -60,6 +62,7 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "John Doe",
 				Email:     "invalid",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{100},
@@ -73,6 +76,21 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "John Doe",
 				Email:     "john@example.com",
 				Age:       16,
+				Phone:     "+1234567890",
+				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+				Tags:      []string{"go"},
+				Scores:    []int{100},
+			},
+			wantError: true,
+			errorMsg:  "Age",
+		},
+		{
+			name: "возраст больше 120",
+			person: Person{
+				Name:      "John Doe",
+				Email:     "john@example.com",
+				Age:       150,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{100},
@@ -86,6 +104,7 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "John Doe",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{},
 				Scores:    []int{100},
@@ -99,6 +118,7 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "John Doe",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      nil,
 				Scores:    []int{100},
@@ -107,11 +127,26 @@ func TestPersonValidation(t *testing.T) {
 			errorMsg:  "Tags",
 		},
 		{
-			name: "пустые Scores (not-zero)",
+			name: "слишком много тегов",
 			person: Person{
 				Name:      "John Doe",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
+				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+				Tags:      make([]string, 11),
+				Scores:    []int{100},
+			},
+			wantError: true,
+			errorMsg:  "Tags",
+		},
+		{
+			name: "пустые Scores (not-zero) - optional",
+			person: Person{
+				Name:      "John Doe",
+				Email:     "john@example.com",
+				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{},
@@ -125,7 +160,22 @@ func TestPersonValidation(t *testing.T) {
 				Name:      "John Doe",
 				Email:     "john@example.com",
 				Age:       30,
+				Phone:     "+1234567890",
 				BirthDate: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+				Tags:      []string{"go"},
+				Scores:    []int{100},
+			},
+			wantError: true,
+			errorMsg:  "BirthDate",
+		},
+		{
+			name: "дата рождения слишком старая (after)",
+			person: Person{
+				Name:      "John Doe",
+				Email:     "john@example.com",
+				Age:       30,
+				Phone:     "+1234567890",
+				BirthDate: time.Date(1800, 1, 1, 0, 0, 0, 0, time.UTC),
 				Tags:      []string{"go"},
 				Scores:    []int{100},
 			},
@@ -146,12 +196,24 @@ func TestPersonValidation(t *testing.T) {
 			wantError: true,
 			errorMsg:  "Phone",
 		},
+		{
+			name: "телефон опциональный - пустой",
+			person: Person{
+				Name:      "John Doe",
+				Email:     "john@example.com",
+				Age:       30,
+				Phone:     "",
+				BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+				Tags:      []string{"go"},
+				Scores:    []int{100},
+			},
+			wantError: false, // optional поле, пустое значение допустимо
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.person.Validate()
-
 			if tt.wantError {
 				require.Error(t, err)
 				if tt.errorMsg != "" {
@@ -176,6 +238,7 @@ func TestPersonValidationEdgeCases(t *testing.T) {
 			Name:      "John Doe",
 			Email:     "john@example.com",
 			Age:       30,
+			Phone:     "+1234567890",
 			BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
 			Tags:      tags,
 			Scores:    []int{100},
@@ -183,25 +246,5 @@ func TestPersonValidationEdgeCases(t *testing.T) {
 
 		err := person.Validate()
 		assert.NoError(t, err)
-	})
-
-	t.Run("слишком много тегов", func(t *testing.T) {
-		tags := make([]string, 11)
-		for i := range tags {
-			tags[i] = "tag"
-		}
-
-		person := Person{
-			Name:      "John Doe",
-			Email:     "john@example.com",
-			Age:       30,
-			BirthDate: time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
-			Tags:      tags,
-			Scores:    []int{100},
-		}
-
-		err := person.Validate()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Tags")
 	})
 }

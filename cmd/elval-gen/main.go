@@ -64,7 +64,7 @@ func main() {
 		}
 
 		if verbose {
-			fmt.Printf("  ✅ Сгенерирован %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".gen.go")
+			fmt.Printf("File was generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".gen.go")
 		}
 	}
 }
