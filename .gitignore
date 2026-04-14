@@ -7,15 +7,7 @@
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
-*.test
-
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
+bin/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -28,5 +20,6 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+.zed

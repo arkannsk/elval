@@ -1,0 +1,5 @@
+{{ define "field_validate" }}
+    if err := {{ .Struct }}_{{ .Field.Name }}Validator.Validate(v.{{ .Field.Name }}); err != nil {
+    return err
+    }
+{{ end }}

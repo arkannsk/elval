@@ -1,0 +1,52 @@
+{{ template "header" . }}
+
+{{ range $struct := .Structs }}
+    var (
+    {{- range $field := $struct.Fields }}
+        {{- if and (not $field.Type.IsSlice) (not $field.Type.IsStruct) (not $field.Type.IsPointer) }}
+            {{- $hasCustom := false }}
+            {{- range $directive := $field.Directives }}
+                {{- if isCustomDirective $directive.Type }}
+                    {{- $hasCustom = true }}
+                {{- end }}
+            {{- end }}
+            {{- if not $hasCustom }}
+                {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+    )
+
+    func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
+    {{- range $field := $struct.Fields }}
+        {{ template "decorators" $field }}
+    {{- end }}
+    return nil
+    }
+
+    func (v *{{ $struct.Name }}) Validate() error {
+    {{- range $field := $struct.Fields }}
+        {{- if $field.Type.IsSlice }}
+            {{ template "slice_validate" $field }}
+        {{- else if $field.Type.IsPointer }}
+            {{ template "pointer_validate" $field }}
+        {{- else if $field.Type.IsStruct }}
+            {{ template "struct_validate" $field }}
+        {{- else }}
+            {{ template "custom_validation" $field }}
+            {{- $hasCustom := false }}
+            {{- range $directive := $field.Directives }}
+                {{- if isCustomDirective $directive.Type }}
+                    {{- $hasCustom = true }}
+                {{- end }}
+            {{- end }}
+            {{- if not $hasCustom }}
+                if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+                return err
+                }
+            {{- end }}
+        {{- end }}
+    {{- end }}
+    return nil
+    }
+{{ end }}

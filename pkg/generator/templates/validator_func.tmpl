@@ -1,0 +1,96 @@
+{{ define "validator_func" }}
+    func() *validator.FieldValidator[{{ .Type.Name }}] {
+    v := validator.New[{{ .Type.Name }}]("{{ .Name }}")
+    {{- $hasRequired := false }}
+    {{- range $directive := .Directives }}
+        {{- if eq $directive.Type "required" }}
+            {{- $hasRequired = true }}
+            v.AddRule(validator.Required[{{ $.Type.Name }}]())
+        {{- else if eq $directive.Type "min" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.MinLen({{ index $directive.Params 0 }}))
+            {{- else }}
+                v.AddRule(validator.Min[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+            {{- end }}
+        {{- else if eq $directive.Type "max" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.MaxLen({{ index $directive.Params 0 }}))
+            {{- else }}
+                v.AddRule(validator.Max[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+            {{- end }}
+        {{- else if eq $directive.Type "eq" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.Eq[string]({{ index $directive.Params 0 | printf "%q" }}))
+            {{- else }}
+                v.AddRule(validator.Eq[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+            {{- end }}
+        {{- else if eq $directive.Type "neq" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.Neq[string]({{ index $directive.Params 0 | printf "%q" }}))
+            {{- else }}
+                v.AddRule(validator.Neq[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+            {{- end }}
+        {{- else if eq $directive.Type "gt" }}
+            v.AddRule(validator.Gt[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+        {{- else if eq $directive.Type "gte" }}
+            v.AddRule(validator.Gte[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+        {{- else if eq $directive.Type "lt" }}
+            v.AddRule(validator.Lt[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+        {{- else if eq $directive.Type "lte" }}
+            v.AddRule(validator.Lte[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+        {{- else if eq $directive.Type "after" }}
+            v.AddRule(validator.After("2006-01-02", {{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "before" }}
+            v.AddRule(validator.Before("2006-01-02", {{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "not-zero" }}
+            {{- if eq $.Type.Name "time.Time" }}
+                v.AddRule(validator.TimeNotZero())
+            {{- else if eq $.Type.Name "time.Duration" }}
+                v.AddRule(validator.DurationNotZero())
+            {{- else }}
+                v.AddRule(validator.NotZero[{{ $.Type.Name }}]())
+            {{- end }}
+        {{- else if eq $directive.Type "pattern" }}
+            {{- if eq (index $directive.Params 0) "email" }}
+                v.AddRule(validator.Email())
+            {{- else if eq (index $directive.Params 0) "phone" }}
+                v.AddRule(validator.Phone())
+            {{- else if eq (index $directive.Params 0) "uuid" }}
+                v.AddRule(validator.UUID())
+            {{- else }}
+                v.AddRule(validator.MatchRegexp({{ index $directive.Params 0 | printf "%q" }}))
+            {{- end }}
+        {{- else if eq $directive.Type "enum" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
+            {{- else }}
+                v.AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}))
+            {{- end }}
+        {{- else if eq $directive.Type "contains" }}
+            v.AddRule(validator.Contains({{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "starts_with" }}
+            v.AddRule(validator.StartsWith({{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "ends_with" }}
+            v.AddRule(validator.EndsWith({{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "url" }}
+            v.AddRule(validator.URL())
+        {{- else if eq $directive.Type "http_url" }}
+            v.AddRule(validator.HTTPURL())
+        {{- else if eq $directive.Type "dsn" }}
+            v.AddRule(validator.DSN())
+        {{- else if eq $directive.Type "date" }}
+            v.AddRule(validator.Date({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
+        {{- else if isCustomDirective $directive.Type }}
+            v.AddRule(func(value any) error {
+            return validator.ValidateCustom("{{ $directive.Type }}", value, {{ if $directive.Params }}{{ index $directive.Params 0 | printf "%q" }}{{ else }}""{{ end }})
+            })
+        {{- end }}
+    {{- end }}
+    {{- if and (not $hasRequired) (hasOptional .Directives) }}
+        original := v
+        v = validator.New[{{ $.Type.Name }}]("{{ .Name }}")
+        v.AddRule(validator.SkipIfZero(original.Validate))
+    {{- end }}
+    return v
+    }()
+{{ end }}

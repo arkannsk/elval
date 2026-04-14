@@ -1,0 +1,119 @@
+{{ define "slice_validate" }}
+    // Валидация слайса {{ .Name }}
+    {{- $hasRequired := false }}
+    {{- $hasOptional := false }}
+    {{- $hasNotZero := false }}
+    {{- $hasMin := false }}
+    {{- $minVal := "0" }}
+    {{- $hasMax := false }}
+    {{- $maxVal := "0" }}
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}{{ $hasRequired = true }}{{ end }}
+        {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
+        {{- if eq .Type "not-zero" }}{{ $hasNotZero = true }}{{ end }}
+        {{- if eq .Type "min" }}{{ $hasMin = true }}{{ $minVal = index .Params 0 }}{{ end }}
+        {{- if eq .Type "max" }}{{ $hasMax = true }}{{ $maxVal = index .Params 0 }}{{ end }}
+    {{- end }}
+
+    {{- if $hasOptional }}
+        if len(v.{{ .Name }}) > 0 {
+        {{- if $hasMin }}
+            if len(v.{{ .Name }}) < {{ $minVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "min",
+            Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if $hasMax }}
+            if len(v.{{ .Name }}) > {{ $maxVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "max",
+            Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if .Type.IsStruct }}
+            for _, item := range v.{{ .Name }} {
+            if err := item.Validate(); err != nil {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "nested",
+            Message: "поле {{ .Name }}: " + err.Error(),
+            }
+            }
+            }
+        {{- else }}
+            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+            {{- if $hasMin }}
+                sliceValidator.Min({{ $minVal }})
+            {{- end }}
+            {{- if $hasMax }}
+                sliceValidator.Max({{ $maxVal }})
+            {{- end }}
+            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+            return err
+            }
+        {{- end }}
+        } else if {{ $hasNotZero }} {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "not-zero",
+        Message: "поле {{ .Name }} не может быть пустым",
+        }
+        }
+    {{- else }}
+        if {{ $hasRequired }} && len(v.{{ .Name }}) == 0 {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "required",
+        Message: "поле {{ .Name }} обязательно",
+        }
+        }
+        {{- if $hasMin }}
+            if len(v.{{ .Name }}) < {{ $minVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "min",
+            Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if $hasMax }}
+            if len(v.{{ .Name }}) > {{ $maxVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "max",
+            Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if .Type.IsStruct }}
+            for _, item := range v.{{ .Name }} {
+            if err := item.Validate(); err != nil {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "nested",
+            Message: "поле {{ .Name }}: " + err.Error(),
+            }
+            }
+            }
+        {{- else }}
+            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+            {{- if $hasRequired }}
+                sliceValidator.Required()
+            {{- end }}
+            {{- if $hasMin }}
+                sliceValidator.Min({{ $minVal }})
+            {{- end }}
+            {{- if $hasMax }}
+                sliceValidator.Max({{ $maxVal }})
+            {{- end }}
+            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+            return err
+            }
+        {{- end }}
+    {{- end }}
+{{ end }}
