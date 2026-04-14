@@ -32,21 +32,16 @@ var (
 	}()
 )
 
-// Validate проверяет структуру Order
 func (v *Order) Validate() error {
-
 	if err := Order_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
-
 	if err := Order_PriorityValidator.Validate(v.Priority); err != nil {
 		return err
 	}
-
 	if err := Order_SizeValidator.Validate(v.Size); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -66,16 +61,12 @@ var (
 	}()
 )
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
-
 	if err := User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
-
 	if err := User_LevelValidator.Validate(v.Level); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -2,6 +2,9 @@
 
 BINARY=bin/elval-gen
 
+lint:
+	golangci-lint run ./...
+
 install:
 	go install ./cmd/elval-gen
 

@@ -3,19 +3,60 @@
 {{ range $struct := .Structs }}
     var (
     {{- range $field := $struct.Fields }}
-        {{- if not $field.Type.IsSlice }}
+        {{- if and (not $field.Type.IsSlice) (not $field.Type.IsStruct) (not $field.Type.IsPointer) }}
             {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
         {{- end }}
     {{- end }}
     )
 
-    // Validate проверяет структуру {{ $struct.Name }}
     func (v *{{ $struct.Name }}) Validate() error {
     {{- range $field := $struct.Fields }}
         {{- if $field.Type.IsSlice }}
+            // SLICE DETECTED: {{ $field.Name }}
             {{ template "slice_validate" $field }}
+        {{- else if $field.Type.IsPointer }}
+            {{- $hasOptional := false }}
+            {{- range $field.Directives }}
+                {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
+            {{- end }}
+            {{- if $hasOptional }}
+                if v.{{ $field.Name }} != nil {
+                if err := v.{{ $field.Name }}.Validate(); err != nil {
+                return &validator.ValidationError{
+                Field: "{{ $field.Name }}",
+                Rule:  "nested",
+                Message: "поле {{ $field.Name }}: " + err.Error(),
+                }
+                }
+                }
+            {{- else }}
+                if v.{{ $field.Name }} == nil {
+                return &validator.ValidationError{
+                Field: "{{ $field.Name }}",
+                Rule:  "required",
+                Message: "поле {{ $field.Name }} обязательно",
+                }
+                }
+                if err := v.{{ $field.Name }}.Validate(); err != nil {
+                return &validator.ValidationError{
+                Field: "{{ $field.Name }}",
+                Rule:  "nested",
+                Message: "поле {{ $field.Name }}: " + err.Error(),
+                }
+                }
+            {{- end }}
+        {{- else if $field.Type.IsStruct }}
+            if err := v.{{ $field.Name }}.Validate(); err != nil {
+            return &validator.ValidationError{
+            Field: "{{ $field.Name }}",
+            Rule:  "nested",
+            Message: "поле {{ $field.Name }}: " + err.Error(),
+            }
+            }
         {{- else }}
-            {{ template "field_validate" (dict "Struct" $struct.Name "Field" $field) }}
+            if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+            return err
+            }
         {{- end }}
     {{- end }}
     return nil

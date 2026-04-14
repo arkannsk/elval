@@ -32,20 +32,15 @@ var (
 	}()
 )
 
-// Validate проверяет структуру UserGen
 func (v *UserGen) Validate() error {
-
 	if err := UserGen_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err := UserGen_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
 	if err := UserGen_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -56,7 +57,9 @@ func NewGenerator(outputDir string) (*Generator, error) {
 				}
 				return false
 			},
-			"printf": fmt.Sprintf,
+			"itoa": func(i int) string {
+				return strconv.Itoa(i)
+			},
 		})
 
 	// Рекурсивно обходим все файлы шаблонов
@@ -125,7 +128,7 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	if err != nil {
 		// Сохраняем неформатированный для отладки
 		debugFile := strings.TrimSuffix(sourceFile, ".go") + ".debug.go"
-		os.WriteFile(debugFile, []byte(buf.String()), 0644)
+		_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
 		return fmt.Errorf("ошибка форматирования: %w", err)
 	}
 

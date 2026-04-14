@@ -30,20 +30,15 @@ var (
 	}()
 )
 
-// Validate проверяет структуру Product
 func (v *Product) Validate() error {
-
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
-
 	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
-
 	if err := Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
-
 	return nil
 }

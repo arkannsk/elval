@@ -34,7 +34,32 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 		Errors:  make([]error, 0),
 	}
 
-	// Обходим все объявления в файле
+	// Сначала собираем все структуры в файле (даже без аннотаций)
+	allStructs := make(map[string]*Struct)
+
+	for _, decl := range node.Decls {
+		genDecl, ok := decl.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.TYPE {
+			continue
+		}
+
+		for _, spec := range genDecl.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+
+			// Сохраняем все структуры (даже без аннотаций)
+			s := &Struct{
+				Name:   typeSpec.Name.Name,
+				File:   filename,
+				Fields: make([]Field, 0),
+			}
+			allStructs[s.Name] = s
+		}
+	}
+
+	// Второй проход: парсим поля структур
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok || genDecl.Tok != token.TYPE {
@@ -52,37 +77,40 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 				continue
 			}
 
-			// Парсим структуру
-			s := Struct{
-				Name:   typeSpec.Name.Name,
-				File:   filename,
-				Fields: make([]Field, 0),
+			s := allStructs[typeSpec.Name.Name]
+			if s == nil {
+				continue
 			}
 
 			for _, field := range structType.Fields.List {
-				// Получаем имя поля
 				fieldName := getFieldName(field)
 				if fieldName == "" {
 					continue
 				}
 
-				fieldType := getFieldType(field)
-
-				// Собираем аннотации из комментариев
+				fieldType := p.getFieldTypeWithStructs(field, allStructs, filename)
 				directives := p.parseFieldDirectives(field)
 
-				if len(directives) > 0 {
-					s.Fields = append(s.Fields, Field{
-						Name:       fieldName,
-						Type:       fieldType,
-						Directives: directives,
-						Line:       p.fset.Position(field.Pos()).Line,
-					})
+				for _, dir := range directives {
+					if err := ValidateDirective(dir, fieldType); err != nil {
+						result.Errors = append(result.Errors, fmt.Errorf("%s:%d: поле %s: %w",
+							filename, p.fset.Position(field.Pos()).Line, fieldName, err))
+					}
 				}
+
+				// Добавляем поле даже если нет директив (оно может быть вложенной структурой)
+				s.Fields = append(s.Fields, Field{
+					Name:       fieldName,
+					Type:       fieldType,
+					Directives: directives,
+					Line:       p.fset.Position(field.Pos()).Line,
+				})
 			}
 
-			if len(s.Fields) > 0 {
-				result.Structs = append(result.Structs, s)
+			// Добавляем структуру в результат только если у неё есть поля с аннотациями
+			// или если она используется как вложенная
+			if s.hasDirectives() || s.isUsedAsNested(allStructs) {
+				result.Structs = append(result.Structs, *s)
 			}
 		}
 	}
@@ -90,12 +118,67 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	return result, nil
 }
 
+// getFieldTypeWithStructs определяет тип поля с учётом вложенных структур
+func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string]*Struct, filename string) FieldType {
+	ft := FieldType{
+		IsSlice:   false,
+		IsPointer: false,
+		IsStruct:  false,
+	}
+
+	switch t := field.Type.(type) {
+	case *ast.Ident:
+		ft.Name = t.Name
+		if _, ok := allStructs[t.Name]; ok {
+			ft.IsStruct = true
+		}
+
+	case *ast.StarExpr:
+		ft.IsPointer = true
+		if ident, ok := t.X.(*ast.Ident); ok {
+			ft.Name = ident.Name
+			if _, ok := allStructs[ident.Name]; ok {
+				ft.IsStruct = true
+			}
+		} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
+			// *time.Time, *time.Duration
+			if pkg, ok := sel.X.(*ast.Ident); ok {
+				ft.Name = pkg.Name + "." + sel.Sel.Name
+			}
+		}
+
+	case *ast.ArrayType:
+		ft.IsSlice = true
+		if ident, ok := t.Elt.(*ast.Ident); ok {
+			ft.Name = ident.Name
+			if _, ok := allStructs[ident.Name]; ok {
+				ft.IsStruct = true
+			}
+		} else if star, ok := t.Elt.(*ast.StarExpr); ok {
+			if ident, ok := star.X.(*ast.Ident); ok {
+				ft.Name = ident.Name
+				if _, ok := allStructs[ident.Name]; ok {
+					ft.IsStruct = true
+				}
+			}
+		}
+
+	case *ast.SelectorExpr:
+		// time.Time, time.Duration
+		if ident, ok := t.X.(*ast.Ident); ok {
+			ft.Name = ident.Name + "." + t.Sel.Name
+		}
+	}
+
+	return ft
+}
+
 // parseFieldDirectives парсит директивы из комментариев поля
 func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 	var directives []Directive
 
 	// Регулярка для поиска @evl:validate
-	re := regexp.MustCompile(`@evl:validate\s+([a-zA-Z-]+)(?::([^\s@]+))?`)
+	re := regexp.MustCompile(`@evl:validate\s+([a-zA-Z_-]+)(?::([^\s@]+))?`)
 
 	// Проверяем комментарии после поля
 	if field.Comment != nil {
@@ -133,15 +216,21 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 				Raw:  match[0],
 			}
 			if len(match) >= 3 && match[2] != "" {
-				// Параметры могут быть разделены запятыми
-				params := strings.Split(match[2], ",")
-				for i, param := range params {
-					// Удаляем кавычки, если они есть
-					param = strings.TrimSpace(param)
-					param = strings.Trim(param, `"'`)
-					params[i] = param
+				param := match[2]
+				param = strings.TrimSpace(param)
+				param = strings.Trim(param, `"'`)
+
+				// Для pattern не разбиваем по запятым
+				if dir.Type == "pattern" {
+					dir.Params = []string{param}
+				} else {
+					// Для остальных директив разбиваем по запятым
+					params := strings.Split(param, ",")
+					for i, p := range params {
+						params[i] = strings.TrimSpace(p)
+					}
+					dir.Params = params
 				}
-				dir.Params = params
 			}
 			directives = append(directives, dir)
 		}
@@ -178,59 +267,4 @@ func getFieldName(field *ast.Field) string {
 		return ident.Name
 	}
 	return ""
-}
-
-// getFieldType возвращает тип поля с поддержкой слайсов и указателей
-func getFieldType(field *ast.Field) FieldType {
-	ft := FieldType{
-		IsSlice:   false,
-		IsPointer: false,
-	}
-
-	switch t := field.Type.(type) {
-	case *ast.Ident:
-		ft.Name = t.Name
-
-	case *ast.StarExpr:
-		ft.IsPointer = true
-		// Определяем базовый тип для указателя
-		if ident, ok := t.X.(*ast.Ident); ok {
-			ft.Name = ident.Name
-		} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
-			// *time.Time, *time.Duration
-			if pkg, ok := sel.X.(*ast.Ident); ok {
-				ft.Name = pkg.Name + "." + sel.Sel.Name
-			}
-		} else if arr, ok := t.X.(*ast.ArrayType); ok {
-			// *[]T - указатель на слайс
-			ft.IsSlice = true
-			if ident, ok := arr.Elt.(*ast.Ident); ok {
-				ft.Name = ident.Name
-			}
-		}
-
-	case *ast.ArrayType:
-		ft.IsSlice = true
-		if ident, ok := t.Elt.(*ast.Ident); ok {
-			ft.Name = ident.Name
-		} else if star, ok := t.Elt.(*ast.StarExpr); ok {
-			// []*T - слайс указателей
-			if ident, ok := star.X.(*ast.Ident); ok {
-				ft.Name = "*" + ident.Name
-			}
-		} else if sel, ok := t.Elt.(*ast.SelectorExpr); ok {
-			// []time.Time - слайс импортированных типов
-			if pkg, ok := sel.X.(*ast.Ident); ok {
-				ft.Name = pkg.Name + "." + sel.Sel.Name
-			}
-		}
-
-	case *ast.SelectorExpr:
-		// Импортированный тип: time.Time, time.Duration
-		if ident, ok := t.X.(*ast.Ident); ok {
-			ft.Name = ident.Name + "." + t.Sel.Name
-		}
-	}
-
-	return ft
 }

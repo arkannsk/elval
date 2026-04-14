@@ -105,7 +105,7 @@ func BenchmarkPlaygroundWithCache(b *testing.B) {
 		Age:   25,
 	}
 
-	validate.Struct(user)
+	_ = validate.Struct(user)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

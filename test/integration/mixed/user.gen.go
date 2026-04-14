@@ -31,20 +31,15 @@ var (
 	}()
 )
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
-
 	if err := User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err := User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
 	if err := User_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -55,6 +55,10 @@ func UUID() ValidationRule[string] {
 	return validator.UUID()
 }
 
+func Enum[T comparable]() ValidationRule[T] {
+	return validator.Enum[T]()
+}
+
 func NotEmpty() ValidationRule[string] {
 	return validator.NotEmpty()
 }

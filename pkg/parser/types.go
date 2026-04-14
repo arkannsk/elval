@@ -2,9 +2,10 @@ package parser
 
 // FieldType представляет тип поля с поддержкой слайсов и указателей
 type FieldType struct {
-	Name      string // базовое имя типа: string, int, User и т.д.
-	IsSlice   bool   // является ли слайсом []T
-	IsPointer bool   // является ли указателем *T
+	Name      string
+	IsSlice   bool
+	IsPointer bool
+	IsStruct  bool // является ли вложенной структурой
 }
 
 // String возвращает строковое представление типа

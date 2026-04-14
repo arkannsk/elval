@@ -50,29 +50,46 @@ var (
 	}()
 )
 
-// Validate проверяет структуру Person
 func (v *Person) Validate() error {
-
 	if err := Person_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err := Person_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
 	if err := Person_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
-
 	if err := Person_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
-
 	if err := Person_BirthDateValidator.Validate(v.BirthDate); err != nil {
 		return err
 	}
+	// SLICE DETECTED: Tags
 
+	// Валидация слайса Tags
+	if true && len(v.Tags) == 0 {
+		return &validator.ValidationError{
+			Field:   "Tags",
+			Rule:    "required",
+			Message: "поле Tags обязательно",
+		}
+	}
+	if len(v.Tags) < 1 {
+		return &validator.ValidationError{
+			Field:   "Tags",
+			Rule:    "min",
+			Message: "поле Tags должно содержать минимум 1 элементов",
+		}
+	}
+	if len(v.Tags) > 10 {
+		return &validator.ValidationError{
+			Field:   "Tags",
+			Rule:    "max",
+			Message: "поле Tags должно содержать максимум 10 элементов",
+		}
+	}
 	sliceValidator := validator.NewSliceValidator[string]("Tags")
 	sliceValidator.Required()
 	sliceValidator.Min(1)
@@ -81,9 +98,11 @@ func (v *Person) Validate() error {
 		return err
 	}
 
+	// SLICE DETECTED: Scores
+
+	// Валидация слайса Scores
 	if len(v.Scores) > 0 {
 		sliceValidator := validator.NewSliceValidator[int]("Scores")
-		sliceValidator.NotZero()
 		if err := sliceValidator.Validate(v.Scores); err != nil {
 			return err
 		}

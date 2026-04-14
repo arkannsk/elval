@@ -1,6 +1,8 @@
 package validator
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type SliceValidator[T any] struct {
 	fieldName        string
@@ -61,13 +63,13 @@ func (sv *SliceValidator[T]) Each(validator *FieldValidator[T]) *SliceValidator[
 
 // Validate проверяет слайс
 func (sv *SliceValidator[T]) Validate(value []T) error {
-	// Проверка на nil
-	if sv.required && value == nil {
+	println("DEBUG: SliceValidator.Validate called", "len=", len(value), "minSize=", sv.minSize)
+	if sv.required && len(value) == 0 {
 		return fmt.Errorf("поле %s: слайс не может быть nil", sv.fieldName)
 	}
 
 	// Проверка на пустоту
-	if sv.notZero && (value == nil || len(value) == 0) {
+	if sv.notZero && (len(value) == 0) {
 		return fmt.Errorf("поле %s: слайс не может быть пустым", sv.fieldName)
 	}
 

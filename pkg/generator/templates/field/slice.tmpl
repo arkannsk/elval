@@ -3,37 +3,60 @@
     {{- $hasRequired := false }}
     {{- $hasOptional := false }}
     {{- $hasNotZero := false }}
+    {{- $hasMin := false }}
+    {{- $minVal := "0" }}
+    {{- $hasMax := false }}
+    {{- $maxVal := "0" }}
     {{- range .Directives }}
         {{- if eq .Type "required" }}{{ $hasRequired = true }}{{ end }}
         {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
         {{- if eq .Type "not-zero" }}{{ $hasNotZero = true }}{{ end }}
+        {{- if eq .Type "min" }}{{ $hasMin = true }}{{ $minVal = index .Params 0 }}{{ end }}
+        {{- if eq .Type "max" }}{{ $hasMax = true }}{{ $maxVal = index .Params 0 }}{{ end }}
     {{- end }}
 
     {{- if $hasOptional }}
-        // optional поле - проверяем только если не пустое
         if len(v.{{ .Name }}) > 0 {
-        sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
-        {{- range $directive := .Directives }}
-            {{- if eq $directive.Type "min" }}
-                sliceValidator.Min({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "max" }}
-                sliceValidator.Max({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "len" }}
-                sliceValidator.Len({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "not-zero" }}
-                sliceValidator.NotZero()
-            {{- else if eq $directive.Type "enum" }}
-                {{- /* Для слайсов enum применяется к каждому элементу */}}
-                {{- if eq $.Type.Name "string" }}
-                    sliceValidator.Each(validator.New[string]("element").AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }})))
-                {{- else }}
-                    sliceValidator.Each(validator.New[{{ $.Type.Name }}]("element").AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }})))
-                {{- end }}
-            {{- end }}
+        {{- if $hasMin }}
+            if len(v.{{ .Name }}) < {{ $minVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "min",
+            Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
+            }
+            }
         {{- end }}
-        if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
-        return err
-        }
+        {{- if $hasMax }}
+            if len(v.{{ .Name }}) > {{ $maxVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "max",
+            Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if .Type.IsStruct }}
+            for _, item := range v.{{ .Name }} {
+            if err := item.Validate(); err != nil {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "nested",
+            Message: "поле {{ .Name }}: " + err.Error(),
+            }
+            }
+            }
+        {{- else }}
+            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+            {{- if $hasMin }}
+                sliceValidator.Min({{ $minVal }})
+            {{- end }}
+            {{- if $hasMax }}
+                sliceValidator.Max({{ $maxVal }})
+            {{- end }}
+            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+            return err
+            }
+        {{- end }}
         } else if {{ $hasNotZero }} {
         return &validator.ValidationError{
         Field: "{{ .Name }}",
@@ -42,28 +65,55 @@
         }
         }
     {{- else }}
-        sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
-        {{- range $directive := .Directives }}
-            {{- if eq $directive.Type "required" }}
-                sliceValidator.Required()
-            {{- else if eq $directive.Type "min" }}
-                sliceValidator.Min({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "max" }}
-                sliceValidator.Max({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "len" }}
-                sliceValidator.Len({{ index $directive.Params 0 }})
-            {{- else if eq $directive.Type "not-zero" }}
-                sliceValidator.NotZero()
-            {{- else if eq $directive.Type "enum" }}
-                {{- if eq $.Type.Name "string" }}
-                    sliceValidator.Each(validator.New[string]("element").AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }})))
-                {{- else }}
-                    sliceValidator.Each(validator.New[{{ $.Type.Name }}]("element").AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }})))
-                {{- end }}
-            {{- end }}
-        {{- end }}
-        if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
-        return err
+        if {{ $hasRequired }} && len(v.{{ .Name }}) == 0 {
+        return &validator.ValidationError{
+        Field: "{{ .Name }}",
+        Rule:  "required",
+        Message: "поле {{ .Name }} обязательно",
         }
+        }
+        {{- if $hasMin }}
+            if len(v.{{ .Name }}) < {{ $minVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "min",
+            Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if $hasMax }}
+            if len(v.{{ .Name }}) > {{ $maxVal }} {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "max",
+            Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
+            }
+            }
+        {{- end }}
+        {{- if .Type.IsStruct }}
+            for _, item := range v.{{ .Name }} {
+            if err := item.Validate(); err != nil {
+            return &validator.ValidationError{
+            Field: "{{ .Name }}",
+            Rule:  "nested",
+            Message: "поле {{ .Name }}: " + err.Error(),
+            }
+            }
+            }
+        {{- else }}
+            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
+            {{- if $hasRequired }}
+                sliceValidator.Required()
+            {{- end }}
+            {{- if $hasMin }}
+                sliceValidator.Min({{ $minVal }})
+            {{- end }}
+            {{- if $hasMax }}
+                sliceValidator.Max({{ $maxVal }})
+            {{- end }}
+            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
+            return err
+            }
+        {{- end }}
     {{- end }}
 {{ end }}

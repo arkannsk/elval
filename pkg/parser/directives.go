@@ -157,45 +157,39 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 
 // ValidateDirective обновляем с учетом базового типа для указателей
 func ValidateDirective(dir Directive, ft FieldType) error {
-	// Определяем базовый тип (без указателя)
 	baseType := ft.Name
-
-	// Для указателей убираем звездочку, но запоминаем что это указатель
 	isPointer := ft.IsPointer
 	if isPointer {
 		baseType = strings.TrimPrefix(baseType, "*")
 	}
 
-	// Для слайсов используем тип "slice"
+	// Для указателей используем тип "pointer"
 	actualType := baseType
 	if ft.IsSlice {
 		actualType = "slice"
+	} else if ft.IsPointer {
+		actualType = "pointer"
 	}
 
-	// Проверяем существует ли директива
 	info, ok := SupportedDirectives[DirectiveType(dir.Type)]
 	if !ok {
 		return fmt.Errorf("неизвестная директива: %s", dir.Type)
 	}
 
-	// Проверяем поддерживаемый тип поля
+	// Проверяем поддерживаемый тип
 	typeSupported := false
 	for _, allowedType := range info.AllowedTypes {
 		if allowedType == actualType {
 			typeSupported = true
 			break
 		}
-		// Для указателей проверяем базовый тип
-		if isPointer && allowedType == baseType {
+		// Для указателей на структуры
+		if ft.IsPointer && ft.IsStruct && allowedType == "pointer" {
 			typeSupported = true
 			break
 		}
-		// Для time.Time и time.Duration проверяем точное совпадение имени
-		if allowedType == "time.Time" && baseType == "time.Time" {
-			typeSupported = true
-			break
-		}
-		if allowedType == "time.Duration" && baseType == "time.Duration" {
+		// Для конкретных типов
+		if allowedType == baseType {
 			typeSupported = true
 			break
 		}
@@ -256,16 +250,28 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 
 	case string(DirMinMax):
 		if len(dir.Params) == 2 {
-			if baseType == "time.Duration" {
-				if _, err := time.ParseDuration(dir.Params[0]); err != nil {
-					return fmt.Errorf("min параметр %s должен быть валидной длительностью", dir.Params[0])
+			min := dir.Params[0]
+			max := dir.Params[1]
+
+			// Для строк проверяем что min и max - числа и min <= max
+			if ft.IsSlice || ft.Name == "string" {
+				minInt, errMin := strconv.Atoi(min)
+				maxInt, errMax := strconv.Atoi(max)
+				if errMin != nil || errMax != nil {
+					return fmt.Errorf("min и max должны быть целыми числами")
 				}
-				if _, err := time.ParseDuration(dir.Params[1]); err != nil {
-					return fmt.Errorf("max параметр %s должен быть валидной длительностью", dir.Params[1])
+				if minInt > maxInt {
+					return fmt.Errorf("min (%d) не может быть больше max (%d)", minInt, maxInt)
 				}
 			} else {
-				if dir.Params[0] > dir.Params[1] && !strings.Contains(dir.Params[0], ".") {
-					return fmt.Errorf("min (%s) не может быть больше max (%s)", dir.Params[0], dir.Params[1])
+				// Для чисел проверяем что min <= max
+				minFloat, errMin := strconv.ParseFloat(min, 64)
+				maxFloat, errMax := strconv.ParseFloat(max, 64)
+				if errMin != nil || errMax != nil {
+					return fmt.Errorf("min и max должны быть числами")
+				}
+				if minFloat > maxFloat {
+					return fmt.Errorf("min (%v) не может быть больше max (%v)", minFloat, maxFloat)
 				}
 			}
 		}
@@ -277,4 +283,34 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 	}
 
 	return nil
+}
+
+// hasDirectives проверяет есть ли у структуры поля с аннотациями
+func (s *Struct) hasDirectives() bool {
+	for _, field := range s.Fields {
+		if len(field.Directives) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// isUsedAsNested проверяет используется ли структура как вложенная в других структурах
+func (s *Struct) isUsedAsNested(allStructs map[string]*Struct) bool {
+	for _, other := range allStructs {
+		for _, field := range other.Fields {
+			if field.Type.Name == s.Name && field.Type.IsStruct {
+				return true
+			}
+			// Проверяем слайсы структур
+			if field.Type.IsSlice && field.Type.Name == s.Name {
+				return true
+			}
+			// Проверяем указатели на структуры
+			if field.Type.IsPointer && field.Type.Name == s.Name {
+				return true
+			}
+		}
+	}
+	return false
 }
