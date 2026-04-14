@@ -26,6 +26,9 @@ const (
 	DirContains   DirectiveType = "contains"
 	DirStartsWith DirectiveType = "starts_with"
 	DirEndsWith   DirectiveType = "ends_with"
+	DirURL        DirectiveType = "url"
+	DirHTTPURL    DirectiveType = "http_url"
+	DirDSN        DirectiveType = "dsn"
 
 	DirEq  DirectiveType = "eq"  // равно
 	DirNeq DirectiveType = "neq" // не равно
@@ -101,6 +104,24 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64"},
 		ParamCount:   1, // параметры через запятую: enum:active,inactive,pending
 		Example:      "@evl:validate enum:active,inactive,pending",
+	},
+	DirURL: {
+		Description:  "валидный URL (любая схема)",
+		AllowedTypes: []string{"string"},
+		ParamCount:   0,
+		Example:      "@evl:validate url",
+	},
+	DirHTTPURL: {
+		Description:  "валидный HTTP/HTTPS URL",
+		AllowedTypes: []string{"string"},
+		ParamCount:   0,
+		Example:      "@evl:validate http_url",
+	},
+	DirDSN: {
+		Description:  "валидный DSN для подключения к БД",
+		AllowedTypes: []string{"string"},
+		ParamCount:   0,
+		Example:      "@evl:validate dsn",
 	},
 	DirContains: {
 		Description:  "строка должна содержать подстроку",

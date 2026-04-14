@@ -66,6 +66,12 @@
             v.AddRule(validator.StartsWith({{ index $directive.Params 0 | printf "%q" }}))
         {{- else if eq $directive.Type "ends_with" }}
             v.AddRule(validator.EndsWith({{ index $directive.Params 0 | printf "%q" }}))
+        {{- else if eq $directive.Type "url" }}
+            v.AddRule(validator.URL())
+        {{- else if eq $directive.Type "http_url" }}
+            v.AddRule(validator.HTTPURL())
+        {{- else if eq $directive.Type "dsn" }}
+            v.AddRule(validator.DSN())
         {{- else if eq $directive.Type "enum" }}
             {{- if eq $.Type.Name "string" }}
                 v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))

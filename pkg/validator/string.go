@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"net/url"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -78,6 +79,102 @@ func UUID() ValidationRule[string] {
 		if !uuidRegex.MatchString(value) {
 			return ErrInvalidUUID
 		}
+		return nil
+	}
+}
+
+// URL проверяет что строка является валидным URL (любая схема)
+func URL() ValidationRule[string] {
+	return func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		u, err := url.Parse(value)
+		if err != nil {
+			return NewValidationError("url", "невалидный URL: %s", err.Error())
+		}
+
+		// Проверяем наличие схемы
+		if u.Scheme == "" {
+			return NewValidationError("url", "URL должен содержать схему (например, http://, https://, postgres://)")
+		}
+
+		// Проверяем наличие хоста или пути
+		if u.Host == "" && u.Path == "" {
+			return NewValidationError("url", "невалидный URL: отсутствует хост или путь")
+		}
+
+		return nil
+	}
+}
+
+// URLWithScheme проверяет что URL имеет определённую схему
+func URLWithScheme(allowedSchemes ...string) ValidationRule[string] {
+	return func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		u, err := url.Parse(value)
+		if err != nil {
+			return NewValidationError("url", "невалидный URL: %s", err.Error())
+		}
+
+		if u.Scheme == "" {
+			return NewValidationError("url", "URL должен содержать схему")
+		}
+
+		// Проверяем схему
+		schemeAllowed := false
+		for _, scheme := range allowedSchemes {
+			if u.Scheme == scheme {
+				schemeAllowed = true
+				break
+			}
+		}
+
+		if !schemeAllowed {
+			return NewValidationError("url", "неподдерживаемая схема: %s, разрешены: %v", u.Scheme, allowedSchemes)
+		}
+
+		if u.Host == "" {
+			return NewValidationError("url", "URL должен содержать хост")
+		}
+
+		return nil
+	}
+}
+
+// HTTPURL проверяет что URL имеет схему http или https
+func HTTPURL() ValidationRule[string] {
+	return URLWithScheme("http", "https")
+}
+
+// DSN проверяет строку подключения к БД (postgres, mysql, clickhouse и т.д.)
+func DSN() ValidationRule[string] {
+	return func(value string) error {
+		if value == "" {
+			return nil
+		}
+
+		// Проверяем что это похоже на DSN
+		// postgres://user:pass@localhost:5432/db
+		// mysql://user:pass@localhost:3306/db
+		// clickhouse://user:pass@localhost:9000/db
+		u, err := url.Parse(value)
+		if err != nil {
+			return NewValidationError("dsn", "невалидный DSN: %s", err.Error())
+		}
+
+		if u.Scheme == "" {
+			return NewValidationError("dsn", "DSN должен содержать схему (postgres://, mysql://, clickhouse://)")
+		}
+
+		if u.Host == "" {
+			return NewValidationError("dsn", "DSN должен содержать хост")
+		}
+
 		return nil
 	}
 }
