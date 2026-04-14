@@ -60,6 +60,12 @@
             {{- else }}
                 v.AddRule(validator.MatchRegexp({{ index $directive.Params 0 | printf "%q" }}))
             {{- end }}
+        {{- else if eq $directive.Type "enum" }}
+            {{- if eq $.Type.Name "string" }}
+                v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
+            {{- else }}
+                v.AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}))
+            {{- end }}
         {{- else if eq $directive.Type "contains" }}
             v.AddRule(validator.Contains({{ index $directive.Params 0 | printf "%q" }}))
         {{- else if eq $directive.Type "starts_with" }}
@@ -74,12 +80,10 @@
             v.AddRule(validator.DSN())
         {{- else if eq $directive.Type "date" }}
             v.AddRule(validator.Date({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
-        {{- else if eq $directive.Type "enum" }}
-            {{- if eq $.Type.Name "string" }}
-                v.AddRule(validator.Enum[string]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
-            {{- else }}
-                v.AddRule(validator.Enum[{{ $.Type.Name }}]({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p }}{{ end }}))
-            {{- end }}
+        {{- else if isCustomDirective $directive.Type }}
+            v.AddRule(func(value {{ $.Type.Name }}) error {
+            return validator.ValidateCustom("{{ $directive.Type }}", value, {{ if $directive.Params }}{{ index $directive.Params 0 | printf "%q" }}{{ else }}""{{ end }})
+            })
         {{- end }}
     {{- end }}
     {{- if and (not $hasRequired) (hasOptional .Directives) }}

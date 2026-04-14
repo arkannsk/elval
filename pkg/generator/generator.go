@@ -60,6 +60,17 @@ func NewGenerator(outputDir string) (*Generator, error) {
 			"itoa": func(i int) string {
 				return strconv.Itoa(i)
 			},
+			"isCustomDirective": func(dirType string) bool {
+				// Проверяем не является ли директива стандартной
+				standardDirectives := map[string]bool{
+					"required": true, "optional": true, "min": true, "max": true,
+					"len": true, "eq": true, "neq": true, "gt": true, "gte": true,
+					"lt": true, "lte": true, "pattern": true, "enum": true,
+					"contains": true, "starts_with": true, "ends_with": true,
+					"url": true, "http_url": true, "dsn": true, "date": true,
+				}
+				return !standardDirectives[dirType]
+			},
 		})
 
 	// Рекурсивно обходим все файлы шаблонов

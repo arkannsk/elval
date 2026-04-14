@@ -363,3 +363,25 @@ func (s *Struct) isUsedAsNested(allStructs map[string]*Struct) bool {
 	}
 	return false
 }
+
+const customPrefix = "x-"
+
+// AddCustomDirective добавляет кастомную директиву (только с префиксом x-)
+func AddCustomDirective(name string, allowedTypes []string, paramCount int, description string) error {
+	if !strings.HasPrefix(name, customPrefix) {
+		return fmt.Errorf("кастомная директива должна начинаться с '%s'", customPrefix)
+	}
+
+	if description == "" {
+		description = fmt.Sprintf("кастомная директива %s", name)
+	}
+
+	SupportedDirectives[DirectiveType(name)] = DirectiveInfo{
+		Description:  description,
+		AllowedTypes: allowedTypes,
+		ParamCount:   paramCount,
+		Example:      fmt.Sprintf("@evl:validate %s", name),
+	}
+
+	return nil
+}
