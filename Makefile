@@ -1,13 +1,19 @@
-.PHONY: build generate clean test
+.PHONY: build generate clean test install gen
 
 BINARY=bin/elval-gen
+
+install:
+	go install ./cmd/elval-gen
 
 build:
 	@mkdir -p bin
 	@go build -o $(BINARY) ./cmd/elval-gen
 
+gen: install
+	go generate ./...
+
 # gen $V=1 for verbose flag
-gen: build
+gen-test: build
 	@./$(BINARY) -input ./test/integration/person $(if $(V),-v,)
 	@./$(BINARY) -input ./test/integration/product $(if $(V),-v,)
 

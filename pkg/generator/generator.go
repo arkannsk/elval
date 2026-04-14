@@ -80,6 +80,7 @@ func NewGenerator(outputDir string) (*Generator, error) {
 
 func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string) error {
 	if len(parseResult.Structs) == 0 {
+		// Нет структур с аннотациями - не генерируем файл
 		return nil
 	}
 
