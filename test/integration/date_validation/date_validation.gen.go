@@ -40,11 +40,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Event
 func (v *Event) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Event
 func (v *Event) Validate() error {
 
 	if err := Event_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
@@ -83,11 +85,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре LogEntry
 func (v *LogEntry) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру LogEntry
 func (v *LogEntry) Validate() error {
 
 	if err := LogEntry_EventTimeValidator.Validate(v.EventTime); err != nil {

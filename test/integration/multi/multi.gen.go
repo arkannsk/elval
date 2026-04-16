@@ -32,11 +32,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	if err := User_NameValidator.Validate(v.Name); err != nil {
@@ -76,11 +78,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Product
 func (v *Product) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Product
 func (v *Product) Validate() error {
 
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
@@ -121,11 +125,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Order
 func (v *Order) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Order
 func (v *Order) Validate() error {
 
 	if err := Order_IDValidator.Validate(v.ID); err != nil {
@@ -155,12 +161,6 @@ func (v *Order) Validate() error {
 				Rule:    "max",
 				Message: "поле Items должно содержать максимум 100 элементов",
 			}
-		}
-		sliceValidator := validator.NewSliceValidator[string]("Items")
-		sliceValidator.Min(1)
-		sliceValidator.Max(100)
-		if err := sliceValidator.Validate(v.Items); err != nil {
-			return err
 		}
 	} else if false {
 		return &validator.ValidationError{

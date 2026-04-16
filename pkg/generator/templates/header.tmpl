@@ -17,5 +17,8 @@ import (
 {{- if hasUUIDGen .Structs }}
     "github.com/google/uuid"
 {{- end }}
+{{- if $.GenerateOpenAPI }}
+    "github.com/arkannsk/elval/pkg/oa"
+{{- end }}
 "github.com/arkannsk/elval/pkg/validator"
 )

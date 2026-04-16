@@ -24,14 +24,16 @@ type Config struct {
 	CustomDirectives []CustomDirective `yaml:"custom_directives"`
 }
 
+var generateOpenAPI bool
+
 func main() {
 	var inputDir string
 	var configFile string
 	var verbose bool
 
 	flag.StringVar(&inputDir, "input", ".", "директория с исходными .go файлами")
-	flag.StringVar(&configFile, "config", ".elval.yaml", "файл конфигурации с кастомными директивами")
 	flag.BoolVar(&verbose, "v", false, "подробный вывод")
+	flag.BoolVar(&generateOpenAPI, "openapi", false, "генерировать OpenAPI схемы")
 	flag.Parse()
 
 	// Загружаем конфигурацию
@@ -68,7 +70,7 @@ func main() {
 	}
 
 	p := parser.NewParser()
-	gen, err := generator.NewGenerator(inputDir)
+	gen, err := generator.NewGenerator(inputDir, generateOpenAPI)
 	if err != nil {
 		log.Fatal(err)
 	}

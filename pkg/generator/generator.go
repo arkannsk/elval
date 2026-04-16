@@ -18,11 +18,12 @@ import (
 var templatesFS embed.FS
 
 type Generator struct {
-	outputDir string
-	tmpl      *template.Template
+	outputDir       string
+	tmpl            *template.Template
+	generateOpenAPI bool
 }
 
-func NewGenerator(outputDir string) (*Generator, error) {
+func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 	tmpl := template.New("").
 		Funcs(template.FuncMap{
 			"hasTime": func(structs []parser.Struct) bool {
@@ -108,6 +109,18 @@ func NewGenerator(outputDir string) (*Generator, error) {
 				}
 				return false
 			},
+			"hasOaSchema": func(structs []parser.Struct) bool {
+				// Проверяем, есть ли у структур OaAnnotations
+				for _, s := range structs {
+					for _, f := range s.Fields {
+						if len(f.OaAnnotations) > 0 {
+							return true
+						}
+					}
+				}
+				return false
+			},
+			"toLower": strings.ToLower,
 		})
 
 	// Рекурсивно обходим все файлы шаблонов
@@ -145,8 +158,9 @@ func NewGenerator(outputDir string) (*Generator, error) {
 	}
 
 	return &Generator{
-		outputDir: outputDir,
-		tmpl:      tmpl,
+		outputDir:       outputDir,
+		tmpl:            tmpl,
+		generateOpenAPI: generateOpenAPI,
 	}, nil
 }
 
@@ -157,13 +171,15 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	data := struct {
-		Package    string
-		Structs    []parser.Struct
-		SourceFile string
+		Package         string
+		Structs         []parser.Struct
+		SourceFile      string
+		GenerateOpenAPI bool
 	}{
-		Package:    parseResult.Package,
-		Structs:    parseResult.Structs,
-		SourceFile: filepath.Base(sourceFile),
+		Package:         parseResult.Package,
+		Structs:         parseResult.Structs,
+		SourceFile:      filepath.Base(sourceFile),
+		GenerateOpenAPI: g.generateOpenAPI,
 	}
 
 	var buf strings.Builder

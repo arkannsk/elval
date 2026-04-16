@@ -36,6 +36,7 @@
             }
         {{- end }}
         {{- if .Type.IsStruct }}
+            // Валидация элементов слайса структур
             for _, item := range v.{{ .Name }} {
             if err := item.Validate(); err != nil {
             return &validator.ValidationError{
@@ -44,17 +45,6 @@
             Message: "поле {{ .Name }}: " + err.Error(),
             }
             }
-            }
-        {{- else }}
-            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
-            {{- if $hasMin }}
-                sliceValidator.Min({{ $minVal }})
-            {{- end }}
-            {{- if $hasMax }}
-                sliceValidator.Max({{ $maxVal }})
-            {{- end }}
-            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
-            return err
             }
         {{- end }}
         } else if {{ $hasNotZero }} {
@@ -65,6 +55,7 @@
         }
         }
     {{- else }}
+        // Обязательный слайс
         if {{ $hasRequired }} && len(v.{{ .Name }}) == 0 {
         return &validator.ValidationError{
         Field: "{{ .Name }}",
@@ -91,6 +82,7 @@
             }
         {{- end }}
         {{- if .Type.IsStruct }}
+            // Валидация элементов слайса структур
             for _, item := range v.{{ .Name }} {
             if err := item.Validate(); err != nil {
             return &validator.ValidationError{
@@ -99,20 +91,6 @@
             Message: "поле {{ .Name }}: " + err.Error(),
             }
             }
-            }
-        {{- else }}
-            sliceValidator := validator.NewSliceValidator[{{ .Type.Name }}]("{{ .Name }}")
-            {{- if $hasRequired }}
-                sliceValidator.Required()
-            {{- end }}
-            {{- if $hasMin }}
-                sliceValidator.Min({{ $minVal }})
-            {{- end }}
-            {{- if $hasMax }}
-                sliceValidator.Max({{ $maxVal }})
-            {{- end }}
-            if err := sliceValidator.Validate(v.{{ .Name }}); err != nil {
-            return err
             }
         {{- end }}
     {{- end }}

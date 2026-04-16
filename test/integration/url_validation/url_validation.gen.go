@@ -34,11 +34,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Link
 func (v *Link) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Link
 func (v *Link) Validate() error {
 
 	if err := Link_WebsiteValidator.Validate(v.Website); err != nil {
@@ -65,11 +67,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Profile
 func (v *Profile) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Profile
 func (v *Profile) Validate() error {
 
 	if err := Profile_SecureURLValidator.Validate(v.SecureURL); err != nil {
@@ -110,11 +114,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре Config
 func (v *Config) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру Config
 func (v *Config) Validate() error {
 
 	if err := Config_AnyURLValidator.Validate(v.AnyURL); err != nil {

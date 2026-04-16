@@ -26,14 +26,19 @@ type Directive struct {
 	Raw    string   // исходный текст
 }
 
+type OaAnnotation struct {
+	Type  string // title, description, example, format, etc.
+	Value string
+}
+
 // Field представляет поле структуры с аннотациями
 type Field struct {
-	Name       string      // имя поля
-	Type       FieldType   // тип поля
-	Directives []Directive // список директив валидации
-	Decorators []Decorator // декораторы
-	Line       int         // номер строки в файле (для ошибок)
-	Tag        string      // оригинальный тег поля (если есть)
+	Name          string      // имя поля
+	Type          FieldType   // тип поля
+	Directives    []Directive // список директив валидации
+	Decorators    []Decorator // декораторы
+	Line          int         // номер строки в файле (для ошибок)
+	OaAnnotations []OaAnnotation
 }
 
 // Struct представляет структуру с полями для валидации

@@ -63,7 +63,6 @@ func (sv *SliceValidator[T]) Each(validator *FieldValidator[T]) *SliceValidator[
 
 // Validate проверяет слайс
 func (sv *SliceValidator[T]) Validate(value []T) error {
-	println("DEBUG: SliceValidator.Validate called", "len=", len(value), "minSize=", sv.minSize)
 	if sv.required && len(value) == 0 {
 		return fmt.Errorf("поле %s: слайс не может быть nil", sv.fieldName)
 	}

@@ -33,11 +33,13 @@ var (
 	}()
 )
 
+// Decorate применяет декораторы к структуре UserGen
 func (v *UserGen) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+// Validate проверяет структуру UserGen
 func (v *UserGen) Validate() error {
 
 	if err := UserGen_NameValidator.Validate(v.Name); err != nil {
