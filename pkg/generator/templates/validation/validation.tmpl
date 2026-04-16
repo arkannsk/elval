@@ -1,4 +1,10 @@
-{{ template "header" . }}
+{{ template "common/header" (dict
+"Package" .Package
+"Structs" .Structs
+"SourceFile" .SourceFile
+"GenerateValidation" true
+"GenerateOpenAPI" false
+) }}
 
 {{ range $struct := .Structs }}
     var (
@@ -17,7 +23,6 @@
     {{- end }}
     )
 
-    // Decorate применяет декораторы к структуре {{ $struct.Name }}
     func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
     {{- range $field := $struct.Fields }}
         {{ template "decorators" $field }}
@@ -25,7 +30,6 @@
     return nil
     }
 
-    // Validate проверяет структуру {{ $struct.Name }}
     func (v *{{ $struct.Name }}) Validate() error {
     {{- range $field := $struct.Fields }}
         {{- if $field.Type.IsSlice }}
@@ -51,6 +55,4 @@
     {{- end }}
     return nil
     }
-
-    {{ template "oa_schema" (dict "Struct" $struct "GenerateOpenAPI" $.GenerateOpenAPI) }}
 {{ end }}

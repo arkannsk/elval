@@ -32,13 +32,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	if err := User_NameValidator.Validate(v.Name); err != nil {

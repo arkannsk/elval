@@ -39,13 +39,69 @@ type Field struct {
 	Decorators    []Decorator // декораторы
 	Line          int         // номер строки в файле (для ошибок)
 	OaAnnotations []OaAnnotation
+	Description   string
 }
 
 // Struct представляет структуру с полями для валидации
 type Struct struct {
-	Name   string  // имя структуры
-	Fields []Field // поля с аннотациями
-	File   string  // путь к файлу
+	Name        string  // имя структуры
+	Fields      []Field // поля с аннотациями
+	File        string  // путь к файлу
+	Description string
+}
+
+// HasDirectives проверяет есть ли у структуры поля с аннотациями валидации
+func (s *Struct) HasDirectives() bool {
+	for _, field := range s.Fields {
+		if len(field.Directives) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// HasOaAnnotations проверяет есть ли у структуры OpenAPI аннотации
+func (s *Struct) HasOaAnnotations() bool {
+	for _, field := range s.Fields {
+		if len(field.OaAnnotations) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// HasDecorators проверяет есть ли у структуры декораторы
+func (s *Struct) HasDecorators() bool {
+	for _, field := range s.Fields {
+		if len(field.Decorators) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// HasDescription проверяет есть ли описание у структуры или её полей
+func (s *Struct) HasDescription() bool {
+	if s.Description != "" {
+		return true
+	}
+	for _, field := range s.Fields {
+		if field.Description != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// ShouldGenerateOpenAPI проверяет нужно ли генерировать OpenAPI для структуры
+func (s *Struct) ShouldGenerateOpenAPI(generateOpenAPIFlag bool) bool {
+	if generateOpenAPIFlag {
+		return true
+	}
+	if s.HasOaAnnotations() || s.HasDescription() {
+		return true
+	}
+	return false
 }
 
 // ParseResult результат парсинга файла

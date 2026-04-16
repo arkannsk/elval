@@ -10,13 +10,11 @@ import (
 
 var ()
 
-// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	// Кастомная валидация поля Name

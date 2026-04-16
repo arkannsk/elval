@@ -108,12 +108,9 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					OaAnnotations: p.parseFieldOaAnnotations(field),
 				})
 			}
-
-			// Добавляем структуру в результат только если у неё есть поля с аннотациями
-			// или если она используется как вложенная
-			if s.hasDirectives() || s.isUsedAsNested(allStructs) {
-				result.Structs = append(result.Structs, *s)
-			}
+			// Добавляем ВСЕ структуры в результат
+			// Фильтрация будет в генераторе
+			result.Structs = append(result.Structs, *s)
 		}
 	}
 

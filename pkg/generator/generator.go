@@ -123,7 +123,7 @@ func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 			"toLower": strings.ToLower,
 		})
 
-	// Рекурсивно обходим все файлы шаблонов
+	// Загружаем все шаблоны рекурсивно
 	err := fs.WalkDir(templatesFS, "templates", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -133,17 +133,9 @@ func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 			if err != nil {
 				return err
 			}
-			// Извлекаем короткое имя (без пути и расширения)
-			// templates/header.tmpl -> header
-			// templates/field/slice.tmpl -> slice_validation
+			// Используем путь как имя шаблона (без расширения .tmpl)
 			name := strings.TrimPrefix(path, "templates/")
 			name = strings.TrimSuffix(name, ".tmpl")
-			name = strings.ReplaceAll(name, "/", "_")
-
-			// Для field файлов добавляем суффикс для ясности
-			if strings.Contains(path, "/field/") {
-				name = strings.TrimPrefix(name, "field_")
-			}
 
 			_, err = tmpl.New(name).Parse(string(content))
 			if err != nil {
@@ -165,38 +157,87 @@ func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 }
 
 func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string) error {
-	if len(parseResult.Structs) == 0 {
-		// Нет структур с аннотациями - не генерируем файл
-		return nil
+	baseName := strings.TrimSuffix(filepath.Base(sourceFile), ".go")
+
+	// Отбираем структуры для валидации (есть директивы)
+	structsForValidation := make([]parser.Struct, 0)
+	for _, s := range parseResult.Structs {
+		if s.HasDirectives() {
+			structsForValidation = append(structsForValidation, s)
+		}
 	}
 
-	data := struct {
-		Package         string
-		Structs         []parser.Struct
-		SourceFile      string
-		GenerateOpenAPI bool
-	}{
-		Package:         parseResult.Package,
-		Structs:         parseResult.Structs,
-		SourceFile:      filepath.Base(sourceFile),
-		GenerateOpenAPI: g.generateOpenAPI,
+	// Отбираем структуры для OpenAPI
+	structsForOpenAPI := make([]parser.Struct, 0)
+	for _, s := range parseResult.Structs {
+		if s.ShouldGenerateOpenAPI(g.generateOpenAPI) {
+			structsForOpenAPI = append(structsForOpenAPI, s)
+		}
 	}
 
-	var buf strings.Builder
-	if err := g.tmpl.ExecuteTemplate(&buf, "validator", data); err != nil {
-		return fmt.Errorf("ошибка выполнения шаблона: %w", err)
+	// 1. Генерируем файл валидации
+	if len(structsForValidation) > 0 {
+		data := struct {
+			Package         string
+			Structs         []parser.Struct
+			SourceFile      string
+			GenerateOpenAPI bool
+		}{
+			Package:         parseResult.Package,
+			Structs:         structsForValidation,
+			SourceFile:      filepath.Base(sourceFile),
+			GenerateOpenAPI: false,
+		}
+
+		var buf strings.Builder
+		if err := g.tmpl.ExecuteTemplate(&buf, "validation/validation", data); err != nil {
+			return fmt.Errorf("ошибка выполнения шаблона валидации: %w", err)
+		}
+
+		formatted, err := format.Source([]byte(buf.String()))
+		if err != nil {
+			debugFile := strings.TrimSuffix(sourceFile, ".go") + ".debug.go"
+			_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
+			return fmt.Errorf("ошибка форматирования: %w", err)
+		}
+
+		outputPath := filepath.Join(g.outputDir, baseName+".gen.go")
+		if err := os.WriteFile(outputPath, formatted, 0644); err != nil {
+			return err
+		}
 	}
 
-	// Форматируем код
-	formatted, err := format.Source([]byte(buf.String()))
-	if err != nil {
-		// Сохраняем неформатированный для отладки
-		debugFile := strings.TrimSuffix(sourceFile, ".go") + ".debug.go"
-		_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
-		return fmt.Errorf("ошибка форматирования: %w", err)
+	// 2. Генерируем OpenAPI файл
+	if g.generateOpenAPI && len(structsForOpenAPI) > 0 {
+		data := struct {
+			Package         string
+			Structs         []parser.Struct
+			SourceFile      string
+			GenerateOpenAPI bool
+		}{
+			Package:         parseResult.Package,
+			Structs:         structsForOpenAPI,
+			SourceFile:      filepath.Base(sourceFile),
+			GenerateOpenAPI: true,
+		}
+
+		var buf strings.Builder
+		if err := g.tmpl.ExecuteTemplate(&buf, "openapi/openapi", data); err != nil {
+			return fmt.Errorf("ошибка выполнения шаблона OpenAPI: %w", err)
+		}
+
+		formatted, err := format.Source([]byte(buf.String()))
+		if err != nil {
+			debugFile := strings.TrimSuffix(sourceFile, ".go") + ".openapi.debug.go"
+			_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
+			return fmt.Errorf("ошибка форматирования OpenAPI: %w", err)
+		}
+
+		outputPath := filepath.Join(g.outputDir, baseName+".oa.gen.go")
+		if err := os.WriteFile(outputPath, formatted, 0644); err != nil {
+			return err
+		}
 	}
 
-	// Сохраняем результат
-	outputPath := filepath.Join(g.outputDir, strings.TrimSuffix(filepath.Base(sourceFile), ".go")+".gen.go")
-	return os.WriteFile(outputPath, formatted, 0644)
+	return nil
 }

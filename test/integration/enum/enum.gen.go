@@ -33,13 +33,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Order
 func (v *Order) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Order
 func (v *Order) Validate() error {
 
 	if err := Order_StatusValidator.Validate(v.Status); err != nil {
@@ -72,13 +70,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	if err := User_RoleValidator.Validate(v.Role); err != nil {

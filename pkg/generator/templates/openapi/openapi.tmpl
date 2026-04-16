@@ -1,0 +1,11 @@
+{{ template "common/header" (dict
+"Package" .Package
+"Structs" .Structs
+"SourceFile" .SourceFile
+"GenerateValidation" false
+"GenerateOpenAPI" true
+) }}
+
+{{ range $struct := .Structs }}
+    {{ template "openapi/schema" $struct }}
+{{ end }}

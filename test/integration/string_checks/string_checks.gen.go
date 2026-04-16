@@ -41,13 +41,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Document
 func (v *Document) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Document
 func (v *Document) Validate() error {
 
 	if err := Document_NameValidator.Validate(v.Name); err != nil {
@@ -84,13 +82,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре File
 func (v *File) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру File
 func (v *File) Validate() error {
 
 	if err := File_PathValidator.Validate(v.Path); err != nil {

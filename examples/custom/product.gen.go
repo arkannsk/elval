@@ -10,13 +10,11 @@ import (
 
 var ()
 
-// Decorate применяет декораторы к структуре Product
 func (v *Product) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Product
 func (v *Product) Validate() error {
 
 	// Кастомная валидация поля Color

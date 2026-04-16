@@ -33,13 +33,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Address
 func (v *Address) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Address
 func (v *Address) Validate() error {
 
 	if err := Address_CityValidator.Validate(v.City); err != nil {
@@ -72,13 +70,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	if err := User_NameValidator.Validate(v.Name); err != nil {
@@ -120,13 +116,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Company
 func (v *Company) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Company
 func (v *Company) Validate() error {
 
 	if err := Company_NameValidator.Validate(v.Name); err != nil {

@@ -5,7 +5,6 @@ package openapi
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/oa"
 	"github.com/arkannsk/elval/pkg/validator"
 	"time"
 )
@@ -43,13 +42,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре User
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру User
 func (v *User) Validate() error {
 
 	if err := User_NameValidator.Validate(v.Name); err != nil {
@@ -68,49 +65,6 @@ func (v *User) Validate() error {
 		return err
 	}
 	return nil
-}
-
-func (v *User) OaSchema() *oa.Schema {
-	schema := &oa.Schema{
-		Type:       "object",
-		Properties: make(map[string]oa.Schema, 4),
-		Required:   make([]string, 0, 4),
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		schema.Required = append(schema.Required, "name")
-		prop.MinLength = oa.Ptr[int64](3)
-		prop.MaxLength = oa.Ptr[int64](50)
-		prop.Title = "User Name"
-		prop.Description = "Full name of the user"
-		prop.Example = "John Doe"
-		schema.Properties["name"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		schema.Required = append(schema.Required, "email")
-		prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-		prop.Format = "email"
-		prop.Format = "email"
-		schema.Properties["email"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "integer"
-		prop.Minimum = oa.Ptr[float64](18)
-		prop.Maximum = oa.Ptr[float64](120)
-		schema.Properties["age"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		prop.Pattern = `^\+?[0-9]{8,15}$`
-		prop.Format = "phone"
-		schema.Properties["phone"] = prop
-	}
-	return schema
 }
 
 var (
@@ -145,13 +99,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Product
 func (v *Product) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Product
 func (v *Product) Validate() error {
 
 	if err := Product_StatusValidator.Validate(v.Status); err != nil {
@@ -172,46 +124,6 @@ func (v *Product) Validate() error {
 	return nil
 }
 
-func (v *Product) OaSchema() *oa.Schema {
-	schema := &oa.Schema{
-		Type:       "object",
-		Properties: make(map[string]oa.Schema, 4),
-		Required:   make([]string, 0, 4),
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		schema.Required = append(schema.Required, "status")
-		prop.Enum = []interface{}{"active", "inactive", "archived"}
-		prop.Description = "Product status"
-		schema.Properties["status"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "number"
-		schema.Required = append(schema.Required, "price")
-		prop.Minimum = oa.Ptr[float64](0)
-		prop.ExclusiveMinimum = true
-		schema.Properties["price"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "integer"
-		prop.Minimum = oa.Ptr[float64](1)
-		prop.Maximum = oa.Ptr[float64](1000)
-		schema.Properties["quantity"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		schema.Required = append(schema.Required, "code")
-		prop.MinLength = oa.Ptr[int64](10)
-		prop.MaxLength = oa.Ptr[int64](10)
-		schema.Properties["code"] = prop
-	}
-	return schema
-}
-
 var (
 	Order_IDValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("ID")
@@ -228,13 +140,11 @@ var (
 	}()
 )
 
-// Decorate применяет декораторы к структуре Order
 func (v *Order) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-// Validate проверяет структуру Order
 func (v *Order) Validate() error {
 
 	if err := Order_IDValidator.Validate(v.ID); err != nil {
@@ -270,36 +180,4 @@ func (v *Order) Validate() error {
 	}
 
 	return nil
-}
-
-func (v *Order) OaSchema() *oa.Schema {
-	schema := &oa.Schema{
-		Type:       "object",
-		Properties: make(map[string]oa.Schema, 3),
-		Required:   make([]string, 0, 3),
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		schema.Required = append(schema.Required, "id")
-		schema.Properties["id"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "string"
-		prop.Format = "date-time"
-		schema.Required = append(schema.Required, "createdat")
-		schema.Properties["createdat"] = prop
-	}
-	{
-		prop := oa.Schema{}
-		prop.Type = "array"
-		prop.Items = &oa.Schema{}
-		prop.Items.Type = "string"
-		schema.Required = append(schema.Required, "items")
-		prop.MinLength = oa.Ptr[int64](1)
-		prop.MaxLength = oa.Ptr[int64](100)
-		schema.Properties["items"] = prop
-	}
-	return schema
 }

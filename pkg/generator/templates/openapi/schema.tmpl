@@ -1,0 +1,27 @@
+{{ define "openapi/schema" }}
+    // OaSchema возвращает OpenAPI схему для структуры {{ .Name }}
+    func (v *{{ .Name }}) OaSchema() *oa.Schema {
+    schema := &oa.Schema{
+    Type:       "object",
+    Properties: make(map[string]oa.Schema, {{ len .Fields }}),
+    Required:   make([]string, 0, {{ len .Fields }}),
+    }
+    {{- if .Description }}
+        schema.Description = {{ .Description | printf "%q" }}
+    {{- end }}
+    {{- range $field := .Fields }}
+        // Поле {{ $field.Name }}
+        {
+        prop := oa.Schema{}
+
+        {{ template "openapi/field/type" $field }}
+        {{ template "openapi/field/validators" $field }}
+        {{ template "openapi/field/annotations" $field }}
+        {{ template "openapi/field/description" $field }}
+
+        schema.Properties[{{ $field.Name | toLower | printf "%q" }}] = prop
+        }
+    {{- end }}
+    return schema
+    }
+{{ end }}
