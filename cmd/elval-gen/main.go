@@ -10,67 +10,84 @@ import (
 
 	"github.com/arkannsk/elval/pkg/generator"
 	"github.com/arkannsk/elval/pkg/parser"
-	"gopkg.in/yaml.v3"
 )
 
-type CustomDirective struct {
-	Name        string   `yaml:"name"`
-	Types       []string `yaml:"types"`
-	ParamCount  int      `yaml:"param_count"`
-	Description string   `yaml:"description"`
-}
-
-type Config struct {
-	CustomDirectives []CustomDirective `yaml:"custom_directives"`
-}
-
-var generateOpenAPI bool
-
 func main() {
+	if len(os.Args) < 2 {
+		printUsage()
+		os.Exit(1)
+	}
+
+	command := os.Args[1]
+
+	switch command {
+	case "generate", "gen":
+		generateCmd()
+	case "lint":
+		lintCmd()
+	case "version", "ver":
+		versionCmd()
+	case "help", "h", "":
+		printUsage()
+	default:
+		fmt.Printf("Unknown command: %s\n", command)
+		printUsage()
+		os.Exit(1)
+	}
+}
+
+func printUsage() {
+	fmt.Println(`elval-gen - Code generator for elval validator
+
+Usage:
+  elval-gen generate [flags]   Generate validation code
+  elval-gen lint [flags]       Validate annotations without generation
+  elval-gen version            Show version
+
+Flags for generate and lint:
+  -input, -i string      Input directory with .go files (default ".")
+  -output, -o string     Output directory (default same as input)
+  -v                     Verbose output
+
+Additional flags for generate:
+  -openapi               Generate OpenAPI schemas
+
+Examples:
+  elval-gen generate -i ./user
+  elval-gen gen -i ./user -openapi -v
+  elval-gen lint -i ./user
+  elval-gen lint -i ./user -v`)
+}
+
+func generateCmd() {
 	var inputDir string
-	var configFile string
+	var outputDir string
 	var verbose bool
+	var generateOpenAPI bool
 
-	flag.StringVar(&inputDir, "input", ".", "директория с исходными .go файлами")
-	flag.BoolVar(&verbose, "v", false, "подробный вывод")
-	flag.BoolVar(&generateOpenAPI, "openapi", false, "генерировать OpenAPI схемы")
-	flag.Parse()
+	genFlags := flag.NewFlagSet("generate", flag.ExitOnError)
+	genFlags.StringVar(&inputDir, "input", ".", "")
+	genFlags.StringVar(&inputDir, "i", ".", "")
+	genFlags.StringVar(&outputDir, "output", "", "")
+	genFlags.StringVar(&outputDir, "o", "", "")
+	genFlags.BoolVar(&verbose, "v", false, "")
+	genFlags.BoolVar(&generateOpenAPI, "openapi", false, "")
 
-	// Загружаем конфигурацию
-	if _, err := os.Stat(configFile); err == nil {
-		data, err := os.ReadFile(configFile)
-		if err != nil {
-			log.Printf("⚠️  Ошибка чтения конфига: %v", err)
-		} else {
-			var config Config
-			if err := yaml.Unmarshal(data, &config); err != nil {
-				log.Printf("⚠️  Ошибка парсинга конфига: %v", err)
-			} else {
-				for _, d := range config.CustomDirectives {
-					// Проверяем префикс
-					if !strings.HasPrefix(d.Name, "x-") {
-						log.Printf("⚠️  Кастомная директива %s должна начинаться с 'x-', пропускаем", d.Name)
-						continue
-					}
+	genFlags.Parse(os.Args[2:])
 
-					err := parser.AddCustomDirective(d.Name, d.Types, d.ParamCount, d.Description)
-					if err != nil {
-						log.Printf("⚠️  Ошибка добавления директивы: %v", err)
-						continue
-					}
-					if verbose {
-						fmt.Printf("  ✅ Зарегистрирована кастомная директива: %s (типы: %v, параметров: %d)\n",
-							d.Name, d.Types, d.ParamCount)
-					}
-				}
-			}
+	if outputDir == "" {
+		outputDir = inputDir
+	}
+
+	if verbose {
+		fmt.Printf("Generating code for %s\n", inputDir)
+		if generateOpenAPI {
+			fmt.Printf("OpenAPI schemas enabled\n")
 		}
-	} else if verbose {
-		fmt.Printf("  ℹ️  Файл конфигурации %s не найден, используем только стандартные директивы\n", configFile)
 	}
 
 	p := parser.NewParser()
-	gen, err := generator.NewGenerator(inputDir, generateOpenAPI)
+	gen, err := generator.NewGenerator(outputDir, generateOpenAPI)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -84,37 +101,128 @@ func main() {
 	skipped := 0
 
 	for _, file := range files {
-		if strings.HasSuffix(file, ".gen.go") {
+		if strings.HasSuffix(file, ".gen.go") || strings.HasSuffix(file, ".oa.gen.go") {
 			continue
 		}
 
 		if verbose {
-			fmt.Printf("Обработка: %s\n", filepath.Base(file))
+			fmt.Printf("  Processing: %s\n", filepath.Base(file))
 		}
 
 		result, err := p.ParseFile(file)
 		if err != nil {
-			log.Printf("Ошибка парсинга %s: %v", file, err)
+			log.Printf("Parse error %s: %v", file, err)
 			continue
 		}
 
 		if len(result.Structs) == 0 {
 			if verbose {
-				fmt.Printf("  ⏭️  Пропуск (нет аннотаций)\n")
+				fmt.Printf("    Skip (no structs with annotations)\n")
 			}
 			skipped++
 			continue
 		}
 
 		if err := gen.Generate(result, file); err != nil {
-			log.Printf("Ошибка генерации для %s: %v", file, err)
+			log.Printf("Generation error for %s: %v", file, err)
 			continue
 		}
 
 		generated++
 		if verbose {
-			outputFile := strings.TrimSuffix(filepath.Base(file), ".go") + ".gen.go"
-			fmt.Printf("  ✅ Сгенерирован %s\n", outputFile)
+			fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".gen.go")
+			if generateOpenAPI {
+				fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".oa.gen.go")
+			}
 		}
 	}
+
+	if verbose {
+		fmt.Printf("\nStatistics: generated %d, skipped %d\n", generated, skipped)
+	}
+}
+
+// cmd/elval-gen/main.go
+
+func lintCmd() {
+	var inputDir string
+	var verbose bool
+	var exclude string
+
+	lintFlags := flag.NewFlagSet("lint", flag.ExitOnError)
+	lintFlags.StringVar(&inputDir, "input", ".", "")
+	lintFlags.StringVar(&inputDir, "i", ".", "")
+	lintFlags.BoolVar(&verbose, "v", false, "")
+	lintFlags.StringVar(&exclude, "exclude", "", "comma-separated patterns to exclude (e.g. vendor,testdata)")
+
+	lintFlags.Parse(os.Args[2:])
+
+	p := parser.NewParser()
+
+	// Рекурсивно обходим все поддиректории
+	var files []string
+	err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			// Проверяем исключения
+			if exclude != "" {
+				patterns := strings.Split(exclude, ",")
+				for _, pattern := range patterns {
+					if strings.Contains(path, strings.TrimSpace(pattern)) {
+						return filepath.SkipDir
+					}
+				}
+			}
+			return nil
+		}
+		if strings.HasSuffix(path, ".go") &&
+			!strings.HasSuffix(path, ".gen.go") &&
+			!strings.HasSuffix(path, ".oa.gen.go") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hasErrors := false
+	totalFiles := 0
+	errorCount := 0
+
+	for _, file := range files {
+		totalFiles++
+
+		result, err := p.ParseFile(file)
+		if err != nil {
+			log.Printf("Parse error %s: %v", file, err)
+			hasErrors = true
+			continue
+		}
+
+		errors := result.ValidateDirectives()
+		if len(errors) > 0 {
+			hasErrors = true
+			errorCount += len(errors)
+			for _, err := range errors {
+				fmt.Println(err.Error())
+			}
+		} else if verbose {
+			fmt.Printf("%s - all annotations valid\n", filepath.Base(file))
+		}
+	}
+
+	if verbose {
+		fmt.Printf("\nFiles checked: %d, errors found: %d\n", totalFiles, errorCount)
+	}
+
+	if hasErrors {
+		os.Exit(1)
+	}
+}
+
+func versionCmd() {
+	fmt.Println("elval-gen version 0.1.0")
 }

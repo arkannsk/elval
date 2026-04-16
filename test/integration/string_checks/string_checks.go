@@ -1,6 +1,6 @@
 package string_checks
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Document struct {
 	// @evl:validate required

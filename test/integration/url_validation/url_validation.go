@@ -1,6 +1,6 @@
 package url_validation
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Link struct {
 	// @evl:validate required

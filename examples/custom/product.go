@@ -1,6 +1,6 @@
 package main
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Product struct {
 	// @evl:validate required

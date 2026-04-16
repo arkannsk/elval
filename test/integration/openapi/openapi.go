@@ -1,6 +1,6 @@
 package openapi
 
-//go:generate elval-gen -input . -openapi
+//go:generate elval-gen gen -input . -openapi
 
 import "time"
 

@@ -1,6 +1,6 @@
 package user
 
-//go:generate elval-gen -input . -openapi
+//go:generate elval-gen generate -input . -openapi
 
 // User представляет пользователя системы.
 // @evl:validate required

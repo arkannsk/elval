@@ -2,7 +2,7 @@ package main
 
 import "github.com/samber/mo"
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type User struct {
 	// @evl:validate required

@@ -278,16 +278,21 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 	return directives
 }
 
-// ValidateDirectives проверяет все директивы в структурах
-func (r *ParseResult) ValidateDirectives() []error {
-	var errors []error
+func (r *ParseResult) ValidateDirectives() []DirectiveError {
+	var errors []DirectiveError
 
 	for _, s := range r.Structs {
 		for _, field := range s.Fields {
 			for _, dir := range field.Directives {
-				if err := ValidateDirective(dir, field.Type); err != nil {
-					errors = append(errors, fmt.Errorf("%s:%d: поле %s: %w",
-						s.File, field.Line, field.Name, err))
+				if err := validateDirective(dir, field.Type); err != nil {
+					errors = append(errors, DirectiveError{
+						File:      s.File,
+						Line:      field.Line,
+						Struct:    s.Name,
+						Field:     field.Name,
+						Directive: dir.Type,
+						Message:   err.Error(),
+					})
 				}
 			}
 		}

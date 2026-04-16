@@ -1,4 +1,4 @@
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 package mixed
 

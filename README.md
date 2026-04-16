@@ -52,7 +52,7 @@ go install github.com/arkannsk/elval/cmd/elval-gen@latest
 ```go
 package user
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type User struct {
 	// @evl:validate required

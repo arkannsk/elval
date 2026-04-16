@@ -1,7 +1,6 @@
-// test/integration/enum/enum.go
 package enum
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Order struct {
 	// @evl:validate required

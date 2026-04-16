@@ -5,6 +5,9 @@ BINARY=bin/elval-gen
 lint:
 	golangci-lint run ./...
 
+lint-spec: install
+	elval-gen lint
+
 install:
 	go install ./cmd/elval-gen
 
