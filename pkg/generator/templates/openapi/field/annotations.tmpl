@@ -1,0 +1,21 @@
+{{ define "openapi/field/annotations" }}
+    {{- range $oa := .OaAnnotations }}
+        {{- if eq $oa.Type "title" }}
+            prop.Title = {{ $oa.Value | printf "%s" }}
+        {{- else if eq $oa.Type "description" }}
+            prop.Description = {{ $oa.Value | printf "%s" }}
+        {{- else if eq $oa.Type "example" }}
+            prop.Example = {{ $oa.Value | printf "%s" }}
+        {{- else if eq $oa.Type "format" }}
+            {{- if eq $oa.Value "email" }}
+                prop.Format = "email"
+            {{- else if eq $oa.Value "phone" }}
+                prop.Format = "phone"
+            {{- else if eq $oa.Value "uuid" }}
+                prop.Format = "uuid"
+            {{- else }}
+                prop.Format = {{ $oa.Value | printf "%s" }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+{{ end }}

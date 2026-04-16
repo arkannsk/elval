@@ -27,7 +27,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("📝 После декораторов:")
+	fmt.Println("После декораторов:")
 	fmt.Printf("  ID: %s\n", user.ID)
 	fmt.Printf("  Role: %s\n", user.Role)
 	fmt.Printf("  Environment: %s\n", user.Environment)
@@ -40,5 +40,5 @@ func main() {
 		return
 	}
 
-	fmt.Println("\n✅ User валиден!")
+	fmt.Println("\nUser валиден!")
 }

@@ -128,6 +128,7 @@ func (v *Company) Validate() error {
 	}
 
 	// Валидация слайса Addresses
+	// Обязательный слайс
 	if true && len(v.Addresses) == 0 {
 		return &validator.ValidationError{
 			Field:   "Addresses",
@@ -142,6 +143,7 @@ func (v *Company) Validate() error {
 			Message: "поле Addresses должно содержать минимум 1 элементов",
 		}
 	}
+	// Валидация элементов слайса структур
 	for _, item := range v.Addresses {
 		if err := item.Validate(); err != nil {
 			return &validator.ValidationError{
@@ -154,6 +156,7 @@ func (v *Company) Validate() error {
 
 	// Валидация слайса Users
 	if len(v.Users) > 0 {
+		// Валидация элементов слайса структур
 		for _, item := range v.Users {
 			if err := item.Validate(); err != nil {
 				return &validator.ValidationError{

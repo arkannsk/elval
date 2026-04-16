@@ -6,12 +6,6 @@
             v.{{ $.Name }} = str
             }
             }
-        {{- else if eq .Type "ctx-get-int" }}
-            if val := ctx.Value("{{ index .Params 0 }}"); val != nil {
-            if num, ok := val.(int); ok {
-            v.{{ $.Name }} = num
-            }
-            }
         {{- else if eq .Type "httpctx-get" }}
             if r := ctx.Value("http.request"); r != nil {
             if req, ok := r.(*http.Request); ok {

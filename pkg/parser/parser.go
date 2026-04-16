@@ -100,19 +100,17 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 
 				// Добавляем поле даже если нет директив (оно может быть вложенной структурой)
 				s.Fields = append(s.Fields, Field{
-					Name:       fieldName,
-					Type:       fieldType,
-					Directives: directives,
-					Decorators: p.parseFieldDecorators(field),
-					Line:       p.fset.Position(field.Pos()).Line,
+					Name:          fieldName,
+					Type:          fieldType,
+					Directives:    directives,
+					Decorators:    p.parseFieldDecorators(field),
+					Line:          p.fset.Position(field.Pos()).Line,
+					OaAnnotations: p.parseFieldOaAnnotations(field),
 				})
 			}
-
-			// Добавляем структуру в результат только если у неё есть поля с аннотациями
-			// или если она используется как вложенная
-			if s.hasDirectives() || s.isUsedAsNested(allStructs) {
-				result.Structs = append(result.Structs, *s)
-			}
+			// Добавляем ВСЕ структуры в результат
+			// Фильтрация будет в генераторе
+			result.Structs = append(result.Structs, *s)
 		}
 	}
 
@@ -198,6 +196,46 @@ func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 	}
 
 	return directives
+}
+
+// pkg/parser/parser.go
+
+func (p *Parser) parseFieldOaAnnotations(field *ast.Field) []OaAnnotation {
+	var oas []OaAnnotation
+	re := regexp.MustCompile(`@oa:([a-zA-Z_-]+)\s+(.+)`)
+
+	// Check comments after field
+	if field.Comment != nil {
+		for _, comment := range field.Comment.List {
+			oas = append(oas, p.extractOaAnnotations(comment.Text, re)...)
+		}
+	}
+	// Check doc before field
+	if field.Doc != nil {
+		for _, comment := range field.Doc.List {
+			oas = append(oas, p.extractOaAnnotations(comment.Text, re)...)
+		}
+	}
+	return oas
+}
+
+func (p *Parser) extractOaAnnotations(text string, re *regexp.Regexp) []OaAnnotation {
+	var oas []OaAnnotation
+	text = strings.TrimPrefix(text, "//")
+	text = strings.TrimPrefix(text, "/*")
+	text = strings.TrimSuffix(text, "*/")
+	text = strings.TrimSpace(text)
+
+	matches := re.FindAllStringSubmatch(text, -1)
+	for _, match := range matches {
+		if len(match) >= 3 {
+			oas = append(oas, OaAnnotation{
+				Type:  match[1],
+				Value: strings.TrimSpace(match[2]),
+			})
+		}
+	}
+	return oas
 }
 
 // extractDirectives извлекает директивы из текста комментария

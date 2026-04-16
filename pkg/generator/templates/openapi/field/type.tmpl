@@ -1,0 +1,30 @@
+{{ define "openapi/field/type" }}
+    {{- if .Type.IsSlice }}
+        prop.Type = "array"
+        prop.Items = &oa.Schema{}
+        {{- if eq .Type.Name "string" }}
+            prop.Items.Type = "string"
+        {{- else if eq .Type.Name "int" }}
+            prop.Items.Type = "integer"
+        {{- else if eq .Type.Name "float64" }}
+            prop.Items.Type = "number"
+        {{- else if .Type.IsStruct }}
+            prop.Items.Ref = "#/components/schemas/{{ .Type.Name }}"
+        {{- else }}
+            prop.Items.Type = "string"
+        {{- end }}
+    {{- else if eq .Type.Name "string" }}
+        prop.Type = "string"
+    {{- else if eq .Type.Name "int" "int8" "int16" "int32" "int64" }}
+        prop.Type = "integer"
+    {{- else if eq .Type.Name "float32" "float64" }}
+        prop.Type = "number"
+    {{- else if eq .Type.Name "bool" }}
+        prop.Type = "boolean"
+    {{- else if eq .Type.Name "time.Time" }}
+        prop.Type = "string"
+        prop.Format = "date-time"
+    {{- else if .Type.IsStruct }}
+        prop.Ref = "#/components/schemas/{{ .Type.Name }}"
+    {{- end }}
+{{ end }}

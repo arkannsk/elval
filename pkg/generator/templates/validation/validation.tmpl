@@ -1,4 +1,10 @@
-{{ template "header" . }}
+{{ template "common/header" (dict
+"Package" .Package
+"Structs" .Structs
+"SourceFile" .SourceFile
+"GenerateValidation" true
+"GenerateOpenAPI" false
+) }}
 
 {{ range $struct := .Structs }}
     var (
