@@ -4,6 +4,9 @@
 [![License](https://img.shields.io/github/license/arkannsk/elval)](LICENSE)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-463ns%2Fop-brightgreen)](BENCHMARKS.md)
 
+[//]: # ([![Go Reference]&#40;https://pkg.go.dev/badge/github.com/arkannsk/elval.svg&#41;]&#40;https://pkg.go.dev/github.com/arkannsk/elval&#41;)
+[//]: # ([![Go Report Card]&#40;https://goreportcard.com/badge/github.com/arkannsk/elval&#41;]&#40;https://goreportcard.com/report/github.com/arkannsk/elval&#41;)
+
 **ElVal** is a code generation-based validator for Go that eliminates reflection overhead.
 It's **6x faster** than go-playground/validator with **zero memory allocations**.
 
@@ -24,6 +27,7 @@ It's **6x faster** than go-playground/validator with **zero memory allocations**
 - [Nested Structures](#nested-structures)
 - [Custom Validators](#custom-validators)
 - [Decorators](#decorators)
+- [OpenAPI](#openapi)
 - [Performance](#performance)
 
 ## Features
@@ -80,15 +84,15 @@ go generate ./...
 
 ```go
 func main() {
-user := User{
-Name:  "John Doe",
-Email: "john@example.com",
-Age:   25,
+    user := User{
+    Name:  "John Doe",
+    Email: "john@example.com",
+    Age:   25,
 }
 
 if err := user.Validate(); err != nil {
-fmt.Printf("Validation failed: %v\n", err)
-}
+    fmt.Printf("Validation failed: %v\n", err)
+    }
 }
 ```
 
@@ -179,15 +183,16 @@ fmt.Printf("Validation failed: %v\n", err)
 
 ```go
 type Address struct {
-// @evl:validate required
-// @evl:validate min:2
-City string
+    // @evl:validate required
+    // @evl:validate min:2
+    City string
 }
 
 type User struct {
-Name    string
-Address Address // automatically validated
+    Name    string
+    Address Address // automatically validated
 }
+
 ```
 
 ## Custom Validators
@@ -196,18 +201,18 @@ Address Address // automatically validated
 
 ```go
 func init() {
-validator.RegisterCustom("x-color", func (value any, params string) error {
-str, ok := value.(string)
-if !ok {
-return fmt.Errorf("expected string")
-}
+    validator.RegisterCustom("x-color", func (value any, params string) error {
+	str, ok := value.(string)
+    if !ok {
+    return fmt.Errorf("expected string")
+    }
 
 validColors := map[string]bool{"red": true, "green": true, "blue": true}
-if !validColors[str] {
-return fmt.Errorf("invalid color: %s", str)
-}
-return nil
-})
+    if !validColors[str] {
+        return fmt.Errorf("invalid color: %s", str)
+    }
+    return nil
+    })
 }
 ```
 
@@ -215,11 +220,11 @@ return nil
 
 ```go
 type Product struct {
-// @evl:validate x-color
-Color string
+    // @evl:validate x-color
+    Color string
 
-// @evl:validate x-even
-Count int
+    // @evl:validate x-even
+    Count int
 }
 ```
 
@@ -248,13 +253,31 @@ type Request struct {
 
     // @evl:decor time-now
     CreatedAt time.Time
-}
+    }
 
 // Apply decorators
 if err := req.Decorate(ctx); err != nil {
-    // handle error
+// handle error
 }
 ```
+
+## OpenAPI
+
+Generate OpenAPI 3 schemas from your validation annotations:
+
+```bash
+elval-gen -input . -openapi
+```
+
+### OpenAPI Annotations
+
+| Annotation      | Description        | Example                     |
+|-----------------|--------------------|-----------------------------|
+| @oa:title       | Schema title       | @oa:title "User Name"       |
+| @oa:description | Schema description | @oa:description "Full name" |
+| @oa:example     | Example value      | @oa:example "John"          |
+| @oa:format      | OpenAPI format     | @oa:format email            |
+
 
 ## Performance
 
