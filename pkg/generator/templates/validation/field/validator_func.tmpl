@@ -1,6 +1,6 @@
 {{ define "validator_func" }}
-    func() *validator.FieldValidator[{{ .Type.Name }}] {
-    v := validator.New[{{ .Type.Name }}]("{{ .Name }}")
+    func() *validator.FieldValidator[{{ if .Type.IsPointer }}{{ .Type.Name | trimStar }}{{ else }}{{ .Type.Name }}{{ end }}] {
+    v := validator.New[{{ if .Type.IsPointer }}{{ .Type.Name | trimStar }}{{ else }}{{ .Type.Name }}{{ end }}]("{{ .Name }}")
     {{- $hasRequired := false }}
     {{- range $directive := .Directives }}
         {{- if eq $directive.Type "required" }}

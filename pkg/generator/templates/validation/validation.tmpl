@@ -9,7 +9,7 @@
 {{ range $struct := .Structs }}
     var (
     {{- range $field := $struct.Fields }}
-        {{- if and (not $field.Type.IsSlice) (not $field.Type.IsStruct) (not $field.Type.IsPointer) }}
+        {{- if not $field.Type.IsSlice }}
             {{- $hasCustom := false }}
             {{- range $directive := $field.Directives }}
                 {{- if isCustomDirective $directive.Type }}
@@ -35,9 +35,9 @@
         {{- if $field.Type.IsSlice }}
             {{ template "slice_validate" $field }}
         {{- else if $field.Type.IsPointer }}
-            {{ template "pointer_validate" $field }}
+            {{ template "pointer_validate" (dict "Struct" $struct "Field" $field) }}
         {{- else if $field.Type.IsStruct }}
-            {{ template "struct_validate" $field }}
+            {{ template "struct_validate" (dict "Struct" $struct "Field" $field) }}
         {{- else }}
             {{ template "custom_validation" $field }}
             {{- $hasCustom := false }}
