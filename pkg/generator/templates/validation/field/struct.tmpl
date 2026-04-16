@@ -1,10 +1,10 @@
 {{ define "struct_validate" }}
-    // Вложенная структура {{ .Name }}
-    if err := v.{{ .Name }}.Validate(); err != nil {
+    // Вложенная структура {{ .Field.Name }}
+    if err := v.{{ .Field.Name }}.Validate(); err != nil {
     return &validator.ValidationError{
-    Field: "{{ .Name }}",
+    Field: "{{ .Field.Name }}",
     Rule:  "nested",
-    Message: "поле {{ .Name }}: " + err.Error(),
+    Message: "поле {{ .Field.Name }}: " + err.Error(),
     }
     }
 {{ end }}

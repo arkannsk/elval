@@ -1,6 +1,6 @@
 package date_validation
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Event struct {
 	// @evl:validate required

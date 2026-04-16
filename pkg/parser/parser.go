@@ -117,12 +117,14 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	return result, nil
 }
 
-// getFieldTypeWithStructs определяет тип поля с учётом вложенных структур
+// pkg/parser/parser.go
+
 func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string]*Struct, filename string) FieldType {
 	ft := FieldType{
 		IsSlice:   false,
 		IsPointer: false,
 		IsStruct:  false,
+		IsCustom:  false,
 	}
 
 	switch t := field.Type.(type) {
@@ -140,10 +142,13 @@ func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string
 				ft.IsStruct = true
 			}
 		} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
-			// *time.Time, *time.Duration
 			if pkg, ok := sel.X.(*ast.Ident); ok {
 				ft.Name = pkg.Name + "." + sel.Sel.Name
 			}
+		} else if idx, ok := t.X.(*ast.IndexExpr); ok {
+			// *mo.Option[string]
+			ft.Name = getTypeString(idx)
+			ft.IsCustom = true
 		}
 
 	case *ast.ArrayType:
@@ -163,10 +168,15 @@ func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string
 		}
 
 	case *ast.SelectorExpr:
-		// time.Time, time.Duration
+		// mo.Option
 		if ident, ok := t.X.(*ast.Ident); ok {
 			ft.Name = ident.Name + "." + t.Sel.Name
 		}
+
+	case *ast.IndexExpr:
+		// mo.Option[string]
+		ft.Name = getTypeString(t)
+		ft.IsCustom = true
 	}
 
 	return ft
@@ -278,16 +288,23 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 	return directives
 }
 
-// ValidateDirectives проверяет все директивы в структурах
-func (r *ParseResult) ValidateDirectives() []error {
-	var errors []error
+func (r *ParseResult) ValidateDirectives() []DirectiveError {
+	var errors []DirectiveError
 
 	for _, s := range r.Structs {
 		for _, field := range s.Fields {
 			for _, dir := range field.Directives {
-				if err := ValidateDirective(dir, field.Type); err != nil {
-					errors = append(errors, fmt.Errorf("%s:%d: поле %s: %w",
-						s.File, field.Line, field.Name, err))
+				severity, err := validateDirective(dir, field.Type)
+				if err != nil {
+					errors = append(errors, DirectiveError{
+						File:      s.File,
+						Line:      field.Line,
+						Struct:    s.Name,
+						Field:     field.Name,
+						Directive: dir.Type,
+						Message:   err.Error(),
+						Severity:  severity,
+					})
 				}
 			}
 		}
@@ -306,4 +323,38 @@ func getFieldName(field *ast.Field) string {
 		return ident.Name
 	}
 	return ""
+}
+
+func getTypeString(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+
+	case *ast.StarExpr:
+		return "*" + getTypeString(t.X)
+
+	case *ast.ArrayType:
+		return "[]" + getTypeString(t.Elt)
+
+	case *ast.SelectorExpr:
+		return getTypeString(t.X) + "." + t.Sel.Name
+
+	case *ast.IndexExpr:
+		// mo.Option[string]
+		return getTypeString(t.X) + "[" + getTypeString(t.Index) + "]"
+
+	case *ast.IndexListExpr:
+		result := getTypeString(t.X) + "["
+		for i, idx := range t.Indices {
+			if i > 0 {
+				result += ", "
+			}
+			result += getTypeString(idx)
+		}
+		result += "]"
+		return result
+
+	default:
+		return "unknown"
+	}
 }

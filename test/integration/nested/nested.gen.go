@@ -68,6 +68,19 @@ var (
 		v.AddRule(validator.Email())
 		return v
 	}()
+
+	User_AddressValidator = func() *validator.FieldValidator[Address] {
+		v := validator.New[Address]("Address")
+		return v
+	}()
+
+	User_BillingAddressValidator = func() *validator.FieldValidator[Address] {
+		v := validator.New[Address]("BillingAddress")
+		original := v
+		v = validator.New[Address]("BillingAddress")
+		v.AddRule(validator.SkipIfZero(original.Validate))
+		return v
+	}()
 )
 
 func (v *User) Decorate(ctx context.Context) error {
@@ -96,7 +109,8 @@ func (v *User) Validate() error {
 
 	// Указатель BillingAddress
 	if v.BillingAddress != nil {
-		if err := v.BillingAddress.Validate(); err != nil {
+		val := *v.BillingAddress
+		if err := User_BillingAddressValidator.Validate(val); err != nil {
 			return &validator.ValidationError{
 				Field:   "BillingAddress",
 				Rule:    "nested",

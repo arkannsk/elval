@@ -13,7 +13,6 @@ var (
 	ErrInvalidUUID  = errors.New("невалидный UUID")
 )
 
-// ValidationError кастомная ошибка валидации
 type ValidationError struct {
 	Field   string
 	Rule    string

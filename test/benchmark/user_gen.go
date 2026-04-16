@@ -1,6 +1,6 @@
 package benchmark
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type UserGen struct {
 	// @evl:validate required

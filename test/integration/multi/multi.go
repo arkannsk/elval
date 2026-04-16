@@ -1,6 +1,6 @@
 package multi
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 // User структура пользователя
 type User struct {

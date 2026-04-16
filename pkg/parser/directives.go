@@ -39,6 +39,13 @@ const (
 	DirGte DirectiveType = "gte" // больше или равно
 )
 
+const (
+	paramsCntNone      = 0
+	paramsCntOne       = 1
+	paramsCntTwo       = 2
+	paramsCntUnbounded = -1
+)
+
 // DirectiveInfo информация о директиве
 type DirectiveInfo struct {
 	Description        string
@@ -54,45 +61,45 @@ type DirectiveInfo struct {
 var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 	DirRequired: {
 		Description:  "поле обязательно для заполнения",
-		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration"},
-		ParamCount:   0,
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration", "any"},
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate required",
 	},
 	DirOptional: {
 		Description:  "поле опционально",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration"},
-		ParamCount:   0,
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate optional",
 	},
 	DirMin: {
 		Description:  "минимальное значение (для чисел), минимальная длина (для строк), минимальный размер (для слайсов), минимальная длительность (для Duration)",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "slice", "time.Duration"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate min:18",
 	},
 	DirMax: {
 		Description:  "максимальное значение (для чисел), максимальная длина (для строк), максимальный размер (для слайсов), максимальная длительность (для Duration)",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "slice", "time.Duration"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate max:99",
 	},
 	DirLen: {
 		Description:  "точная длина строки или точный размер слайса",
 		AllowedTypes: []string{"string", "slice"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate len:10",
 	},
 	DirMinMax: {
 		Description:  "диапазон значений - устаревшая, используйте min и max",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "time.Duration"},
-		ParamCount:   2,
+		ParamCount:   paramsCntTwo,
 		Example:      "@evl:validate min-max:3,50",
 		Deprecated:   true,
 	},
 	DirPattern: {
 		Description:  "проверка по регулярному выражению или предопределенному паттерну",
 		AllowedTypes: []string{"string"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate pattern:email",
 		PredefinedPatterns: map[string]string{
 			"email": `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`,
@@ -103,103 +110,103 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 	DirEnum: {
 		Description:  "значение должно быть из указанного списка",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64"},
-		ParamCount:   1, // параметры через запятую: enum:active,inactive,pending
+		ParamCount:   paramsCntUnbounded, // переменное количество параметров
 		Example:      "@evl:validate enum:active,inactive,pending",
 	},
 	DirURL: {
 		Description:  "валидный URL (любая схема)",
 		AllowedTypes: []string{"string"},
-		ParamCount:   0,
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate url",
 	},
 	DirHTTPURL: {
 		Description:  "валидный HTTP/HTTPS URL",
 		AllowedTypes: []string{"string"},
-		ParamCount:   0,
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate http_url",
 	},
 	DirDSN: {
 		Description:  "валидный DSN для подключения к БД",
 		AllowedTypes: []string{"string"},
-		ParamCount:   0,
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate dsn",
 	},
 	DirContains: {
 		Description:  "строка должна содержать подстроку",
 		AllowedTypes: []string{"string"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate contains:admin",
 	},
 	DirStartsWith: {
 		Description:  "строка должна начинаться с префикса",
 		AllowedTypes: []string{"string"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate starts_with:https://",
 	},
 	DirEndsWith: {
 		Description:  "строка должна заканчиваться суффиксом",
 		AllowedTypes: []string{"string"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate ends_with:.go",
 	},
 	DirNotZero: {
 		Description:  "значение не должно быть нулевым (для слайсов - не пустым, для Time - не zero time)",
 		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64", "slice", "time.Time", "time.Duration"},
-		ParamCount:   0,
+		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate not-zero",
 	},
 	DirBefore: {
 		Description:  "для time.Time: значение должно быть до указанной даты",
 		AllowedTypes: []string{"time.Time"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate before:2024-01-01",
 	},
 	DirAfter: {
 		Description:  "для time.Time: значение должно быть после указанной даты",
 		AllowedTypes: []string{"time.Time"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate after:2020-01-01",
 	},
 	DirDate: {
 		Description:  "проверка что строка является валидной датой в одном из указанных форматов",
 		AllowedTypes: []string{"string"},
-		ParamCount:   1, // форматы через запятую: date:RFC3339,RFC3339Nano,2006-01-02
+		ParamCount:   paramsCntUnbounded, // форматы через запятую: date:RFC3339,RFC3339Nano,2006-01-02
 		Example:      "@evl:validate date:RFC3339,2006-01-02",
 	},
 	DirEq: {
 		Description:  "значение должно быть равно указанному",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate eq:10",
 	},
 	DirNeq: {
 		Description:  "значение не должно быть равно указанному",
 		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate neq:0",
 	},
 	DirLt: {
 		Description:  "значение должно быть меньше указанного",
 		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate lt:100",
 	},
 	DirLte: {
 		Description:  "значение должно быть меньше или равно указанному",
 		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate lte:100",
 	},
 	DirGt: {
 		Description:  "значение должно быть больше указанного",
 		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate gt:0",
 	},
 	DirGte: {
 		Description:  "значение должно быть больше или равно указанному",
 		AllowedTypes: []string{"int", "int8", "int16", "int32", "int64", "float32", "float64"},
-		ParamCount:   1,
+		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate gte:18",
 	},
 }
@@ -362,26 +369,4 @@ func (s *Struct) isUsedAsNested(allStructs map[string]*Struct) bool {
 		}
 	}
 	return false
-}
-
-const customPrefix = "x-"
-
-// AddCustomDirective добавляет кастомную директиву (только с префиксом x-)
-func AddCustomDirective(name string, allowedTypes []string, paramCount int, description string) error {
-	if !strings.HasPrefix(name, customPrefix) {
-		return fmt.Errorf("кастомная директива должна начинаться с '%s'", customPrefix)
-	}
-
-	if description == "" {
-		description = fmt.Sprintf("кастомная директива %s", name)
-	}
-
-	SupportedDirectives[DirectiveType(name)] = DirectiveInfo{
-		Description:  description,
-		AllowedTypes: allowedTypes,
-		ParamCount:   paramCount,
-		Example:      fmt.Sprintf("@evl:validate %s", name),
-	}
-
-	return nil
 }

@@ -1,32 +1,34 @@
 {{ define "pointer_validate" }}
-    // Указатель {{ .Name }}
+    // Указатель {{ .Field.Name }}
     {{- $hasOptional := false }}
-    {{- range .Directives }}
+    {{- range .Field.Directives }}
         {{- if eq .Type "optional" }}{{ $hasOptional = true }}{{ end }}
     {{- end }}
     {{- if $hasOptional }}
-        if v.{{ .Name }} != nil {
-        if err := v.{{ .Name }}.Validate(); err != nil {
+        if v.{{ .Field.Name }} != nil {
+        val := *v.{{ .Field.Name }}
+        if err := {{ .Struct.Name }}_{{ .Field.Name }}Validator.Validate(val); err != nil {
         return &validator.ValidationError{
-        Field: "{{ .Name }}",
+        Field: "{{ .Field.Name }}",
         Rule:  "nested",
-        Message: "поле {{ .Name }}: " + err.Error(),
+        Message: "поле {{ .Field.Name }}: " + err.Error(),
         }
         }
         }
     {{- else }}
-        if v.{{ .Name }} == nil {
+        if v.{{ .Field.Name }} == nil {
         return &validator.ValidationError{
-        Field: "{{ .Name }}",
+        Field: "{{ .Field.Name }}",
         Rule:  "required",
-        Message: "поле {{ .Name }} обязательно",
+        Message: "поле {{ .Field.Name }} обязательно",
         }
         }
-        if err := v.{{ .Name }}.Validate(); err != nil {
+        val := *v.{{ .Field.Name }}
+        if err := {{ .Struct.Name }}_{{ .Field.Name }}Validator.Validate(val); err != nil {
         return &validator.ValidationError{
-        Field: "{{ .Name }}",
+        Field: "{{ .Field.Name }}",
         Rule:  "nested",
-        Message: "поле {{ .Name }}: " + err.Error(),
+        Message: "поле {{ .Field.Name }}: " + err.Error(),
         }
         }
     {{- end }}

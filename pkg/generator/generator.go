@@ -121,6 +121,9 @@ func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 				return false
 			},
 			"toLower": strings.ToLower,
+			"trimStar": func(s string) string {
+				return strings.TrimPrefix(s, "*")
+			},
 		})
 
 	// Загружаем все шаблоны рекурсивно

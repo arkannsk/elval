@@ -1,6 +1,6 @@
 package nested
 
-//go:generate elval-gen -input .
+//go:generate elval-gen generate -input .
 
 type Address struct {
 	// @evl:validate required
