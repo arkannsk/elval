@@ -148,12 +148,14 @@ func lintCmd() {
 	var inputDir string
 	var verbose bool
 	var exclude string
+	var warningsAsErrors bool
 
 	lintFlags := flag.NewFlagSet("lint", flag.ExitOnError)
 	lintFlags.StringVar(&inputDir, "input", ".", "")
 	lintFlags.StringVar(&inputDir, "i", ".", "")
 	lintFlags.BoolVar(&verbose, "v", false, "")
 	lintFlags.StringVar(&exclude, "exclude", "", "comma-separated patterns to exclude (e.g. vendor,testdata)")
+	lintFlags.BoolVar(&warningsAsErrors, "Werror", false, "treat warnings as errors")
 
 	lintFlags.Parse(os.Args[2:])
 
@@ -191,6 +193,7 @@ func lintCmd() {
 	hasErrors := false
 	totalFiles := 0
 	errorCount := 0
+	warningCount := 0
 
 	for _, file := range files {
 		totalFiles++
@@ -202,15 +205,21 @@ func lintCmd() {
 			continue
 		}
 
-		errors := result.ValidateDirectives()
-		if len(errors) > 0 {
-			hasErrors = true
-			errorCount += len(errors)
-			for _, err := range errors {
+		directiveErrors := result.ValidateDirectives()
+		for _, err := range directiveErrors {
+			if err.Severity == parser.SeverityError {
+				errorCount++
+				hasErrors = true
 				fmt.Println(err.Error())
+			} else {
+				warningCount++
+				if verbose {
+					fmt.Println(err.Error())
+				}
+				if warningsAsErrors {
+					hasErrors = true
+				}
 			}
-		} else if verbose {
-			fmt.Printf("%s - all annotations valid\n", filepath.Base(file))
 		}
 	}
 

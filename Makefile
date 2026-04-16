@@ -6,7 +6,7 @@ lint:
 	golangci-lint run ./...
 
 lint-spec: install
-	elval-gen lint
+	elval-gen lint -v
 
 install:
 	go install ./cmd/elval-gen

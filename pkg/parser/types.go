@@ -6,6 +6,7 @@ type FieldType struct {
 	IsSlice   bool
 	IsPointer bool
 	IsStruct  bool
+	IsCustom  bool // кастомный тип (из другого пакета или с дженериками)
 }
 
 // String возвращает строковое представление типа

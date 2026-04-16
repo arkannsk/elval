@@ -61,7 +61,7 @@ type DirectiveInfo struct {
 var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 	DirRequired: {
 		Description:  "поле обязательно для заполнения",
-		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration"},
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration", "any"},
 		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate required",
 	},
@@ -369,26 +369,4 @@ func (s *Struct) isUsedAsNested(allStructs map[string]*Struct) bool {
 		}
 	}
 	return false
-}
-
-const customPrefix = "x-"
-
-// AddCustomDirective добавляет кастомную директиву (только с префиксом x-)
-func AddCustomDirective(name string, allowedTypes []string, paramCount int, description string) error {
-	if !strings.HasPrefix(name, customPrefix) {
-		return fmt.Errorf("кастомная директива должна начинаться с '%s'", customPrefix)
-	}
-
-	if description == "" {
-		description = fmt.Sprintf("кастомная директива %s", name)
-	}
-
-	SupportedDirectives[DirectiveType(name)] = DirectiveInfo{
-		Description:  description,
-		AllowedTypes: allowedTypes,
-		ParamCount:   paramCount,
-		Example:      fmt.Sprintf("@evl:validate %s", name),
-	}
-
-	return nil
 }
