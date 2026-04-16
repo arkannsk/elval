@@ -15,6 +15,7 @@ It's **6x faster** than go-playground/validator with **zero memory allocations**
 - [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Commands](#commands)
 - [Annotations](#annotations)
     - [Required & Optional](#required--optional)
     - [String Validators](#string-validators)
@@ -93,6 +94,52 @@ func main() {
 if err := user.Validate(); err != nil {
     fmt.Printf("Validation failed: %v\n", err)
     }
+}
+```
+
+## Commands
+
+generate - Generate validation code
+
+```bash
+# Basic generation
+elval-gen generate -i ./user
+
+# With OpenAPI schemas
+elval-gen generate -i ./user -openapi
+
+# Verbose output
+elval-gen generate -i ./user -v
+
+# Short form
+elval-gen gen -i ./user -openapi -v
+```
+
+lint - Validate annotations
+
+```bash
+# Check annotations without generating code
+elval-gen lint -i ./user
+
+# Show warnings
+elval-gen lint -i ./user -v
+
+# Treat warnings as errors
+elval-gen lint -i ./user -Werror -v
+
+# Recursive check with excludes
+elval-gen lint -i . -r -exclude vendor,testdata -v
+```
+
+Go Generate Integration
+
+```go
+//go:generate elval-gen generate -i .
+
+type User struct {
+    // @evl:validate required
+    // @evl:validate min:2
+    Name string
 }
 ```
 
