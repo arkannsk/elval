@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/arkannsk/elval"
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestUserProfile_Validate_Manual(t *testing.T) {
 		var ve *elval.ValidationError
 		require.ErrorAs(t, err, &ve)
 		assert.Equal(t, "Email", ve.Field)
-		assert.Equal(t, "required", ve.Rule)
+		assert.Equal(t, errs.ErrRequired.Rule, ve.Rule)
 	})
 
 	t.Run("nested validation fails", func(t *testing.T) {
@@ -42,5 +43,19 @@ func TestUserProfile_Validate_Manual(t *testing.T) {
 		require.Error(t, err)
 		var ve *elval.ValidationError
 		require.ErrorAs(t, err, &ve)
+	})
+}
+
+func TestUserProfile_Validate(t *testing.T) {
+	t.Run("email required", func(t *testing.T) {
+		u := UserProfile{ /* Email absent */ }
+		err := u.Validate()
+
+		var ve *errs.ValidationError
+		require.ErrorAs(t, err, &ve)
+
+		assert.Equal(t, "Email", ve.Field)
+		assert.Equal(t, errs.ErrRequired.Rule, ve.Rule)
+		assert.Equal(t, errs.ErrRequired.Message, ve.Message)
 	})
 }
