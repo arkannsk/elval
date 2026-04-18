@@ -7,9 +7,39 @@ import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
+	mo "github.com/samber/mo"
 )
 
-var ()
+var (
+	User_NameValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Name")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(func(value any) error {
+			return validator.ValidateCustom("x-option-present", value, "")
+		})
+		return v
+	}()
+
+	User_EmailValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Email")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(func(value any) error {
+			return validator.ValidateCustom("x-option-value-min", value, "3")
+		})
+		v.AddRule(func(value any) error {
+			return validator.ValidateCustom("x-option-value-max", value, "50")
+		})
+		return v
+	}()
+
+	User_PhoneValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Phone")
+		v.AddRule(func(value any) error {
+			return validator.ValidateCustom("x-option-absent", value, "")
+		})
+		return v
+	}()
+)
 
 func (v *User) Decorate(ctx context.Context) error {
 
@@ -18,40 +48,26 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-
-	// Кастомная валидация поля Name
-	if err = validator.ValidateCustom("x-option-present", v.Name, ""); err != nil {
-		return &errs.ValidationError{
-			Field:   "Name",
-			Rule:    "x-option-present",
-			Message: err.Error(),
+	if !v.Name.IsPresent() {
+		return &errs.ValidationError{Field: "Name", Rule: "required", Message: errs.ErrRequired.Message}
+	}
+	if val, ok := v.Name.Value(); ok {
+		if err = User_NameValidator.Validate(val); err != nil {
+			return err
 		}
 	}
-
-	// Кастомная валидация поля Email
-	if err = validator.ValidateCustom("x-option-value-min", v.Email, "3"); err != nil {
-		return &errs.ValidationError{
-			Field:   "Email",
-			Rule:    "x-option-value-min",
-			Message: err.Error(),
+	if !v.Email.IsPresent() {
+		return &errs.ValidationError{Field: "Email", Rule: "required", Message: errs.ErrRequired.Message}
+	}
+	if val, ok := v.Email.Value(); ok {
+		if err = User_EmailValidator.Validate(val); err != nil {
+			return err
 		}
 	}
-	if err = validator.ValidateCustom("x-option-value-max", v.Email, "50"); err != nil {
-		return &errs.ValidationError{
-			Field:   "Email",
-			Rule:    "x-option-value-max",
-			Message: err.Error(),
+	if val, ok := v.Phone.Value(); ok {
+		if err = User_PhoneValidator.Validate(val); err != nil {
+			return err
 		}
 	}
-
-	// Кастомная валидация поля Phone
-	if err = validator.ValidateCustom("x-option-absent", v.Phone, ""); err != nil {
-		return &errs.ValidationError{
-			Field:   "Phone",
-			Rule:    "x-option-absent",
-			Message: err.Error(),
-		}
-	}
-
 	return nil
 }

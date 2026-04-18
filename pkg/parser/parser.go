@@ -11,13 +11,16 @@ import (
 
 // Parser парсит Go файлы и извлекает аннотации валидации
 type Parser struct {
-	fset *token.FileSet
+	fset        *token.FileSet
+	verbose     bool
+	typeAliases map[string]string
 }
 
 // NewParser создает новый парсер
-func NewParser() *Parser {
+func NewParser(verbose bool) *Parser {
 	return &Parser{
-		fset: token.NewFileSet(),
+		fset:    token.NewFileSet(),
+		verbose: verbose,
 	}
 }
 
@@ -32,10 +35,12 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 		Package: node.Name.Name,
 		Structs: make([]Struct, 0),
 		Errors:  make([]error, 0),
+		Imports: p.extractImports(node),
 	}
 
 	// Сначала собираем все структуры в файле (даже без аннотаций)
 	allStructs := make(map[string]*Struct)
+	typeAliases := make(map[string]string)
 
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -49,15 +54,26 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 				continue
 			}
 
-			// Сохраняем все структуры (даже без аннотаций)
-			s := &Struct{
-				Name:   typeSpec.Name.Name,
-				File:   filename,
-				Fields: make([]Field, 0),
+			name := typeSpec.Name.Name
+
+			switch base := typeSpec.Type.(type) {
+			case *ast.StructType:
+				// Настоящая структура — добавляем в allStructs
+				allStructs[name] = &Struct{Name: name, File: filename, Fields: []Field{}}
+
+			case *ast.Ident:
+				// Алиас на примитив: type Theme string
+				typeAliases[name] = base.Name // "Theme" → "string"
+
+			case *ast.SelectorExpr:
+				// Алиас на внешний тип: type Timestamp time.Time
+				typeAliases[name] = p.exprToString(base) // "Timestamp" → "time.Time"
 			}
-			allStructs[s.Name] = s
+			// Остальные случаи (slice, pointer, etc.) можно игнорировать для алиасов
 		}
 	}
+
+	p.typeAliases = typeAliases
 
 	// Второй проход: парсим поля структур
 	for _, decl := range node.Decls {
@@ -117,69 +133,147 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	return result, nil
 }
 
-// pkg/parser/parser.go
-
 func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string]*Struct, filename string) FieldType {
-	ft := FieldType{
-		IsSlice:   false,
-		IsPointer: false,
-		IsStruct:  false,
-		IsCustom:  false,
-	}
+	return p.parseFieldTypeExpr(field.Type, allStructs)
+}
 
-	switch t := field.Type.(type) {
+// parseFieldTypeExpr рекурсивно разбирает AST-выражение типа поля.
+func (p *Parser) parseFieldTypeExpr(expr ast.Expr, allStructs map[string]*Struct) FieldType {
+	var ft FieldType
+
+	switch t := expr.(type) {
 	case *ast.Ident:
 		ft.Name = t.Name
+
+		// 1. Проверяем, структура ли это
 		if _, ok := allStructs[t.Name]; ok {
 			ft.IsStruct = true
+			return ft
 		}
 
-	case *ast.StarExpr:
+		if baseType, ok := p.typeAliases[t.Name]; ok {
+			ft.BaseType = baseType
+
+			// Рекурсивно парсим базовый тип, чтобы унаследовать IsStruct/IsCustom
+			var baseExpr ast.Expr
+			if idx := strings.Index(baseType, "."); idx > 0 {
+				baseExpr = &ast.SelectorExpr{
+					X:   &ast.Ident{Name: baseType[:idx]},
+					Sel: &ast.Ident{Name: baseType[idx+1:]},
+				}
+			} else {
+				baseExpr = &ast.Ident{Name: baseType}
+			}
+			baseFt := p.parseFieldTypeExpr(baseExpr, allStructs)
+
+			ft.IsStruct = baseFt.IsStruct
+			ft.IsCustom = baseFt.IsCustom
+			return ft
+		}
+
+		// 3. Обычный тип
+		ft.IsCustom = !isBuiltin(ft.Name)
+		return ft
+	case *ast.SelectorExpr:
+		ft.Name = p.exprToString(t)
+		ft.IsCustom = true
+
+	case *ast.StarExpr: // *T
+		inner := p.parseFieldTypeExpr(t.X, allStructs)
+		ft.Name = "*" + inner.Name
 		ft.IsPointer = true
-		if ident, ok := t.X.(*ast.Ident); ok {
-			ft.Name = ident.Name
-			if _, ok := allStructs[ident.Name]; ok {
-				ft.IsStruct = true
+		ft.IsStruct = inner.IsStruct
+		ft.IsCustom = inner.IsCustom
+		ft.IsGeneric = inner.IsGeneric
+		ft.GenericBase = inner.GenericBase
+		ft.GenericArgs = inner.GenericArgs
+
+	case *ast.ArrayType: // []T
+		if t.Len == nil {
+			inner := p.parseFieldTypeExpr(t.Elt, allStructs)
+			ft.Name = "[]" + inner.Name
+			ft.IsSlice = true
+			if inner.IsGeneric {
+				ft.IsGeneric = inner.IsGeneric
+				ft.GenericBase = inner.GenericBase
+				ft.GenericArgs = inner.GenericArgs
 			}
-		} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
-			if pkg, ok := sel.X.(*ast.Ident); ok {
-				ft.Name = pkg.Name + "." + sel.Sel.Name
-			}
-		} else if idx, ok := t.X.(*ast.IndexExpr); ok {
-			// *mo.Option[string]
-			ft.Name = getTypeString(idx)
+			ft.IsStruct = inner.IsStruct
+			ft.IsCustom = inner.IsCustom
+		} else {
+			ft.Name = getTypeString(expr)
 			ft.IsCustom = true
 		}
 
-	case *ast.ArrayType:
-		ft.IsSlice = true
-		if ident, ok := t.Elt.(*ast.Ident); ok {
-			ft.Name = ident.Name
-			if _, ok := allStructs[ident.Name]; ok {
-				ft.IsStruct = true
-			}
-		} else if star, ok := t.Elt.(*ast.StarExpr); ok {
-			if ident, ok := star.X.(*ast.Ident); ok {
-				ft.Name = ident.Name
-				if _, ok := allStructs[ident.Name]; ok {
-					ft.IsStruct = true
-				}
-			}
-		}
+	case *ast.IndexExpr: // Option[T]
+		base := p.exprToString(t.X)
+		inner := p.parseFieldTypeExpr(t.Index, allStructs)
 
-	case *ast.SelectorExpr:
-		// mo.Option
-		if ident, ok := t.X.(*ast.Ident); ok {
-			ft.Name = ident.Name + "." + t.Sel.Name
-		}
-
-	case *ast.IndexExpr:
-		// mo.Option[string]
-		ft.Name = getTypeString(t)
+		ft.Name = fmt.Sprintf("%s[%s]", base, inner.Name)
+		ft.IsGeneric = true
+		ft.GenericBase = base
+		ft.GenericArgs = append(ft.GenericArgs, inner)
 		ft.IsCustom = true
+
+	case *ast.IndexListExpr: // T[K,V]
+		base := p.exprToString(t.X)
+		var args []string
+		for _, idx := range t.Indices {
+			arg := p.parseFieldTypeExpr(idx, allStructs)
+			ft.GenericArgs = append(ft.GenericArgs, arg)
+			args = append(args, arg.Name)
+		}
+		ft.Name = fmt.Sprintf("%s[%s]", base, strings.Join(args, ", "))
+		ft.IsGeneric = true
+		ft.GenericBase = base
+		ft.IsCustom = true
+
+	case *ast.MapType:
+		ft.Name = fmt.Sprintf("map[%s]%s",
+			p.exprToString(t.Key),
+			p.exprToString(t.Value))
+		ft.IsCustom = true
+
+	default:
+		ft.Name = getTypeString(expr)
+		ft.IsCustom = true
+	}
+	if p.verbose {
+		fmt.Printf("PARSED: %s → IsGeneric=%v, Base=%q, Args=%+v\n",
+			getTypeString(expr), ft.IsGeneric, ft.GenericBase, ft.GenericArgs)
 	}
 
 	return ft
+}
+
+func (p *Parser) exprToString(e ast.Expr) string {
+	switch v := e.(type) {
+	case *ast.Ident:
+		return v.Name
+	case *ast.SelectorExpr:
+		return p.exprToString(v.X) + "." + v.Sel.Name
+	case *ast.StarExpr:
+		return "*" + p.exprToString(v.X)
+	case *ast.ArrayType:
+		if v.Len == nil {
+			return "[]" + p.exprToString(v.Elt)
+		}
+		return fmt.Sprintf("[%s]%s", p.exprToString(v.Len), p.exprToString(v.Elt))
+	case *ast.IndexExpr:
+		return p.exprToString(v.X) + "[" + p.exprToString(v.Index) + "]"
+	case *ast.IndexListExpr:
+		var parts []string
+		for _, idx := range v.Indices {
+			parts = append(parts, p.exprToString(idx))
+		}
+		return p.exprToString(v.X) + "[" + strings.Join(parts, ", ") + "]"
+	case *ast.MapType:
+		return fmt.Sprintf("map[%s]%s", p.exprToString(v.Key), p.exprToString(v.Value))
+	case *ast.ParenExpr:
+		return "(" + p.exprToString(v.X) + ")"
+	default:
+		return "unknown"
+	}
 }
 
 // parseFieldDirectives парсит директивы из комментариев поля
@@ -207,8 +301,6 @@ func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 
 	return directives
 }
-
-// pkg/parser/parser.go
 
 func (p *Parser) parseFieldOaAnnotations(field *ast.Field) []OaAnnotation {
 	var oas []OaAnnotation
@@ -313,6 +405,32 @@ func (r *ParseResult) ValidateDirectives() []DirectiveError {
 	return errors
 }
 
+func (p *Parser) extractImports(file *ast.File) map[string]string {
+	imports := make(map[string]string)
+
+	for _, imp := range file.Imports {
+		// Убираем кавычки: "path" → path
+		path := strings.Trim(imp.Path.Value, `"`)
+
+		// Определяем алиас
+		alias := ""
+		if imp.Name != nil {
+			if imp.Name.Name == "_" || imp.Name.Name == "." {
+				continue // пропускаем blank/dot импорты
+			}
+			alias = imp.Name.Name
+		} else {
+			// Алиас по умолчанию — последняя часть пути
+			parts := strings.Split(path, "/")
+			alias = parts[len(parts)-1]
+		}
+
+		imports[alias] = path
+	}
+
+	return imports
+}
+
 // getFieldName возвращает имя поля из ast.Field
 func getFieldName(field *ast.Field) string {
 	if len(field.Names) > 0 {
@@ -357,4 +475,15 @@ func getTypeString(expr ast.Expr) string {
 	default:
 		return "unknown"
 	}
+}
+
+// isBuiltin проверяет, является ли тип встроенным в Go.
+func isBuiltin(name string) bool {
+	_, ok := map[string]bool{
+		"bool": true, "int": true, "int8": true, "int16": true, "int32": true, "int64": true,
+		"uint": true, "uint8": true, "uint16": true, "uint32": true, "uint64": true, "uintptr": true,
+		"float32": true, "float64": true, "complex64": true, "complex128": true,
+		"string": true, "byte": true, "rune": true, "error": true, "any": true,
+	}[name]
+	return ok
 }

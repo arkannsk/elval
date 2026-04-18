@@ -59,23 +59,18 @@ func (v *Person) Decorate(ctx context.Context) error {
 
 func (v *Person) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Person_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err = Person_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
 	if err = Person_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
-
 	if err = Person_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
-
 	if err = Person_BirthDateValidator.Validate(v.BirthDate); err != nil {
 		return err
 	}

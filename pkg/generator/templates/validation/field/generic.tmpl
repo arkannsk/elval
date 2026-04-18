@@ -1,0 +1,60 @@
+{{/* validation/field/generic.tmpl */}}
+{{/* 
+  Универсальный шаблон для ЛЮБОГО дженерик-враппера.
+  Контракт: тип должен иметь методы:
+    - IsPresent() bool
+    - Value() (T, bool)
+*/}}
+{{- $field := .Field }}
+{{- $struct := .Struct }}
+{{- $inner := .Inner }}
+{{- $directives := $field.Directives }}
+
+{{/* 1. Required: проверяем присутствие через контракт */}}
+{{- range $directives }}
+    {{- if eq .Type "required" }}
+        if !{{ $struct }}.{{ $field.Name }}.IsPresent() {
+        return &errs.ValidationError{
+        Field:   "{{ $field.Name }}",
+        Rule:    "required",
+        Message: errs.ErrRequired.Message,
+        }
+        }
+    {{- end }}
+{{- end }}
+
+{{/* 2. Извлекаем значение и валидируем только если present */}}
+if val, ok := {{ $struct }}.{{ $field.Name }}.Value(); ok {
+{{/* Примитивы: string, int, float */}}
+{{- if eq $inner.Name "string" }}
+    {{- template "validation_string" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+{{- else if or (eq $inner.Name "int") (eq $inner.Name "int8") (eq $inner.Name "int16") (eq $inner.Name "int32") (eq $inner.Name "int64") }}
+    {{- template "validation_nummeric" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+{{- else if or (eq $inner.Name "float32") (eq $inner.Name "float64") }}
+    {{- template "validation/rules/float" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+{{- else if eq $inner.Name "bool" }}
+    {{- template "validation/rules/bool" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+
+    {{/* time.Time / time.Duration */}}
+{{- else if eq $inner.Name "time.Time" }}
+    {{- template "validation/rules/time" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+{{- else if eq $inner.Name "time.Duration" }}
+    {{- template "validation/rules/duration" (dict "Value" "val" "Field" $field.Name "Directives" $directives) }}
+
+    {{/* Структура: делегируем валидацию */}}
+{{- else if $inner.IsStruct }}
+    if err := val.Validate(); err != nil {
+    return errs.NewValidationError("nested", "validation failed for %q: %v", "{{ $field.Name }}", err)
+    }
+
+    {{/* Алиас: приводим к базовому типу */}}
+{{- else if $inner.BaseType }}
+    if err := {{ $.Struct }}_{{ $field.Name }}Validator.Validate({{ $inner.BaseType }}(val)); err != nil {
+    return err
+    }
+
+{{- else }}
+    {{- /* Опционально: проверка через интерфейс, если нужно */}}
+    {{- /* if v, ok := any(val).(elval.Validatable); ok { ... } */}}
+{{- end }}
+}

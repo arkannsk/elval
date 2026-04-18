@@ -48,19 +48,15 @@ func (v *Event) Decorate(ctx context.Context) error {
 
 func (v *Event) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Event_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
 	}
-
 	if err = Event_UpdatedAtValidator.Validate(v.UpdatedAt); err != nil {
 		return err
 	}
-
 	if err = Event_DateOnlyValidator.Validate(v.DateOnly); err != nil {
 		return err
 	}
-
 	if err = Event_TimestampValidator.Validate(v.Timestamp); err != nil {
 		return err
 	}
@@ -92,11 +88,9 @@ func (v *LogEntry) Decorate(ctx context.Context) error {
 
 func (v *LogEntry) Validate() error {
 	var err *errs.ValidationError
-
 	if err = LogEntry_EventTimeValidator.Validate(v.EventTime); err != nil {
 		return err
 	}
-
 	if err = LogEntry_KitchenTimeValidator.Validate(v.KitchenTime); err != nil {
 		return err
 	}

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"go/format"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -18,113 +18,22 @@ import (
 var templatesFS embed.FS
 
 type Generator struct {
-	outputDir       string
-	tmpl            *template.Template
-	generateOpenAPI bool
+	outputDir                string
+	tmpl                     *template.Template
+	generateOpenAPI, verbose bool
 }
 
-func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
-	tmpl := template.New("").
-		Funcs(template.FuncMap{
-			"hasTime": func(structs []parser.Struct) bool {
-				for _, s := range structs {
-					for _, f := range s.Fields {
-						if f.Type.Name == "time.Time" || f.Type.Name == "time.Duration" {
-							return true
-						}
-					}
-				}
-				return false
-			},
-			"dict": func(values ...interface{}) (map[string]interface{}, error) {
-				if len(values)%2 != 0 {
-					return nil, fmt.Errorf("invalid dict call")
-				}
-				dict := make(map[string]interface{}, len(values)/2)
-				for i := 0; i < len(values); i += 2 {
-					key, ok := values[i].(string)
-					if !ok {
-						return nil, fmt.Errorf("dict keys must be strings")
-					}
-					dict[key] = values[i+1]
-				}
-				return dict, nil
-			},
-			"hasOptional": func(directives []parser.Directive) bool {
-				for _, d := range directives {
-					if d.Type == "optional" {
-						return true
-					}
-				}
-				return false
-			},
-			"itoa": func(i int) string {
-				return strconv.Itoa(i)
-			},
-			"hasCustomDirective": func(directives []parser.Directive) bool {
-				for _, d := range directives {
-					if strings.HasPrefix(d.Type, "x-") {
-						return true
-					}
-				}
-				return false
-			},
-			"isCustomDirective": func(dirType string) bool {
-				return strings.HasPrefix(dirType, "x-")
+// Маппинг примитивов (включая ваши float64 и duration)
+var primitives = map[string]bool{
+	"string": true, "int": true, "int8": true, "int16": true, "int32": true, "int64": true,
+	"uint": true, "uint8": true, "uint16": true, "uint32": true, "uint64": true,
+	"float32": true, "float64": true,
+	"bool":      true,
+	"time.Time": true, "time.Duration": true,
+}
 
-			},
-			"hasHTTPContext": func(structs []parser.Struct) bool {
-				for _, s := range structs {
-					for _, f := range s.Fields {
-						for _, d := range f.Decorators {
-							if d.Type == "httpctx-get" {
-								return true
-							}
-						}
-					}
-				}
-				return false
-			},
-			"hasEnvGet": func(structs []parser.Struct) bool {
-				for _, s := range structs {
-					for _, f := range s.Fields {
-						for _, d := range f.Decorators {
-							if d.Type == "env-get" {
-								return true
-							}
-						}
-					}
-				}
-				return false
-			},
-			"hasUUIDGen": func(structs []parser.Struct) bool {
-				for _, s := range structs {
-					for _, f := range s.Fields {
-						for _, d := range f.Decorators {
-							if d.Type == "uuid-gen" {
-								return true
-							}
-						}
-					}
-				}
-				return false
-			},
-			"hasOaSchema": func(structs []parser.Struct) bool {
-				// Проверяем, есть ли у структур OaAnnotations
-				for _, s := range structs {
-					for _, f := range s.Fields {
-						if len(f.OaAnnotations) > 0 {
-							return true
-						}
-					}
-				}
-				return false
-			},
-			"toLower": strings.ToLower,
-			"trimStar": func(s string) string {
-				return strings.TrimPrefix(s, "*")
-			},
-		})
+func NewGenerator(outputDir string, generateOpenAPI, verbose bool) (*Generator, error) {
+	tmpl := template.New("").Funcs(templateFucMap)
 
 	// Загружаем все шаблоны рекурсивно
 	err := fs.WalkDir(templatesFS, "templates", func(path string, d fs.DirEntry, err error) error {
@@ -156,6 +65,7 @@ func NewGenerator(outputDir string, generateOpenAPI bool) (*Generator, error) {
 		outputDir:       outputDir,
 		tmpl:            tmpl,
 		generateOpenAPI: generateOpenAPI,
+		verbose:         verbose,
 	}, nil
 }
 
@@ -179,17 +89,24 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	// 1. Генерируем файл валидации
+	imports := g.filterImportsForGeneration(parseResult.Imports, structsForValidation)
 	if len(structsForValidation) > 0 {
 		data := struct {
-			Package         string
-			Structs         []parser.Struct
-			SourceFile      string
-			GenerateOpenAPI bool
+			Package            string
+			Structs            []parser.Struct
+			SourceFile         string
+			GenerateValidation bool
+			Imports            map[string]string
 		}{
-			Package:         parseResult.Package,
-			Structs:         structsForValidation,
-			SourceFile:      filepath.Base(sourceFile),
-			GenerateOpenAPI: false,
+			Package:            parseResult.Package,
+			Structs:            structsForValidation,
+			SourceFile:         filepath.Base(sourceFile),
+			GenerateValidation: true,
+			Imports:            imports,
+		}
+
+		if g.verbose {
+			log.Printf("import list: %v in file: %s", imports, sourceFile)
 		}
 
 		var buf strings.Builder
@@ -243,4 +160,53 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	return nil
+}
+
+func (g *Generator) filterImportsForGeneration(sourceImports map[string]string, structs []parser.Struct) map[string]string {
+	result := make(map[string]string)
+
+	var checkType func(ft parser.FieldType)
+	checkType = func(ft parser.FieldType) {
+		// 1. Проверяем само имя типа: "model.Option" → alias "model"
+		if idx := strings.Index(ft.Name, "."); idx > 0 {
+			alias := ft.Name[:idx]
+			if path, ok := sourceImports[alias]; ok {
+				result[alias] = path
+			}
+		}
+
+		// 2. Если это дженерик, проверяем GenericBase и аргументы
+		if ft.IsGeneric {
+			// GenericBase может быть "model.Option" → извлекаем алиас
+			if idx := strings.Index(ft.GenericBase, "."); idx > 0 {
+				alias := ft.GenericBase[:idx]
+				if path, ok := sourceImports[alias]; ok {
+					result[alias] = path
+				}
+			}
+			// Рекурсивно проверяем аргументы: time.Time, User, etc.
+			for _, arg := range ft.GenericArgs {
+				checkType(arg)
+			}
+		}
+	}
+
+	for _, s := range structs {
+		for _, field := range s.Fields {
+			checkType(field.Type)
+		}
+	}
+
+	return result
+}
+
+// addImportIfNeeded добавляет импорт, если тип ссылается на внешний пакет
+func (g *Generator) addImportIfNeeded(ft parser.FieldType, sourceImports, result map[string]string) {
+	// Ищем алиас в имени типа: "model.Option" → "model"
+	if idx := strings.Index(ft.Name, "."); idx > 0 {
+		alias := ft.Name[:idx]
+		if path, ok := sourceImports[alias]; ok {
+			result[alias] = path
+		}
+	}
 }

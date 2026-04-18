@@ -41,15 +41,12 @@ func (v *Order) Decorate(ctx context.Context) error {
 
 func (v *Order) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Order_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
-
 	if err = Order_PriorityValidator.Validate(v.Priority); err != nil {
 		return err
 	}
-
 	if err = Order_SizeValidator.Validate(v.Size); err != nil {
 		return err
 	}
@@ -79,11 +76,9 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-
 	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
-
 	if err = User_LevelValidator.Validate(v.Level); err != nil {
 		return err
 	}

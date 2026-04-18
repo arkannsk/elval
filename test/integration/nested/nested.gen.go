@@ -41,15 +41,12 @@ func (v *Address) Decorate(ctx context.Context) error {
 
 func (v *Address) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Address_CityValidator.Validate(v.City); err != nil {
 		return err
 	}
-
 	if err = Address_StreetValidator.Validate(v.Street); err != nil {
 		return err
 	}
-
 	if err = Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
 		return err
 	}
@@ -79,7 +76,7 @@ var (
 	User_BillingAddressValidator = func() *validator.FieldValidator[Address] {
 		v := validator.New[Address]("BillingAddress")
 		original := v
-		v = validator.New[Address]("BillingAddress")
+		v = validator.New[*Address]("BillingAddress")
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()
@@ -92,11 +89,9 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-
 	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
@@ -140,7 +135,6 @@ func (v *Company) Decorate(ctx context.Context) error {
 
 func (v *Company) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Company_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}

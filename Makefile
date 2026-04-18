@@ -18,6 +18,9 @@ build:
 gen: install
 	go generate ./...
 
+gen-spec:
+	go run ./cmd/elval-gen generate -input
+
 # unit tests. R=1 for race flag, C=1 for cover
 test: gen
 	go test $(if $(R),-race,) $(if $(C),-cover,) ./...

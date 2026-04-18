@@ -63,8 +63,6 @@ func (v *User) OaSchema() *oa.Schema {
 	{
 		prop := oa.Schema{}
 
-		prop.Type = "integer"
-
 		prop.Minimum = oa.Ptr[float64](18)
 		prop.Maximum = oa.Ptr[float64](120)
 

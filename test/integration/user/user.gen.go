@@ -34,10 +34,10 @@ var (
 
 	User_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
-		v.AddRule(validator.Min[int](18))
-		v.AddRule(validator.Max[int](120))
+		v.AddRule(validator.Min[*int](18))
+		v.AddRule(validator.Max[*int](120))
 		original := v
-		v = validator.New[int]("Age")
+		v = validator.New[*int]("Age")
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()
@@ -57,15 +57,12 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-
 	if err = User_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
-
 	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}

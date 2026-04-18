@@ -39,15 +39,12 @@ func (v *Product) Decorate(ctx context.Context) error {
 
 func (v *Product) Validate() error {
 	var err *errs.ValidationError
-
 	if err = Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
-
 	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
-
 	if err = Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}

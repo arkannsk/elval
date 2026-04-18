@@ -163,8 +163,8 @@ func (v *Order) OaSchema() *oa.Schema {
 		prop.Items.Type = "string"
 
 		schema.Required = append(schema.Required, "items")
-		prop.MinLength = oa.Ptr[int64](1)
-		prop.MaxLength = oa.Ptr[int64](100)
+		prop.Minimum = oa.Ptr[float64](1)
+		prop.Maximum = oa.Ptr[float64](100)
 
 		schema.Properties["items"] = prop
 	}

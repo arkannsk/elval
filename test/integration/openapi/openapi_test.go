@@ -122,8 +122,8 @@ func TestOrderOaSchema(t *testing.T) {
 	assert.Equal(t, "array", itemsProp.Type)
 	assert.NotNil(t, itemsProp.Items)
 	assert.Equal(t, "string", itemsProp.Items.Type)
-	assert.Equal(t, int64(1), *itemsProp.MinLength)
-	assert.Equal(t, int64(100), *itemsProp.MaxLength)
+	assert.Equal(t, int64(1), itemsProp.MinLength)
+	assert.Equal(t, int64(100), itemsProp.MaxLength)
 	assert.Contains(t, schema.Required, "items")
 }
 

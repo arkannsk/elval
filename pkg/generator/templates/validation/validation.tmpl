@@ -2,6 +2,7 @@
 "Package" .Package
 "Structs" .Structs
 "SourceFile" .SourceFile
+"Imports" .Imports
 "GenerateValidation" true
 "GenerateOpenAPI" false
 ) }}
@@ -9,7 +10,12 @@
 {{ range $struct := .Structs }}
     var (
     {{- range $field := $struct.Fields }}
-        {{- if not $field.Type.IsSlice }}
+        {{- if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+            {{- $inner := firstArg $field.Type.GenericArgs }}
+            {{- /* Передаём ВНУТРЕННИЙ тип в ваш validator_func */}}
+            {{- $valCtx := dict "Name" $field.Name "Type" $inner "Directives" $field.Directives }}
+            {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $valCtx }}
+        {{- else if not $field.Type.IsSlice }}
             {{- $hasCustom := false }}
             {{- range $directive := $field.Directives }}
                 {{- if isCustomDirective $directive.Type }}
@@ -31,22 +37,43 @@
     }
 
     func (v *{{ $struct.Name }}) Validate() error {
-        var err *errs.ValidationError
+    var err *errs.ValidationError
     {{- range $field := $struct.Fields }}
+        {{- /* СЛАЙСЫ */}}
         {{- if $field.Type.IsSlice }}
-            {{ template "slice_validate" $field }}
+            {{- if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+                {{- /* Слайс дженериков: []Option[T] */}}
+                for _, opt := range v.{{ $field.Name }} {
+                if val, ok := opt.Value(); ok {
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+                return err
+                }
+                }
+                }
+            {{- else }}
+                {{- /* Обычный слайс: []T */}}
+                {{ template "slice_validate" $field }}
+            {{- end }}
+
+            {{- /* ДЖЕНЕРИКИ */}}
+        {{- else if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+            {{- if hasDirective $field.Directives "required" }}
+                if !v.{{ $field.Name }}.IsPresent() {
+                return &errs.ValidationError{Field: "{{ $field.Name }}", Rule: "required", Message: errs.ErrRequired.Message}
+                }
+            {{- end }}
+            if val, ok := v.{{ $field.Name }}.Value(); ok {
+            if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+            return err
+            }
+            }
         {{- else if $field.Type.IsPointer }}
             {{ template "pointer_validate" (dict "Struct" $struct "Field" $field) }}
         {{- else if $field.Type.IsStruct }}
             {{ template "struct_validate" (dict "Struct" $struct "Field" $field) }}
         {{- else }}
-            {{ template "custom_validation" $field }}
             {{- $hasCustom := false }}
-            {{- range $directive := $field.Directives }}
-                {{- if isCustomDirective $directive.Type }}
-                    {{- $hasCustom = true }}
-                {{- end }}
-            {{- end }}
+            {{- range $d := $field.Directives }}{{ if isCustomDirective $d.Type }}{{ $hasCustom = true }}{{ end }}{{ end }}
             {{- if not $hasCustom }}
                 if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
                 return err

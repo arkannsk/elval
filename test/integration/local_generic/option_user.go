@@ -1,7 +1,6 @@
 package local_generic
 
 import (
-	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
 )
 
@@ -19,22 +18,4 @@ type UserProfile struct {
 type UserMeta struct {
 	// @evl:validate required, max:50
 	DisplayName string
-}
-
-func (m UserMeta) Validate() error {
-	if m.DisplayName == "" {
-		return &errs.ValidationError{
-			Field:   "DisplayName",
-			Rule:    errs.ErrRequired.Rule,
-			Message: errs.ErrRequired.Message,
-		}
-	}
-	if len(m.DisplayName) > 50 {
-		return errs.NewValidationError(
-			"max:50",
-			"display name must not exceed %d characters, got: %d",
-			50, len(m.DisplayName),
-		)
-	}
-	return nil
 }
