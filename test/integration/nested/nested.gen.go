@@ -5,6 +5,7 @@ package nested
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -39,16 +40,17 @@ func (v *Address) Decorate(ctx context.Context) error {
 }
 
 func (v *Address) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Address_CityValidator.Validate(v.City); err != nil {
+	if err = Address_CityValidator.Validate(v.City); err != nil {
 		return err
 	}
 
-	if err := Address_StreetValidator.Validate(v.Street); err != nil {
+	if err = Address_StreetValidator.Validate(v.Street); err != nil {
 		return err
 	}
 
-	if err := Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
+	if err = Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
 		return err
 	}
 	return nil
@@ -89,18 +91,19 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
+	var err *errs.ValidationError
 
-	if err := User_NameValidator.Validate(v.Name); err != nil {
+	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
-	if err := User_EmailValidator.Validate(v.Email); err != nil {
+	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
 
 	// Вложенная структура Address
 	if err := v.Address.Validate(); err != nil {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Address",
 			Rule:    "nested",
 			Message: "поле Address: " + err.Error(),
@@ -111,7 +114,7 @@ func (v *User) Validate() error {
 	if v.BillingAddress != nil {
 		val := *v.BillingAddress
 		if err := User_BillingAddressValidator.Validate(val); err != nil {
-			return &validator.ValidationError{
+			return &errs.ValidationError{
 				Field:   "BillingAddress",
 				Rule:    "nested",
 				Message: "поле BillingAddress: " + err.Error(),
@@ -136,22 +139,23 @@ func (v *Company) Decorate(ctx context.Context) error {
 }
 
 func (v *Company) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Company_NameValidator.Validate(v.Name); err != nil {
+	if err = Company_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
 	// Валидация слайса Addresses
 	// Обязательный слайс
 	if true && len(v.Addresses) == 0 {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Addresses",
 			Rule:    "required",
 			Message: "поле Addresses обязательно",
 		}
 	}
 	if len(v.Addresses) < 1 {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Addresses",
 			Rule:    "min",
 			Message: "поле Addresses должно содержать минимум 1 элементов",
@@ -160,7 +164,7 @@ func (v *Company) Validate() error {
 	// Валидация элементов слайса структур
 	for _, item := range v.Addresses {
 		if err := item.Validate(); err != nil {
-			return &validator.ValidationError{
+			return &errs.ValidationError{
 				Field:   "Addresses",
 				Rule:    "nested",
 				Message: "поле Addresses: " + err.Error(),
@@ -173,7 +177,7 @@ func (v *Company) Validate() error {
 		// Валидация элементов слайса структур
 		for _, item := range v.Users {
 			if err := item.Validate(); err != nil {
-				return &validator.ValidationError{
+				return &errs.ValidationError{
 					Field:   "Users",
 					Rule:    "nested",
 					Message: "поле Users: " + err.Error(),
@@ -181,7 +185,7 @@ func (v *Company) Validate() error {
 			}
 		}
 	} else if false {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Users",
 			Rule:    "not-zero",
 			Message: "поле Users не может быть пустым",

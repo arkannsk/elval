@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewValidator(t *testing.T) {
@@ -27,7 +28,7 @@ func TestValidate(t *testing.T) {
 			AddRule(LenRange(3, 10))
 
 		err := v.Validate("John")
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("ошибка валидации", func(t *testing.T) {
@@ -37,13 +38,13 @@ func TestValidate(t *testing.T) {
 
 		err := v.Validate("")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "поле name")
+		assert.Contains(t, err.Error(), "field: name")
 	})
 }
 
 func TestValidateFunc(t *testing.T) {
 	err := ValidateFunc("email", "test@example.com", Required[string](), Email())
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	err = ValidateFunc("email", "invalid", Required[string](), Email())
 	assert.Error(t, err)

@@ -225,7 +225,7 @@ func TestOrderValidation(t *testing.T) {
 					assert.Contains(t, err.Error(), tt.errorMsg)
 				}
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

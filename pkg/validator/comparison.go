@@ -1,10 +1,12 @@
 package validator
 
+import "github.com/arkannsk/elval/pkg/errs"
+
 // Eq проверяет что значение равно expected
 func Eq[T comparable](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value != expected {
-			return NewValidationError("eq", "значение должно быть равно %v", expected)
+			return errs.NewValidationError("eq", "value must be equal %v", expected)
 		}
 		return nil
 	}
@@ -12,9 +14,9 @@ func Eq[T comparable](expected T) ValidationRule[T] {
 
 // Neq проверяет что значение не равно expected
 func Neq[T comparable](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value == expected {
-			return NewValidationError("neq", "значение не должно быть равно %v", expected)
+			return errs.NewValidationError("neq", "value != %v", expected)
 		}
 		return nil
 	}
@@ -22,9 +24,9 @@ func Neq[T comparable](expected T) ValidationRule[T] {
 
 // Lt проверяет что значение меньше expected
 func Lt[T Number](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value >= expected {
-			return NewValidationError("lt", "значение должно быть меньше %v", expected)
+			return errs.NewValidationError("lt", "value must be < %v", expected)
 		}
 		return nil
 	}
@@ -32,9 +34,9 @@ func Lt[T Number](expected T) ValidationRule[T] {
 
 // Lte проверяет что значение меньше или равно expected
 func Lte[T Number](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value > expected {
-			return NewValidationError("lte", "значение должно быть меньше или равно %v", expected)
+			return errs.NewValidationError("lte", "value must be <= %v", expected)
 		}
 		return nil
 	}
@@ -42,9 +44,9 @@ func Lte[T Number](expected T) ValidationRule[T] {
 
 // Gt проверяет что значение больше expected
 func Gt[T Number](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value <= expected {
-			return NewValidationError("gt", "значение должно быть больше %v", expected)
+			return errs.NewValidationError("gt", "value must be > %v", expected)
 		}
 		return nil
 	}
@@ -52,9 +54,9 @@ func Gt[T Number](expected T) ValidationRule[T] {
 
 // Gte проверяет что значение больше или равно expected
 func Gte[T Number](expected T) ValidationRule[T] {
-	return func(value T) error {
+	return func(value T) *errs.ValidationError {
 		if value < expected {
-			return NewValidationError("gte", "значение должно быть больше или равно %v", expected)
+			return errs.NewValidationError("gte", "value must be >= %v", expected)
 		}
 		return nil
 	}

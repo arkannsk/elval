@@ -31,6 +31,7 @@
     }
 
     func (v *{{ $struct.Name }}) Validate() error {
+        var err *errs.ValidationError
     {{- range $field := $struct.Fields }}
         {{- if $field.Type.IsSlice }}
             {{ template "slice_validate" $field }}
@@ -47,7 +48,7 @@
                 {{- end }}
             {{- end }}
             {{- if not $hasCustom }}
-                if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
                 return err
                 }
             {{- end }}

@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -16,10 +17,11 @@ func (v *Product) Decorate(ctx context.Context) error {
 }
 
 func (v *Product) Validate() error {
+	var err *errs.ValidationError
 
 	// Кастомная валидация поля Color
-	if err := validator.ValidateCustom("x-color", v.Color, ""); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-color", v.Color, ""); err != nil {
+		return &errs.ValidationError{
 			Field:   "Color",
 			Rule:    "x-color",
 			Message: err.Error(),
@@ -27,8 +29,8 @@ func (v *Product) Validate() error {
 	}
 
 	// Кастомная валидация поля Count
-	if err := validator.ValidateCustom("x-even", v.Count, ""); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-even", v.Count, ""); err != nil {
+		return &errs.ValidationError{
 			Field:   "Count",
 			Rule:    "x-even",
 			Message: err.Error(),
@@ -36,8 +38,8 @@ func (v *Product) Validate() error {
 	}
 
 	// Кастомная валидация поля Score
-	if err := validator.ValidateCustom("x-between", v.Score, "10"); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-between", v.Score, "10"); err != nil {
+		return &errs.ValidationError{
 			Field:   "Score",
 			Rule:    "x-between",
 			Message: err.Error(),
@@ -45,8 +47,8 @@ func (v *Product) Validate() error {
 	}
 
 	// Кастомная валидация поля Description
-	if err := validator.ValidateCustom("x-contains", v.Description, "important"); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-contains", v.Description, "important"); err != nil {
+		return &errs.ValidationError{
 			Field:   "Description",
 			Rule:    "x-contains",
 			Message: err.Error(),

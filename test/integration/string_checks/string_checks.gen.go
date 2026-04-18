@@ -5,6 +5,7 @@ package string_checks
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -47,20 +48,21 @@ func (v *Document) Decorate(ctx context.Context) error {
 }
 
 func (v *Document) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Document_NameValidator.Validate(v.Name); err != nil {
+	if err = Document_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
-	if err := Document_URLValidator.Validate(v.URL); err != nil {
+	if err = Document_URLValidator.Validate(v.URL); err != nil {
 		return err
 	}
 
-	if err := Document_ContentValidator.Validate(v.Content); err != nil {
+	if err = Document_ContentValidator.Validate(v.Content); err != nil {
 		return err
 	}
 
-	if err := Document_ImageNameValidator.Validate(v.ImageName); err != nil {
+	if err = Document_ImageNameValidator.Validate(v.ImageName); err != nil {
 		return err
 	}
 	return nil
@@ -88,12 +90,13 @@ func (v *File) Decorate(ctx context.Context) error {
 }
 
 func (v *File) Validate() error {
+	var err *errs.ValidationError
 
-	if err := File_PathValidator.Validate(v.Path); err != nil {
+	if err = File_PathValidator.Validate(v.Path); err != nil {
 		return err
 	}
 
-	if err := File_NameValidator.Validate(v.Name); err != nil {
+	if err = File_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 	return nil

@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -16,10 +17,11 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
+	var err *errs.ValidationError
 
 	// Кастомная валидация поля Name
-	if err := validator.ValidateCustom("x-option-present", v.Name, ""); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-option-present", v.Name, ""); err != nil {
+		return &errs.ValidationError{
 			Field:   "Name",
 			Rule:    "x-option-present",
 			Message: err.Error(),
@@ -27,15 +29,15 @@ func (v *User) Validate() error {
 	}
 
 	// Кастомная валидация поля Email
-	if err := validator.ValidateCustom("x-option-value-min", v.Email, "3"); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-option-value-min", v.Email, "3"); err != nil {
+		return &errs.ValidationError{
 			Field:   "Email",
 			Rule:    "x-option-value-min",
 			Message: err.Error(),
 		}
 	}
-	if err := validator.ValidateCustom("x-option-value-max", v.Email, "50"); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-option-value-max", v.Email, "50"); err != nil {
+		return &errs.ValidationError{
 			Field:   "Email",
 			Rule:    "x-option-value-max",
 			Message: err.Error(),
@@ -43,8 +45,8 @@ func (v *User) Validate() error {
 	}
 
 	// Кастомная валидация поля Phone
-	if err := validator.ValidateCustom("x-option-absent", v.Phone, ""); err != nil {
-		return &validator.ValidationError{
+	if err = validator.ValidateCustom("x-option-absent", v.Phone, ""); err != nil {
+		return &errs.ValidationError{
 			Field:   "Phone",
 			Rule:    "x-option-absent",
 			Message: err.Error(),

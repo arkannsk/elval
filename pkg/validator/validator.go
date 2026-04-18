@@ -1,11 +1,11 @@
 package validator
 
 import (
-	"fmt"
+	"github.com/arkannsk/elval/pkg/errs"
 )
 
 // ValidationRule функция проверки
-type ValidationRule[T any] func(T) error
+type ValidationRule[T any] func(T) *errs.ValidationError
 
 // FieldValidator валидатор поля
 type FieldValidator[T any] struct {
@@ -28,10 +28,11 @@ func (fv *FieldValidator[T]) AddRule(rule ValidationRule[T]) *FieldValidator[T] 
 }
 
 // Validate применяет все правила к значению
-func (fv *FieldValidator[T]) Validate(value T) error {
+func (fv *FieldValidator[T]) Validate(value T) *errs.ValidationError {
 	for _, rule := range fv.rules {
 		if err := rule(value); err != nil {
-			return fmt.Errorf("поле %s: %w", fv.fieldName, err)
+			return errs.NewValidationError(
+				"", "rule type: %T, field: %s err:%s", rule, fv.fieldName, err.Error())
 		}
 	}
 	return nil

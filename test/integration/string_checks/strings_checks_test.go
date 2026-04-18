@@ -101,7 +101,7 @@ func TestContainsValidation(t *testing.T) {
 				}
 				t.Logf("Ошибка: %v", err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

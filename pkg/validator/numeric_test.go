@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMin(t *testing.T) {
@@ -25,7 +26,7 @@ func TestMin(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -50,7 +51,7 @@ func TestMax(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -77,7 +78,7 @@ func TestMinMax(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -102,7 +103,7 @@ func TestPositive(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -127,7 +128,7 @@ func TestNegative(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -151,7 +152,7 @@ func TestNotZero(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

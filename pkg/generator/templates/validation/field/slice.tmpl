@@ -19,7 +19,7 @@
         if len(v.{{ .Name }}) > 0 {
         {{- if $hasMin }}
             if len(v.{{ .Name }}) < {{ $minVal }} {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "min",
             Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
@@ -28,7 +28,7 @@
         {{- end }}
         {{- if $hasMax }}
             if len(v.{{ .Name }}) > {{ $maxVal }} {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "max",
             Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
@@ -39,7 +39,7 @@
             // Валидация элементов слайса структур
             for _, item := range v.{{ .Name }} {
             if err := item.Validate(); err != nil {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "nested",
             Message: "поле {{ .Name }}: " + err.Error(),
@@ -48,7 +48,7 @@
             }
         {{- end }}
         } else if {{ $hasNotZero }} {
-        return &validator.ValidationError{
+        return &errs.ValidationError{
         Field: "{{ .Name }}",
         Rule:  "not-zero",
         Message: "поле {{ .Name }} не может быть пустым",
@@ -57,7 +57,7 @@
     {{- else }}
         // Обязательный слайс
         if {{ $hasRequired }} && len(v.{{ .Name }}) == 0 {
-        return &validator.ValidationError{
+        return &errs.ValidationError{
         Field: "{{ .Name }}",
         Rule:  "required",
         Message: "поле {{ .Name }} обязательно",
@@ -65,7 +65,7 @@
         }
         {{- if $hasMin }}
             if len(v.{{ .Name }}) < {{ $minVal }} {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "min",
             Message: "поле {{ .Name }} должно содержать минимум {{ $minVal }} элементов",
@@ -74,7 +74,7 @@
         {{- end }}
         {{- if $hasMax }}
             if len(v.{{ .Name }}) > {{ $maxVal }} {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "max",
             Message: "поле {{ .Name }} должно содержать максимум {{ $maxVal }} элементов",
@@ -85,7 +85,7 @@
             // Валидация элементов слайса структур
             for _, item := range v.{{ .Name }} {
             if err := item.Validate(); err != nil {
-            return &validator.ValidationError{
+            return &errs.ValidationError{
             Field: "{{ .Name }}",
             Rule:  "nested",
             Message: "поле {{ .Name }}: " + err.Error(),

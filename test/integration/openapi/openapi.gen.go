@@ -5,6 +5,7 @@ package openapi
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 	"time"
 )
@@ -48,20 +49,21 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
+	var err *errs.ValidationError
 
-	if err := User_NameValidator.Validate(v.Name); err != nil {
+	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 
-	if err := User_EmailValidator.Validate(v.Email); err != nil {
+	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
 
-	if err := User_AgeValidator.Validate(v.Age); err != nil {
+	if err = User_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 
-	if err := User_PhoneValidator.Validate(v.Phone); err != nil {
+	if err = User_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
 	return nil
@@ -105,20 +107,21 @@ func (v *Product) Decorate(ctx context.Context) error {
 }
 
 func (v *Product) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Product_StatusValidator.Validate(v.Status); err != nil {
+	if err = Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
 
-	if err := Product_PriceValidator.Validate(v.Price); err != nil {
+	if err = Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
 
-	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
+	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
 
-	if err := Product_CodeValidator.Validate(v.Code); err != nil {
+	if err = Product_CodeValidator.Validate(v.Code); err != nil {
 		return err
 	}
 	return nil
@@ -146,33 +149,34 @@ func (v *Order) Decorate(ctx context.Context) error {
 }
 
 func (v *Order) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Order_IDValidator.Validate(v.ID); err != nil {
+	if err = Order_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
 
-	if err := Order_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
+	if err = Order_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
 	}
 
 	// Валидация слайса Items
 	// Обязательный слайс
 	if true && len(v.Items) == 0 {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Items",
 			Rule:    "required",
 			Message: "поле Items обязательно",
 		}
 	}
 	if len(v.Items) < 1 {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Items",
 			Rule:    "min",
 			Message: "поле Items должно содержать минимум 1 элементов",
 		}
 	}
 	if len(v.Items) > 100 {
-		return &validator.ValidationError{
+		return &errs.ValidationError{
 			Field:   "Items",
 			Rule:    "max",
 			Message: "поле Items должно содержать максимум 100 элементов",

@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 	"github.com/google/uuid"
 	"net/http"
@@ -66,24 +67,25 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
+	var err *errs.ValidationError
 
-	if err := User_IDValidator.Validate(v.ID); err != nil {
+	if err = User_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
 
-	if err := User_RoleValidator.Validate(v.Role); err != nil {
+	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
 
-	if err := User_EnvironmentValidator.Validate(v.Environment); err != nil {
+	if err = User_EnvironmentValidator.Validate(v.Environment); err != nil {
 		return err
 	}
 
-	if err := User_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
+	if err = User_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
 	}
 
-	if err := User_RequestIDValidator.Validate(v.RequestID); err != nil {
+	if err = User_RequestIDValidator.Validate(v.RequestID); err != nil {
 		return err
 	}
 	return nil

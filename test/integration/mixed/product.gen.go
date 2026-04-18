@@ -5,6 +5,7 @@ package mixed
 
 import (
 	"context"
+	errs "github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -37,16 +38,17 @@ func (v *Product) Decorate(ctx context.Context) error {
 }
 
 func (v *Product) Validate() error {
+	var err *errs.ValidationError
 
-	if err := Product_StatusValidator.Validate(v.Status); err != nil {
+	if err = Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
 
-	if err := Product_QuantityValidator.Validate(v.Quantity); err != nil {
+	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
 
-	if err := Product_PriceValidator.Validate(v.Price); err != nil {
+	if err = Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
 	return nil

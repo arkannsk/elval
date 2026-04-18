@@ -1,11 +1,12 @@
 package validator
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/arkannsk/elval/pkg/errs"
 )
 
-type CustomValidator func(value any, params string) error
+type CustomValidator func(value any, params string) *errs.ValidationError
 
 var (
 	customMu sync.RWMutex
@@ -20,13 +21,13 @@ func RegisterCustom(name string, fn CustomValidator) {
 }
 
 // ValidateCustom вызывает кастомный валидатор с параметрами (как строка)
-func ValidateCustom(name string, value any, params string) error {
+func ValidateCustom(name string, value any, params string) *errs.ValidationError {
 	customMu.RLock()
 	defer customMu.RUnlock()
 
 	fn, ok := customs[name]
 	if !ok {
-		return fmt.Errorf("кастомный валидатор %s не зарегистрирован", name)
+		return errs.NewValidationError("", "custom validator '%s' not found", name)
 	}
 	return fn(value, params)
 }

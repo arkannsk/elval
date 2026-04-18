@@ -8,7 +8,7 @@
         if v.{{ .Field.Name }} != nil {
         val := *v.{{ .Field.Name }}
         if err := {{ .Struct.Name }}_{{ .Field.Name }}Validator.Validate(val); err != nil {
-        return &validator.ValidationError{
+        return &errs.ValidationError{
         Field: "{{ .Field.Name }}",
         Rule:  "nested",
         Message: "поле {{ .Field.Name }}: " + err.Error(),
@@ -17,7 +17,7 @@
         }
     {{- else }}
         if v.{{ .Field.Name }} == nil {
-        return &validator.ValidationError{
+        return &errs.ValidationError{
         Field: "{{ .Field.Name }}",
         Rule:  "required",
         Message: "поле {{ .Field.Name }} обязательно",
@@ -25,7 +25,7 @@
         }
         val := *v.{{ .Field.Name }}
         if err := {{ .Struct.Name }}_{{ .Field.Name }}Validator.Validate(val); err != nil {
-        return &validator.ValidationError{
+        return &errs.ValidationError{
         Field: "{{ .Field.Name }}",
         Rule:  "nested",
         Message: "поле {{ .Field.Name }}: " + err.Error(),

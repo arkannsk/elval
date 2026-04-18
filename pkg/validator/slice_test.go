@@ -3,8 +3,12 @@ package validator
 import (
 	"testing"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+var emptyErr = errs.NewValidationError("", "")
 
 func TestSliceValidator_Required(t *testing.T) {
 	t.Run("не nil слайс проходит", func(t *testing.T) {
@@ -12,7 +16,7 @@ func TestSliceValidator_Required(t *testing.T) {
 		sv.Required()
 
 		err := sv.Validate([]string{"a", "b"})
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("nil слайс не проходит", func(t *testing.T) {
@@ -22,14 +26,14 @@ func TestSliceValidator_Required(t *testing.T) {
 		var tags []string
 		err := sv.Validate(tags)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "слайс не может быть nil")
+		assert.Contains(t, err.Error(), "slice cant be nil")
 	})
 
 	t.Run("пустой слайс проходит (не required)", func(t *testing.T) {
 		sv := NewSliceValidator[string]("tags")
 
 		err := sv.Validate([]string{})
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 	})
 }
 
@@ -39,7 +43,7 @@ func TestSliceValidator_NotZero(t *testing.T) {
 		sv.NotZero()
 
 		err := sv.Validate([]string{"a"})
-		assert.NoError(t, err)
+		assert.Nil(t, err)
 	})
 
 	t.Run("пустой слайс не проходит", func(t *testing.T) {
@@ -48,7 +52,7 @@ func TestSliceValidator_NotZero(t *testing.T) {
 
 		err := sv.Validate([]string{})
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "не может быть пустым")
+		assert.Contains(t, err.Error(), "slice cant be empty")
 	})
 
 	t.Run("nil слайс не проходит", func(t *testing.T) {
@@ -58,7 +62,7 @@ func TestSliceValidator_NotZero(t *testing.T) {
 		var tags []string
 		err := sv.Validate(tags)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "не может быть пустым")
+		assert.Contains(t, err.Error(), "slice cant be empty")
 	})
 }
 
@@ -67,8 +71,8 @@ func TestSliceValidator_Min(t *testing.T) {
 		sv := NewSliceValidator[string]("tags")
 		sv.Min(2)
 
-		assert.NoError(t, sv.Validate([]string{"a", "b"}))
-		assert.NoError(t, sv.Validate([]string{"a", "b", "c"}))
+		require.Nil(t, sv.Validate([]string{"a", "b"}))
+		require.Nil(t, sv.Validate([]string{"a", "b", "c"}))
 	})
 
 	t.Run("размер < min не проходит", func(t *testing.T) {
@@ -77,7 +81,7 @@ func TestSliceValidator_Min(t *testing.T) {
 
 		err := sv.Validate([]string{"a", "b"})
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "минимальный размер 3")
+		assert.Contains(t, err.Error(), "min len 3, received 2")
 	})
 
 	t.Run("nil слайс не проходит", func(t *testing.T) {
@@ -95,9 +99,9 @@ func TestSliceValidator_Max(t *testing.T) {
 		sv := NewSliceValidator[string]("tags")
 		sv.Max(3)
 
-		assert.NoError(t, sv.Validate([]string{"a"}))
-		assert.NoError(t, sv.Validate([]string{"a", "b"}))
-		assert.NoError(t, sv.Validate([]string{"a", "b", "c"}))
+		require.Nil(t, sv.Validate([]string{"a"}))
+		require.Nil(t, sv.Validate([]string{"a", "b"}))
+		require.Nil(t, sv.Validate([]string{"a", "b", "c"}))
 	})
 
 	t.Run("размер > max не проходит", func(t *testing.T) {
@@ -106,7 +110,7 @@ func TestSliceValidator_Max(t *testing.T) {
 
 		err := sv.Validate([]string{"a", "b", "c"})
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "максимальный размер 2")
+		assert.Contains(t, err.Error(), "max len 2, received 3")
 	})
 }
 
@@ -116,7 +120,7 @@ func TestSliceValidator_Len(t *testing.T) {
 		sv.Len(3)
 
 		err := sv.Validate([]string{"a", "b", "c"})
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("неправильный размер не проходит", func(t *testing.T) {
@@ -125,13 +129,12 @@ func TestSliceValidator_Len(t *testing.T) {
 
 		err := sv.Validate([]string{"a", "b"})
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "ожидался размер 3, получен 2")
+		assert.Contains(t, err.Error(), "expect size 3, received 2")
 	})
 }
 
 func TestSliceValidator_Each(t *testing.T) {
 	t.Run("валидация каждого элемента", func(t *testing.T) {
-		// Создаем валидатор для строк
 		elemValidator := New[string]("tag").
 			AddRule(Required[string]()).
 			AddRule(MinLen(2))
@@ -141,7 +144,7 @@ func TestSliceValidator_Each(t *testing.T) {
 
 		tags := []string{"go", "rust", "python"}
 		err := sv.Validate(tags)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("ошибка валидации элемента", func(t *testing.T) {
@@ -152,11 +155,12 @@ func TestSliceValidator_Each(t *testing.T) {
 		sv := NewSliceValidator[string]("tags").
 			Each(elemValidator)
 
-		tags := []string{"go", "rust"} // "go" слишком короткий
+		tags := []string{"go", "rust"}
 		err := sv.Validate(tags)
 		assert.Error(t, err)
+
 		assert.Contains(t, err.Error(), "tags[0]")
-		assert.Contains(t, err.Error(), "минимальная длина 3")
+		assert.Contains(t, err.Error(), "min len 3")
 	})
 
 	t.Run("пустой слайс с Each", func(t *testing.T) {
@@ -169,7 +173,7 @@ func TestSliceValidator_Each(t *testing.T) {
 
 		// Пустой слайс не вызывает валидацию элементов
 		err := sv.Validate([]string{})
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -188,7 +192,7 @@ func TestSliceValidator_Combined(t *testing.T) {
 
 		tags := []string{"go", "rust", "python"}
 		err := sv.Validate(tags)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("ошибка размера", func(t *testing.T) {
@@ -203,7 +207,7 @@ func TestSliceValidator_Combined(t *testing.T) {
 		tags := []string{"go", "rust"}
 		err := sv.Validate(tags)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "минимальный размер 3")
+		assert.Contains(t, err.Error(), "min len 3, received 2")
 	})
 }
 
@@ -219,7 +223,7 @@ func TestSliceValidator_WithDifferentTypes(t *testing.T) {
 
 		numbers := []int{10, 20, 30}
 		err := sv.Validate(numbers)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 
 		invalidNumbers := []int{0, 150}
 		err = sv.Validate(invalidNumbers)
@@ -236,7 +240,7 @@ func TestSliceValidator_WithDifferentTypes(t *testing.T) {
 
 		prices := []float64{10.5, 20.0, 30.75}
 		err := sv.Validate(prices)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("слайс структур", func(t *testing.T) {
@@ -247,12 +251,12 @@ func TestSliceValidator_WithDifferentTypes(t *testing.T) {
 
 		// Создаем валидатор для структуры
 		personValidator := New[Person]("person").
-			AddRule(Custom(func(p Person) error {
+			AddRule(Custom(func(p Person) *errs.ValidationError {
 				if p.Name == "" {
-					return assert.AnError
+					return emptyErr
 				}
 				if p.Age < 18 {
-					return assert.AnError
+					return emptyErr
 				}
 				return nil
 			}))
@@ -265,7 +269,7 @@ func TestSliceValidator_WithDifferentTypes(t *testing.T) {
 			{Name: "Bob", Age: 25},
 		}
 		err := sv.Validate(people)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -281,7 +285,7 @@ func TestSliceValidator_Chaining(t *testing.T) {
 
 		tags := []string{"a", "b", "c"}
 		err := sv.Validate(tags)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -290,12 +294,12 @@ func TestSliceValidator_EmptyRules(t *testing.T) {
 		sv := NewSliceValidator[string]("tags")
 
 		err := sv.Validate(nil)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 
 		err = sv.Validate([]string{})
-		assert.NoError(t, err)
+		require.Nil(t, err)
 
 		err = sv.Validate([]string{"a", "b"})
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
