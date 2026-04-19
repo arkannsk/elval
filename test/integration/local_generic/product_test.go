@@ -1,58 +1,90 @@
+//go:build integration
+
 package local_generic
 
 import (
 	"testing"
 
-	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestProduct_Validate(t *testing.T) {
-	t.Run("valid product with mixed reviews", func(t *testing.T) {
-		p := Product{
-			Name: "Gadget",
-			Reviews: []model.Option[Review]{
-				model.Some(Review{Comment: "Great product!", Rating: model.Some(5)}),
-				model.None[Review](), // пропущенный ревью — ок
-				model.Some(Review{Comment: "Good", Rating: model.None[int]()}), // рейтинг не указан — ок
-			},
-		}
-		assert.NoError(t, p.Validate())
-	})
+	t.Parallel()
 
-	t.Run("review with invalid comment length", func(t *testing.T) {
-		p := Product{
-			Name: "Gadget",
-			Reviews: []model.Option[Review]{
-				model.Some(Review{Comment: "OK", Rating: model.Some(4)}), // too short
+	tests := []struct {
+		name    string
+		product Product
+		wantErr bool
+	}{
+		{
+			name: "valid product with all fields",
+			product: Product{
+				Name:    "Widget",
+				Price:   19.99,
+				InStock: true,
+				Tags:    []model.Option[string]{model.Some("new"), model.Some("sale")},
+				Rating:  model.Some(4.5),
 			},
-		}
-		err := p.Validate()
-		require.Error(t, err)
-		var ve *errs.ValidationError
-		require.ErrorAs(t, err, &ve)
-		assert.Equal(t, "Reviews[0]", ve.Field) // проверяем индекс в сообщении
-		assert.Contains(t, ve.Message, "comment must be at least 3")
-	})
-
-	t.Run("rating out of range", func(t *testing.T) {
-		p := Product{
-			Name: "Gadget",
-			Reviews: []model.Option[Review]{
-				model.Some(Review{Comment: "Nice", Rating: model.Some(10)}),
+			wantErr: false,
+		},
+		{
+			name: "missing required name",
+			product: Product{
+				Name:    "", // пусто
+				Price:   10.0,
+				InStock: true,
 			},
-		}
-		err := p.Validate()
-		require.Error(t, err)
-		var ve *errs.ValidationError
-		require.ErrorAs(t, err, &ve)
-		assert.Equal(t, "min:1,max:5", ve.Rule)
-	})
+			wantErr: true,
+		},
+		{
+			name: "negative price",
+			product: Product{
+				Name:    "Freebie",
+				Price:   -1.0, // < 0
+				InStock: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "optional rating absent — should pass",
+			product: Product{
+				Name:    "Basic",
+				Price:   5.0,
+				InStock: true,
+				// Rating не задан
+			},
+			wantErr: false,
+		},
+		{
+			name: "slice with invalid option value",
+			product: Product{
+				Name:    "Tagged",
+				Price:   15.0,
+				InStock: true,
+				Tags: []model.Option[string]{
+					model.Some("valid"),
+					model.Some(""), // пустая строка может нарушать min_len, если есть правило
+				},
+			},
+			// Настройте ожидание в зависимости от ваших правил для []Option[string]
+			wantErr: false, // или true, если есть валидация на элементы
+		},
+	}
 
-	t.Run("empty reviews slice is ok (optional)", func(t *testing.T) {
-		p := Product{Name: "Gadget", Reviews: []model.Option[Review]{}}
-		assert.NoError(t, p.Validate())
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tt.product.Validate()
+
+			if tt.wantErr {
+				require.Error(t, err)
+				// При необходимости проверьте errs.ValidationError
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }

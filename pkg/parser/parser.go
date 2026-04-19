@@ -104,7 +104,7 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					continue
 				}
 
-				fieldType := p.getFieldTypeWithStructs(field, allStructs, filename)
+				fieldType := p.getFieldTypeWithStructs(field, allStructs)
 				directives := p.parseFieldDirectives(field)
 
 				for _, dir := range directives {
@@ -136,7 +136,7 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	return result, nil
 }
 
-func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string]*Struct, filename string) FieldType {
+func (p *Parser) getFieldTypeWithStructs(field *ast.Field, allStructs map[string]*Struct) FieldType {
 	return p.parseFieldTypeExpr(field.Type, allStructs)
 }
 
@@ -446,13 +446,8 @@ func CollectValidationImports(structs []Struct) map[string]string {
 			// --- Директивы валидации → импорты ---
 			for _, dir := range field.Directives {
 				switch dir.Type {
-				// 🔥 UUID — НУЖЕН, потому что пользователь работает с uuid.UUID напрямую
 				case "uuid":
 					required["uuid"] = "github.com/google/uuid"
-
-					// 🔥 URL/DSN — НЕ НУЖНЫ, потому что логика внутри validator.URL()/DSN()
-					// case "url", "http_url": required["net/url"] = "net/url"      // ← УДАЛИТЬ
-					// case "dsn": required["database/sql"] = "database/sql"        // ← УДАЛИТЬ
 				}
 			}
 

@@ -1,7 +1,10 @@
+//go:build integration
+
 package local_generic
 
 import (
 	"testing"
+	"time"
 
 	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
@@ -10,56 +13,79 @@ import (
 )
 
 func TestUserSettings_Validate(t *testing.T) {
-	t.Run("custom theme without color fails", func(t *testing.T) {
-		s := UserSettings{
-			Theme:        ThemeCustom,
-			PrimaryColor: model.None[string](), // отсутствует
-		}
-		err := s.Validate()
-		require.Error(t, err)
-		var ve *errs.ValidationError
-		require.ErrorAs(t, err, &ve)
-		assert.Equal(t, "PrimaryColor", ve.Field)
-		assert.Equal(t, errs.ErrRequired.Rule, ve.Rule)
-	})
+	t.Parallel()
 
-	t.Run("custom theme with invalid color", func(t *testing.T) {
-		s := UserSettings{
-			Theme:        ThemeCustom,
-			PrimaryColor: model.Some("not-a-color"),
-		}
-		err := s.Validate()
-		require.Error(t, err)
-		var ve *errs.ValidationError
-		require.ErrorAs(t, err, &ve)
-		assert.Equal(t, "pattern:hex", ve.Rule)
-	})
+	tests := []struct {
+		name     string
+		settings UserSettings
+		wantErr  bool
+		wantRule string
+	}{
+		{
+			name: "valid settings with required theme",
+			settings: UserSettings{
+				Theme:      "dark", // валидное значение из enum
+				MaxRetries: 5,
+				Timeout:    model.Some(30 * time.Second),
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid theme value",
+			settings: UserSettings{
+				Theme:      "invalid", // не в enum [light,dark,system]
+				MaxRetries: 3,
+			},
+			wantErr:  true,
+			wantRule: "enum",
+		},
+		{
+			name: "max retries below min",
+			settings: UserSettings{
+				Theme:      "light",
+				MaxRetries: 0, // < min:1
+			},
+			wantErr:  true,
+			wantRule: "min",
+		},
+		{
+			name: "optional timeout absent — should pass",
+			settings: UserSettings{
+				Theme:      "system",
+				MaxRetries: 10,
+				// Timeout не задан
+			},
+			wantErr: false,
+		},
+		{
+			name: "timeout value below min duration",
+			settings: UserSettings{
+				Theme:      "dark",
+				Timeout:    model.Some(500 * time.Millisecond), // < min:1s
+				MaxRetries: 3,
+			},
+			wantErr:  true,
+			wantRule: "min",
+		},
+	}
 
-	t.Run("custom theme with valid color", func(t *testing.T) {
-		s := UserSettings{
-			Theme:        ThemeCustom,
-			PrimaryColor: model.Some("#FF5733"),
-		}
-		assert.NoError(t, s.Validate())
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	t.Run("light theme ignores PrimaryColor", func(t *testing.T) {
-		s := UserSettings{
-			Theme:        ThemeLight,
-			PrimaryColor: model.Some("ignored"), // не валидируется
-		}
-		assert.NoError(t, s.Validate())
-	})
+			err := tt.settings.Validate()
 
-	t.Run("optional email validation", func(t *testing.T) {
-		s := UserSettings{
-			Theme:             ThemeDark,
-			NotificationEmail: model.Some("not-an-email"),
-		}
-		err := s.Validate()
-		require.Error(t, err)
-		var ve *errs.ValidationError
-		require.ErrorAs(t, err, &ve)
-		assert.Equal(t, "pattern:email", ve.Rule)
-	})
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.wantRule != "" {
+					var ve *errs.ValidationError
+					require.ErrorAs(t, err, &ve)
+					assert.Equal(t, tt.wantRule, ve.Rule)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
