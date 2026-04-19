@@ -127,4 +127,21 @@ var templateFucMap = template.FuncMap{
 		}
 		return false
 	},
+	"trimBrackets": func(s string) string {
+		return strings.TrimPrefix(strings.TrimSuffix(s, "]"), "[")
+	},
+	"baseType": func(ft parser.FieldType) string {
+		name := ft.Name
+		// Убираем указатели
+		name = strings.TrimPrefix(name, "*")
+		// Убираем слайсы (для []T → T)
+		if strings.HasPrefix(name, "[") && strings.HasSuffix(name, "]") {
+			name = strings.TrimPrefix(strings.TrimSuffix(name, "]"), "[")
+		}
+		// Если есть алиас — используем его базовый тип
+		if ft.BaseType != "" {
+			return ft.BaseType
+		}
+		return name
+	},
 }

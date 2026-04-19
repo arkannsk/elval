@@ -1,7 +1,10 @@
 {{ define "decorators" }}
     {{- range .Decorators }}
+        {{- $param0 := "" }}
+        {{- if gt (len .Params) 0 }}{{ $param0 = index .Params 0 }}{{ end }}
+
         {{- if eq .Type "ctx-get" }}
-            if val := ctx.Value("{{ index .Params 0 }}"); val != nil {
+            if val := ctx.Value({{ printf "%q" $param0 }}); val != nil {
             if str, ok := val.(string); ok {
             v.{{ $.Name }} = str
             }
@@ -9,15 +12,21 @@
         {{- else if eq .Type "httpctx-get" }}
             if r := ctx.Value("http.request"); r != nil {
             if req, ok := r.(*http.Request); ok {
-            v.{{ $.Name }} = req.Header.Get("{{ index .Params 0 }}")
+            v.{{ $.Name }} = req.Header.Get({{ printf "%q" $param0 }})
             }
             }
         {{- else if eq .Type "env-get" }}
-            v.{{ $.Name }} = os.Getenv("{{ index .Params 0 }}")
+            v.{{ $.Name }} = os.Getenv({{ printf "%q" $param0 }})
         {{- else if eq .Type "time-now" }}
             v.{{ $.Name }} = time.Now()
         {{- else if eq .Type "uuid-gen" }}
             v.{{ $.Name }} = uuid.New().String()
+        {{- else if eq .Type "trim" }}
+            v.{{ $.Name }} = strings.TrimSpace(v.{{ $.Name }})
+        {{- else if eq .Type "lower" }}
+            v.{{ $.Name }} = strings.ToLower(v.{{ $.Name }})
+        {{- else if eq .Type "upper" }}
+            v.{{ $.Name }} = strings.ToUpper(v.{{ $.Name }})
         {{- end }}
     {{- end }}
 {{ end }}

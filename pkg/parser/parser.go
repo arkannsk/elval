@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -35,7 +36,6 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 		Package: node.Name.Name,
 		Structs: make([]Struct, 0),
 		Errors:  make([]error, 0),
-		Imports: p.extractImports(node),
 	}
 
 	// Сначала собираем все структуры в файле (даже без аннотаций)
@@ -111,6 +111,9 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					if err := ValidateDirective(dir, fieldType); err != nil {
 						result.Errors = append(result.Errors, fmt.Errorf("%s:%d: поле %s: %w",
 							filename, p.fset.Position(field.Pos()).Line, fieldName, err))
+					}
+					if p.verbose {
+						log.Printf("directive: %v", dir)
 					}
 				}
 
@@ -405,30 +408,85 @@ func (r *ParseResult) ValidateDirectives() []DirectiveError {
 	return errors
 }
 
-func (p *Parser) extractImports(file *ast.File) map[string]string {
-	imports := make(map[string]string)
+// CollectValidationImports — импорты ТОЛЬКО для валидации/декорирования
+func CollectValidationImports(structs []Struct) map[string]string {
+	required := make(map[string]string)
 
-	for _, imp := range file.Imports {
-		// Убираем кавычки: "path" → path
-		path := strings.Trim(imp.Path.Value, `"`)
+	required["errs"] = "github.com/arkannsk/elval/pkg/errs"
+	required["validator"] = "github.com/arkannsk/elval/pkg/validator"
+	required["context"] = "context" // для Decorate
 
-		// Определяем алиас
-		alias := ""
-		if imp.Name != nil {
-			if imp.Name.Name == "_" || imp.Name.Name == "." {
-				continue // пропускаем blank/dot импорты
+	needsElval := false
+
+	for _, s := range structs {
+		for _, field := range s.Fields {
+			// --- Анализ типов для elval/time ---
+			var checkType func(ft FieldType)
+			checkType = func(ft FieldType) {
+				if ft.IsGeneric && len(ft.GenericArgs) > 0 {
+					needsElval = true
+					for _, arg := range ft.GenericArgs {
+						checkType(arg)
+					}
+					return
+				}
+				if ft.Name == "time.Time" || ft.Name == "time.Duration" {
+					required["time"] = "time"
+				}
+				if ft.IsSlice || ft.IsPointer {
+					base := strings.TrimPrefix(ft.Name, "[]")
+					base = strings.TrimPrefix(base, "*")
+					if base == "time.Time" || base == "time.Duration" {
+						required["time"] = "time"
+					}
+				}
 			}
-			alias = imp.Name.Name
-		} else {
-			// Алиас по умолчанию — последняя часть пути
-			parts := strings.Split(path, "/")
-			alias = parts[len(parts)-1]
-		}
+			checkType(field.Type)
 
-		imports[alias] = path
+			// --- Директивы валидации → импорты ---
+			for _, dir := range field.Directives {
+				switch dir.Type {
+				// 🔥 UUID — НУЖЕН, потому что пользователь работает с uuid.UUID напрямую
+				case "uuid":
+					required["uuid"] = "github.com/google/uuid"
+
+					// 🔥 URL/DSN — НЕ НУЖНЫ, потому что логика внутри validator.URL()/DSN()
+					// case "url", "http_url": required["net/url"] = "net/url"      // ← УДАЛИТЬ
+					// case "dsn": required["database/sql"] = "database/sql"        // ← УДАЛИТЬ
+				}
+			}
+
+			// --- Декораторы → импорты ---
+			for _, dec := range field.Decorators {
+				switch dec.Type {
+				case "uuid-gen":
+					required["uuid"] = "github.com/google/uuid"
+				case "env-get", "env_default":
+					required["os"] = "os"
+				case "time-now":
+					required["time"] = "time"
+				case "httpctx-get":
+					required["net/http"] = "net/http"
+				case "trim", "lower", "upper":
+					required["strings"] = "strings"
+				}
+			}
+		}
 	}
 
-	return imports
+	if needsElval {
+		required["elval"] = "github.com/arkannsk/elval"
+	}
+
+	return required
+}
+
+// CollectOpenAPIImports — импорты ТОЛЬКО для OpenAPI схем
+func CollectOpenAPIImports(structs []Struct) map[string]string {
+	required := make(map[string]string)
+	required["oa"] = "github.com/arkannsk/elval/pkg/oa"
+
+	return required
 }
 
 // getFieldName возвращает имя поля из ast.Field

@@ -6,7 +6,7 @@ package local_generic
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -69,12 +69,21 @@ func (v *Product) Validate() error {
 	if err = Product_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-	for _, opt := range v.Reviews {
-		if val, ok := opt.Value(); ok {
-			if err = Product_ReviewsValidator.Validate(val); err != nil {
-				return err
-			}
+	for _, val := range v.unpackReviews() {
+		if err = Product_ReviewsValidator.Validate(val); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// unpackReviews
+func (v *Product) unpackReviews() []Review {
+	res := make([]Review, 0, len(v.Reviews))
+	for _, opt := range v.Reviews {
+		if val, ok := opt.Value(); ok {
+			res = append(res, val)
+		}
+	}
+	return res
 }

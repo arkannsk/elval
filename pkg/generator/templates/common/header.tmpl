@@ -5,34 +5,11 @@
 package {{ .Package }}
 
 import (
-{{- if .GenerateValidation }}
-    "context"
-    errs "github.com/arkannsk/elval/pkg/errs"
-    "github.com/arkannsk/elval/pkg/validator"
-{{- end }}
-{{- if .GenerateOpenAPI }}
-    "github.com/arkannsk/elval/pkg/oa"
-{{- end }}
-{{- if and .GenerateValidation (hasHTTPContext .Structs) }}
-"net/http"
-{{- end }}
-{{- if and .GenerateValidation (hasEnvGet .Structs) }}
-    "os"
-{{- end }}
-{{- if and .GenerateValidation (hasUUIDGen .Structs) }}
-    "github.com/google/uuid"
-{{- end }}
-
 {{- range $alias, $path := .Imports }}
-    {{- if and (ne $path "context")
-    (ne $path "github.com/arkannsk/elval/pkg/errs")
-    (ne $path "github.com/arkannsk/elval/pkg/validator")
-    (ne $path "github.com/arkannsk/elval/pkg/oa") }}
-        {{- if eq $alias $path }}
-            {{ printf "%q" $path }}
-        {{- else }}
-            {{ $alias }} {{ printf "%q" $path }}
-        {{- end }}
+    {{- if eq $alias $path }}
+        {{ printf "%q" $path }}
+    {{- else }}
+        {{ $alias }} {{ printf "%q" $path }}
     {{- end }}
 {{- end }}
 )

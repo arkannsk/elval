@@ -6,7 +6,7 @@ package multi
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -33,25 +33,6 @@ var (
 	}()
 )
 
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *User) Validate() error {
-	var err *errs.ValidationError
-	if err = User_NameValidator.Validate(v.Name); err != nil {
-		return err
-	}
-	if err = User_EmailValidator.Validate(v.Email); err != nil {
-		return err
-	}
-	if err = User_AgeValidator.Validate(v.Age); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	Product_StatusValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Status")
@@ -74,25 +55,6 @@ var (
 		return v
 	}()
 )
-
-func (v *Product) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Product) Validate() error {
-	var err *errs.ValidationError
-	if err = Product_StatusValidator.Validate(v.Status); err != nil {
-		return err
-	}
-	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
-		return err
-	}
-	if err = Product_PriceValidator.Validate(v.Price); err != nil {
-		return err
-	}
-	return nil
-}
 
 var (
 	Order_IDValidator = func() *validator.FieldValidator[string] {
@@ -118,8 +80,46 @@ var (
 	}()
 )
 
+func (v *User) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
+func (v *Product) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Order) Decorate(ctx context.Context) error {
 
+	return nil
+}
+
+func (v *User) Validate() error {
+	var err *errs.ValidationError
+	if err = User_NameValidator.Validate(v.Name); err != nil {
+		return err
+	}
+	if err = User_EmailValidator.Validate(v.Email); err != nil {
+		return err
+	}
+	if err = User_AgeValidator.Validate(v.Age); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *Product) Validate() error {
+	var err *errs.ValidationError
+	if err = Product_StatusValidator.Validate(v.Status); err != nil {
+		return err
+	}
+	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
+		return err
+	}
+	if err = Product_PriceValidator.Validate(v.Price); err != nil {
+		return err
+	}
 	return nil
 }
 

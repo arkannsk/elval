@@ -6,7 +6,7 @@ package string_checks
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -42,7 +42,28 @@ var (
 	}()
 )
 
+var (
+	File_PathValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Path")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.EndsWith(".go"))
+		return v
+	}()
+
+	File_NameValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Name")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.Contains("test"))
+		return v
+	}()
+)
+
 func (v *Document) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
+func (v *File) Decorate(ctx context.Context) error {
 
 	return nil
 }
@@ -61,27 +82,6 @@ func (v *Document) Validate() error {
 	if err = Document_ImageNameValidator.Validate(v.ImageName); err != nil {
 		return err
 	}
-	return nil
-}
-
-var (
-	File_PathValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Path")
-		v.AddRule(validator.Required[string]())
-		v.AddRule(validator.EndsWith(".go"))
-		return v
-	}()
-
-	File_NameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Name")
-		v.AddRule(validator.Required[string]())
-		v.AddRule(validator.Contains("test"))
-		return v
-	}()
-)
-
-func (v *File) Decorate(ctx context.Context) error {
-
 	return nil
 }
 

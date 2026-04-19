@@ -89,7 +89,6 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	// 1. Генерируем файл валидации
-	imports := g.filterImportsForGeneration(parseResult.Imports, structsForValidation)
 	if len(structsForValidation) > 0 {
 		data := struct {
 			Package            string
@@ -102,11 +101,11 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 			Structs:            structsForValidation,
 			SourceFile:         filepath.Base(sourceFile),
 			GenerateValidation: true,
-			Imports:            imports,
+			Imports:            parser.CollectValidationImports(parseResult.Structs),
 		}
 
 		if g.verbose {
-			log.Printf("import list: %v in file: %s", imports, sourceFile)
+			log.Printf("import list: %v in file: %s", parseResult.Imports, sourceFile)
 		}
 
 		var buf strings.Builder
@@ -134,11 +133,13 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 			Structs         []parser.Struct
 			SourceFile      string
 			GenerateOpenAPI bool
+			Imports         map[string]string
 		}{
 			Package:         parseResult.Package,
 			Structs:         structsForOpenAPI,
 			SourceFile:      filepath.Base(sourceFile),
 			GenerateOpenAPI: true,
+			Imports:         parser.CollectOpenAPIImports(parseResult.Structs),
 		}
 
 		var buf strings.Builder
@@ -160,53 +161,4 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	return nil
-}
-
-func (g *Generator) filterImportsForGeneration(sourceImports map[string]string, structs []parser.Struct) map[string]string {
-	result := make(map[string]string)
-
-	var checkType func(ft parser.FieldType)
-	checkType = func(ft parser.FieldType) {
-		// 1. Проверяем само имя типа: "model.Option" → alias "model"
-		if idx := strings.Index(ft.Name, "."); idx > 0 {
-			alias := ft.Name[:idx]
-			if path, ok := sourceImports[alias]; ok {
-				result[alias] = path
-			}
-		}
-
-		// 2. Если это дженерик, проверяем GenericBase и аргументы
-		if ft.IsGeneric {
-			// GenericBase может быть "model.Option" → извлекаем алиас
-			if idx := strings.Index(ft.GenericBase, "."); idx > 0 {
-				alias := ft.GenericBase[:idx]
-				if path, ok := sourceImports[alias]; ok {
-					result[alias] = path
-				}
-			}
-			// Рекурсивно проверяем аргументы: time.Time, User, etc.
-			for _, arg := range ft.GenericArgs {
-				checkType(arg)
-			}
-		}
-	}
-
-	for _, s := range structs {
-		for _, field := range s.Fields {
-			checkType(field.Type)
-		}
-	}
-
-	return result
-}
-
-// addImportIfNeeded добавляет импорт, если тип ссылается на внешний пакет
-func (g *Generator) addImportIfNeeded(ft parser.FieldType, sourceImports, result map[string]string) {
-	// Ищем алиас в имени типа: "model.Option" → "model"
-	if idx := strings.Index(ft.Name, "."); idx > 0 {
-		alias := ft.Name[:idx]
-		if path, ok := sourceImports[alias]; ok {
-			result[alias] = path
-		}
-	}
 }

@@ -6,7 +6,7 @@ package user
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -34,10 +34,10 @@ var (
 
 	User_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
-		v.AddRule(validator.Min[*int](18))
-		v.AddRule(validator.Max[*int](120))
+		v.AddRule(validator.Min[int](18))
+		v.AddRule(validator.Max[int](120))
 		original := v
-		v = validator.New[*int]("Age")
+		v = validator.New[int]("Age")
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()

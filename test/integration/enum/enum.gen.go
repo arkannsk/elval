@@ -6,7 +6,7 @@ package enum
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -34,25 +34,6 @@ var (
 	}()
 )
 
-func (v *Order) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Order) Validate() error {
-	var err *errs.ValidationError
-	if err = Order_StatusValidator.Validate(v.Status); err != nil {
-		return err
-	}
-	if err = Order_PriorityValidator.Validate(v.Priority); err != nil {
-		return err
-	}
-	if err = Order_SizeValidator.Validate(v.Size); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	User_RoleValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Role")
@@ -69,8 +50,27 @@ var (
 	}()
 )
 
+func (v *Order) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *User) Decorate(ctx context.Context) error {
 
+	return nil
+}
+
+func (v *Order) Validate() error {
+	var err *errs.ValidationError
+	if err = Order_StatusValidator.Validate(v.Status); err != nil {
+		return err
+	}
+	if err = Order_PriorityValidator.Validate(v.Priority); err != nil {
+		return err
+	}
+	if err = Order_SizeValidator.Validate(v.Size); err != nil {
+		return err
+	}
 	return nil
 }
 

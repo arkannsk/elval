@@ -6,7 +6,7 @@ package nested
 import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -34,25 +34,6 @@ var (
 	}()
 )
 
-func (v *Address) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Address) Validate() error {
-	var err *errs.ValidationError
-	if err = Address_CityValidator.Validate(v.City); err != nil {
-		return err
-	}
-	if err = Address_StreetValidator.Validate(v.Street); err != nil {
-		return err
-	}
-	if err = Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	User_NameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Name")
@@ -68,22 +49,49 @@ var (
 		return v
 	}()
 
-	User_AddressValidator = func() *validator.FieldValidator[Address] {
-		v := validator.New[Address]("Address")
-		return v
-	}()
-
 	User_BillingAddressValidator = func() *validator.FieldValidator[Address] {
 		v := validator.New[Address]("BillingAddress")
 		original := v
-		v = validator.New[*Address]("BillingAddress")
+		v = validator.New[Address]("BillingAddress")
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()
 )
 
+var (
+	Company_NameValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Name")
+		v.AddRule(validator.Required[string]())
+		return v
+	}()
+)
+
+func (v *Address) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *User) Decorate(ctx context.Context) error {
 
+	return nil
+}
+
+func (v *Company) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
+func (v *Address) Validate() error {
+	var err *errs.ValidationError
+	if err = Address_CityValidator.Validate(v.City); err != nil {
+		return err
+	}
+	if err = Address_StreetValidator.Validate(v.Street); err != nil {
+		return err
+	}
+	if err = Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -116,19 +124,6 @@ func (v *User) Validate() error {
 			}
 		}
 	}
-
-	return nil
-}
-
-var (
-	Company_NameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Name")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-)
-
-func (v *Company) Decorate(ctx context.Context) error {
 
 	return nil
 }

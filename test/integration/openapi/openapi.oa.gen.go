@@ -4,7 +4,7 @@
 package openapi
 
 import (
-	"github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/oa"
 )
 
 // OaSchema возвращает OpenAPI схему для структуры User

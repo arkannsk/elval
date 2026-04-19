@@ -5,16 +5,16 @@ package main
 
 import (
 	"context"
+	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
-	mo "github.com/samber/mo"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
 	User_NameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Name")
 		v.AddRule(validator.Required[string]())
-		v.AddRule(func(value any) error {
+		v.AddRule(func(value string) *errs.ValidationError {
 			return validator.ValidateCustom("x-option-present", value, "")
 		})
 		return v
@@ -23,10 +23,10 @@ var (
 	User_EmailValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Email")
 		v.AddRule(validator.Required[string]())
-		v.AddRule(func(value any) error {
+		v.AddRule(func(value string) *errs.ValidationError {
 			return validator.ValidateCustom("x-option-value-min", value, "3")
 		})
-		v.AddRule(func(value any) error {
+		v.AddRule(func(value string) *errs.ValidationError {
 			return validator.ValidateCustom("x-option-value-max", value, "50")
 		})
 		return v
@@ -34,7 +34,7 @@ var (
 
 	User_PhoneValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Phone")
-		v.AddRule(func(value any) error {
+		v.AddRule(func(value string) *errs.ValidationError {
 			return validator.ValidateCustom("x-option-absent", value, "")
 		})
 		return v
@@ -48,25 +48,40 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-	if !v.Name.IsPresent() {
+	if !elval.Unwrap[string](v.Name).IsPresent() {
 		return &errs.ValidationError{Field: "Name", Rule: "required", Message: errs.ErrRequired.Message}
 	}
-	if val, ok := v.Name.Value(); ok {
+	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = User_NameValidator.Validate(val); err != nil {
 			return err
 		}
+		if cErr := validator.ValidateCustom("x-option-present", val, ""); cErr != nil {
+			return cErr
+		}
 	}
-	if !v.Email.IsPresent() {
+	if !elval.Unwrap[string](v.Email).IsPresent() {
 		return &errs.ValidationError{Field: "Email", Rule: "required", Message: errs.ErrRequired.Message}
 	}
-	if val, ok := v.Email.Value(); ok {
+	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = User_EmailValidator.Validate(val); err != nil {
 			return err
 		}
+		if cErr := validator.ValidateCustom("x-option-value-min", val, "3"); cErr != nil {
+			return cErr
+		}
+		if cErr := validator.ValidateCustom("x-option-value-max", val, "50"); cErr != nil {
+			return cErr
+		}
 	}
-	if val, ok := v.Phone.Value(); ok {
+	if wrapper := elval.Unwrap[string](v.Phone); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = User_PhoneValidator.Validate(val); err != nil {
 			return err
+		}
+		if cErr := validator.ValidateCustom("x-option-absent", val, ""); cErr != nil {
+			return cErr
 		}
 	}
 	return nil

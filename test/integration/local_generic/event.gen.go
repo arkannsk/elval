@@ -5,10 +5,9 @@ package local_generic
 
 import (
 	"context"
-	"time"
-
 	errs "github.com/arkannsk/elval/pkg/errs"
-	"github.com/arkannsk/elval/pkg/validator"
+	validator "github.com/arkannsk/elval/pkg/validator"
+	"time"
 )
 
 var (
