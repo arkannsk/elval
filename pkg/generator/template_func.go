@@ -106,6 +106,8 @@ var templateFucMap = template.FuncMap{
 	"toLower":   strings.ToLower,
 	"contains":  strings.Contains,
 	"hasSuffix": strings.HasSuffix,
+	"split":     strings.Split,
+	"trim":      strings.TrimSpace,
 	"trimStar": func(s string) string {
 		return strings.TrimPrefix(s, "*")
 	},

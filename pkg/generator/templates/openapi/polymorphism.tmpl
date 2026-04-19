@@ -1,0 +1,16 @@
+{{/* openapi/polymorphism.tmpl */}}
+{{- if .OneOfRefs }}
+    schema.OneOf = []oa.Schema{
+    {{- range $ref := .OneOfRefs }}
+        {Ref: {{ printf "%q" $ref }}},
+    {{- end }}
+    }
+{{- end }}
+
+{{- if .AllOfRefs }}
+    schema.AllOf = []oa.Schema{
+    {{- range $ref := .AllOfRefs }}
+        {Ref: {{ printf "%q" $ref }}},
+    {{- end }}
+    }
+{{- end }}

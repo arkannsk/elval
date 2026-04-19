@@ -127,6 +127,31 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					OaAnnotations: p.parseFieldOaAnnotations(field),
 				})
 			}
+
+			structOaAnnotations := p.parseStructOaAnnotations(genDecl, typeSpec)
+
+			var disc *OaDiscriminator
+			for _, ann := range structOaAnnotations {
+				switch ann.Type {
+				case "discriminator.propertyName":
+					if disc == nil {
+						disc = &OaDiscriminator{Mapping: make(map[string]string)}
+					}
+					disc.PropertyName = strings.Trim(ann.Value, `"`)
+				case "discriminator.mapping":
+					if disc == nil {
+						disc = &OaDiscriminator{Mapping: make(map[string]string)}
+					}
+					if parts := strings.SplitN(ann.Value, ":", 2); len(parts) == 2 {
+						key := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+						val := strings.Trim(strings.TrimSpace(parts[1]), `"`)
+						disc.Mapping[key] = val
+					}
+				}
+			}
+			if disc != nil && disc.PropertyName != "" {
+				s.Discriminator = disc
+			}
 			// Добавляем ВСЕ структуры в результат
 			// Фильтрация будет в генераторе
 			result.Structs = append(result.Structs, *s)
@@ -307,7 +332,7 @@ func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 
 func (p *Parser) parseFieldOaAnnotations(field *ast.Field) []OaAnnotation {
 	var oas []OaAnnotation
-	re := regexp.MustCompile(`@oa:([a-zA-Z_-]+)\s+(.+)`)
+	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
 
 	// Check comments after field
 	if field.Comment != nil {
@@ -341,6 +366,52 @@ func (p *Parser) extractOaAnnotations(text string, re *regexp.Regexp) []OaAnnota
 		}
 	}
 	return oas
+}
+
+func (p *Parser) extractStructDiscriminator(s *Struct) {
+	var disc *OaDiscriminator
+
+	for _, field := range s.Fields {
+		for _, ann := range field.OaAnnotations {
+			if p.verbose {
+				log.Printf("DEBUG: Struct=%s Field=%s OA[%s]=%q",
+					s.Name, field.Name, ann.Type, ann.Value)
+			}
+
+			switch ann.Type {
+			case "discriminator.propertyName":
+				if disc == nil {
+					disc = &OaDiscriminator{Mapping: make(map[string]string)}
+				}
+				disc.PropertyName = ann.Value
+				if p.verbose {
+					log.Printf("DEBUG: Found discriminator.propertyName=%q", ann.Value)
+				}
+
+			case "discriminator.mapping":
+				if disc == nil {
+					disc = &OaDiscriminator{Mapping: make(map[string]string)}
+				}
+				if parts := strings.SplitN(ann.Value, ":", 2); len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					val := strings.TrimSpace(parts[1])
+					disc.Mapping[key] = val
+					if p.verbose {
+						log.Printf("DEBUG: Found discriminator.mapping[%q]=%q", key, val)
+					}
+				}
+			}
+		}
+	}
+
+	if disc != nil && disc.PropertyName != "" {
+		s.Discriminator = disc
+		if p.verbose {
+			log.Printf("DEBUG: Struct %s has discriminator: %+v", s.Name, disc)
+		}
+	} else if p.verbose {
+		log.Printf("DEBUG: Struct %s: no valid discriminator found", s.Name)
+	}
 }
 
 // extractDirectives извлекает директивы из текста комментария
@@ -381,6 +452,29 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 	}
 
 	return directives
+}
+
+// parseStructOaAnnotations парсит OA-аннотации на уровне структуры
+// Проверяет и GenDecl.Doc, и TypeSpec.Doc (комментарии могут быть в любом месте)
+func (p *Parser) parseStructOaAnnotations(genDecl *ast.GenDecl, typeSpec *ast.TypeSpec) []OaAnnotation {
+	var oas []OaAnnotation
+	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
+
+	// 🔥 Проверяем оба возможных источника комментариев
+	commentGroups := []*ast.CommentGroup{}
+	if genDecl.Doc != nil {
+		commentGroups = append(commentGroups, genDecl.Doc)
+	}
+	if typeSpec.Doc != nil {
+		commentGroups = append(commentGroups, typeSpec.Doc)
+	}
+
+	for _, cg := range commentGroups {
+		for _, comment := range cg.List {
+			oas = append(oas, p.extractOaAnnotations(comment.Text, re)...)
+		}
+	}
+	return oas
 }
 
 func (r *ParseResult) ValidateDirectives() []DirectiveError {

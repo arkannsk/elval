@@ -1,25 +1,34 @@
 package oa
 
+// Discriminator описывает полиморфную диспетчеризацию
+type Discriminator struct {
+	PropertyName string            `json:"propertyName"`
+	Mapping      map[string]string `json:"mapping,omitempty"`
+}
+
+// Schema расширяем для поддержки OpenAPI 3.0 polymorphism
 type Schema struct {
 	Type             string            `json:"type,omitempty"`
 	Format           string            `json:"format,omitempty"`
+	Title            string            `json:"title,omitempty"`
+	Description      string            `json:"description,omitempty"`
+	Example          any               `json:"example,omitempty"`
 	Properties       map[string]Schema `json:"properties,omitempty"`
 	Required         []string          `json:"required,omitempty"`
-	MinLength        *int64            `json:"minLength,omitempty"`
-	MaxLength        *int64            `json:"maxLength,omitempty"`
+	Enum             []any             `json:"enum,omitempty"`
 	Minimum          *float64          `json:"minimum,omitempty"`
 	Maximum          *float64          `json:"maximum,omitempty"`
 	ExclusiveMinimum bool              `json:"exclusiveMinimum,omitempty"`
 	ExclusiveMaximum bool              `json:"exclusiveMaximum,omitempty"`
-	MinItems         *int64            `json:"minItems,omitempty"`
-	MaxItems         *int64            `json:"maxItems,omitempty"`
+	MinLength        *int64            `json:"minLength,omitempty"`
+	MaxLength        *int64            `json:"maxLength,omitempty"`
 	Pattern          string            `json:"pattern,omitempty"`
-	Enum             []interface{}     `json:"enum,omitempty"`
-	Title            string            `json:"title,omitempty"`
-	Description      string            `json:"description,omitempty"`
-	Example          interface{}       `json:"example,omitempty"`
 	Items            *Schema           `json:"items,omitempty"`
-	Ref              string            `json:"$ref,omitempty"`
+
+	Discriminator *Discriminator `json:"discriminator,omitempty"`
+	OneOf         []Schema       `json:"oneOf,omitempty"`
+	AllOf         []Schema       `json:"allOf,omitempty"`
+	Ref           string         `json:"$ref,omitempty"`
 }
 
 // NewSchema creates a new Schema

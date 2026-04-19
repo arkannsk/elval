@@ -62,10 +62,16 @@ type Field struct {
 
 // Struct представляет структуру с полями для валидации
 type Struct struct {
-	Name        string  // имя структуры
-	Fields      []Field // поля с аннотациями
-	File        string  // путь к файлу
-	Description string
+	Name          string  // имя структуры
+	Fields        []Field // поля с аннотациями
+	File          string  // путь к файлу
+	Description   string
+	Discriminator *OaDiscriminator `json:"-"` // не сериализуем, только для генерации
+}
+
+type OaDiscriminator struct {
+	PropertyName string
+	Mapping      map[string]string
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации
