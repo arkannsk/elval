@@ -3,7 +3,9 @@ package validator
 import (
 	"testing"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMinLen(t *testing.T) {
@@ -26,7 +28,7 @@ func TestMinLen(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -51,7 +53,7 @@ func TestMaxLen(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -78,7 +80,7 @@ func TestLenRange(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -104,7 +106,7 @@ func TestMatchRegexp(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -130,9 +132,9 @@ func TestEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.email)
 			if tt.wantError {
-				assert.ErrorIs(t, err, ErrInvalidEmail)
+				assert.ErrorIs(t, err, errs.ErrInvalidEmail)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -160,9 +162,9 @@ func TestPhone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.phone)
 			if tt.wantError {
-				assert.ErrorIs(t, err, ErrInvalidPhone)
+				assert.ErrorIs(t, err, errs.ErrInvalidPhone)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -184,9 +186,9 @@ func TestUUID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.uuid)
 			if tt.wantError {
-				assert.ErrorIs(t, err, ErrInvalidUUID)
+				assert.ErrorIs(t, err, errs.ErrInvalidUUID)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

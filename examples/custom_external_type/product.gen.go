@@ -5,10 +5,41 @@ package main
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	elval "github.com/arkannsk/elval"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
-var ()
+var (
+	User_NameValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Name")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-option-present", value, "")
+		})
+		return v
+	}()
+
+	User_EmailValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Email")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-option-value-min", value, "3")
+		})
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-option-value-max", value, "50")
+		})
+		return v
+	}()
+
+	User_PhoneValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Phone")
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-option-absent", value, "")
+		})
+		return v
+	}()
+)
 
 func (v *User) Decorate(ctx context.Context) error {
 
@@ -16,40 +47,42 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
-
-	// Кастомная валидация поля Name
-	if err := validator.ValidateCustom("x-option-present", v.Name, ""); err != nil {
-		return &validator.ValidationError{
-			Field:   "Name",
-			Rule:    "x-option-present",
-			Message: err.Error(),
+	var err *errs.ValidationError
+	if !elval.Unwrap[string](v.Name).IsPresent() {
+		return &errs.ValidationError{Field: "Name", Rule: "required", Message: errs.ErrRequired.Message}
+	}
+	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = User_NameValidator.Validate(val); err != nil {
+			return err
+		}
+		if cErr := validator.ValidateCustom("x-option-present", val, ""); cErr != nil {
+			return cErr
 		}
 	}
-
-	// Кастомная валидация поля Email
-	if err := validator.ValidateCustom("x-option-value-min", v.Email, "3"); err != nil {
-		return &validator.ValidationError{
-			Field:   "Email",
-			Rule:    "x-option-value-min",
-			Message: err.Error(),
+	if !elval.Unwrap[string](v.Email).IsPresent() {
+		return &errs.ValidationError{Field: "Email", Rule: "required", Message: errs.ErrRequired.Message}
+	}
+	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = User_EmailValidator.Validate(val); err != nil {
+			return err
+		}
+		if cErr := validator.ValidateCustom("x-option-value-min", val, "3"); cErr != nil {
+			return cErr
+		}
+		if cErr := validator.ValidateCustom("x-option-value-max", val, "50"); cErr != nil {
+			return cErr
 		}
 	}
-	if err := validator.ValidateCustom("x-option-value-max", v.Email, "50"); err != nil {
-		return &validator.ValidationError{
-			Field:   "Email",
-			Rule:    "x-option-value-max",
-			Message: err.Error(),
+	if wrapper := elval.Unwrap[string](v.Phone); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = User_PhoneValidator.Validate(val); err != nil {
+			return err
+		}
+		if cErr := validator.ValidateCustom("x-option-absent", val, ""); cErr != nil {
+			return cErr
 		}
 	}
-
-	// Кастомная валидация поля Phone
-	if err := validator.ValidateCustom("x-option-absent", v.Phone, ""); err != nil {
-		return &validator.ValidationError{
-			Field:   "Phone",
-			Rule:    "x-option-absent",
-			Message: err.Error(),
-		}
-	}
-
 	return nil
 }

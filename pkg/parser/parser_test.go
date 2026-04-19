@@ -9,7 +9,7 @@ import (
 )
 
 func TestParseSampleFile(t *testing.T) {
-	p := NewParser()
+	p := NewParser(false)
 	testFile := filepath.Join("testdata", "sample", "sample.go")
 
 	result, err := p.ParseFile(testFile)
@@ -25,7 +25,7 @@ func TestParseSampleFile(t *testing.T) {
 }
 
 func TestParseInvalidFile(t *testing.T) {
-	p := NewParser()
+	p := NewParser(false)
 	testFile := filepath.Join("testdata", "invalid", "invalid.go")
 
 	result, err := p.ParseFile(testFile)
@@ -47,7 +47,7 @@ func TestParseInvalidFile(t *testing.T) {
 }
 
 func TestParseTypesFile(t *testing.T) {
-	p := NewParser()
+	p := NewParser(false)
 	testFile := filepath.Join("testdata", "types", "types.go")
 
 	result, err := p.ParseFile(testFile)
@@ -103,7 +103,7 @@ func TestParseTypesFile(t *testing.T) {
 }
 
 func TestParseFileNotFound(t *testing.T) {
-	p := NewParser()
+	p := NewParser(false)
 	testFile := filepath.Join("testdata", "not_exists", "not_exists.go")
 
 	result, err := p.ParseFile(testFile)

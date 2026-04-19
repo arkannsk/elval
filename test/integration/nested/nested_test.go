@@ -42,10 +42,10 @@ func TestNestedStructValidation(t *testing.T) {
 			Name:           "John Doe",
 			Email:          "john@example.com",
 			Address:        Address{City: "New York", Street: "5th Avenue"},
-			BillingAddress: nil, // optional - допустимо
+			BillingAddress: nil,
 		}
 		err := user.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -59,7 +59,7 @@ func TestSliceOfStructsValidation(t *testing.T) {
 			},
 		}
 		err := company.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("пустой слайс (required)", func(t *testing.T) {

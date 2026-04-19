@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAfter(t *testing.T) {
@@ -12,12 +13,12 @@ func TestAfter(t *testing.T) {
 
 	future := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	err := rule(future)
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	past := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 	err = rule(past)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "после")
+	assert.Contains(t, err.Error(), "after")
 }
 
 func TestBefore(t *testing.T) {
@@ -25,19 +26,19 @@ func TestBefore(t *testing.T) {
 
 	past := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 	err := rule(past)
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	future := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	err = rule(future)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "до")
+	assert.Contains(t, err.Error(), "before")
 }
 
 func TestDurationRange(t *testing.T) {
 	rule := DurationRange(1*time.Second, 10*time.Second)
 
 	err := rule(5 * time.Second)
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	err = rule(500 * time.Millisecond)
 	assert.Error(t, err)

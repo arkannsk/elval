@@ -18,11 +18,8 @@ build:
 gen: install
 	go generate ./...
 
-# gen $V=1 for verbose flag
-gen-test: build
-	@./$(BINARY) -input ./test/integration/person $(if $(V),-v,)
-	@./$(BINARY) -input ./test/integration/product $(if $(V),-v,)
-	@./$(BINARY) -input ./test/integration/mixed $(if $(V),-v,)
+gen-spec:
+	go run ./cmd/elval-gen generate -input
 
 # unit tests. R=1 for race flag, C=1 for cover
 test: gen
@@ -42,4 +39,4 @@ bench-mem:
 
 clean:
 	@rm -rf bin
-	@find ./test/integration -name "*.gen.go" -delete
+	@find ./ -name "*.debug.go" -delete

@@ -5,7 +5,8 @@ package mixed
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -38,16 +39,14 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
-
-	if err := User_NameValidator.Validate(v.Name); err != nil {
+	var err *errs.ValidationError
+	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
-	if err := User_EmailValidator.Validate(v.Email); err != nil {
+	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
-	if err := User_AgeValidator.Validate(v.Age); err != nil {
+	if err = User_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 	return nil

@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 	"time"
+
+	"github.com/arkannsk/elval/pkg/errs"
 )
 
 // After проверяет что время после указанной даты
@@ -27,12 +29,12 @@ func After(layout, date string) ValidationRule[time.Time] {
 		}
 	}
 
-	return func(value time.Time) error {
+	return func(value time.Time) *errs.ValidationError {
 		if value.IsZero() {
 			return nil // zero time пропускаем, используйте Required если нужно
 		}
 		if value.Before(target) || value.Equal(target) {
-			return NewValidationError("after", "дата должна быть после %s", target.Format("2006-01-02"))
+			return errs.NewValidationError("after", "date must be after %s", target.Format("2006-01-02"))
 		}
 		return nil
 	}
@@ -58,12 +60,12 @@ func Before(layout, date string) ValidationRule[time.Time] {
 		}
 	}
 
-	return func(value time.Time) error {
+	return func(value time.Time) *errs.ValidationError {
 		if value.IsZero() {
 			return nil
 		}
 		if value.After(target) || value.Equal(target) {
-			return NewValidationError("before", "дата должна быть до %s", target.Format("2006-01-02"))
+			return errs.NewValidationError("before", "date must be before %s", target.Format("2006-01-02"))
 		}
 		return nil
 	}
@@ -71,9 +73,9 @@ func Before(layout, date string) ValidationRule[time.Time] {
 
 // TimeNotZero проверяет что время не нулевое (не IsZero())
 func TimeNotZero() ValidationRule[time.Time] {
-	return func(value time.Time) error {
+	return func(value time.Time) *errs.ValidationError {
 		if value.IsZero() {
-			return NewValidationError("not_zero", "дата не может быть нулевой")
+			return errs.NewValidationError("not_zero", "date must be not zero")
 		}
 		return nil
 	}
@@ -81,9 +83,9 @@ func TimeNotZero() ValidationRule[time.Time] {
 
 // DurationMin проверяет минимальную длительность
 func DurationMin(min time.Duration) ValidationRule[time.Duration] {
-	return func(value time.Duration) error {
+	return func(value time.Duration) *errs.ValidationError {
 		if value < min {
-			return NewValidationError("min", "длительность должна быть не менее %v", min)
+			return errs.NewValidationError("min", "duration min: %v", min)
 		}
 		return nil
 	}
@@ -91,9 +93,9 @@ func DurationMin(min time.Duration) ValidationRule[time.Duration] {
 
 // DurationMax проверяет максимальную длительность
 func DurationMax(max time.Duration) ValidationRule[time.Duration] {
-	return func(value time.Duration) error {
+	return func(value time.Duration) *errs.ValidationError {
 		if value > max {
-			return NewValidationError("max", "длительность должна быть не более %v", max)
+			return errs.NewValidationError("max", "max date: %v", max)
 		}
 		return nil
 	}
@@ -101,12 +103,12 @@ func DurationMax(max time.Duration) ValidationRule[time.Duration] {
 
 // DurationRange проверяет диапазон длительности
 func DurationRange(min, max time.Duration) ValidationRule[time.Duration] {
-	return func(value time.Duration) error {
+	return func(value time.Duration) *errs.ValidationError {
 		if value < min {
-			return NewValidationError("min", "длительность должна быть не менее %v", min)
+			return errs.NewValidationError("min", "duration must be lt %v", min)
 		}
 		if value > max {
-			return NewValidationError("max", "длительность должна быть не более %v", max)
+			return errs.NewValidationError("max", "duration must be gt %v", max)
 		}
 		return nil
 	}
@@ -114,9 +116,9 @@ func DurationRange(min, max time.Duration) ValidationRule[time.Duration] {
 
 // DurationNotZero проверяет что длительность не нулевая
 func DurationNotZero() ValidationRule[time.Duration] {
-	return func(value time.Duration) error {
+	return func(value time.Duration) *errs.ValidationError {
 		if value == 0 {
-			return NewValidationError("not_zero", "длительность не может быть нулевой")
+			return errs.NewValidationError("not_zero", "date must be not nil")
 		}
 		return nil
 	}

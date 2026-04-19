@@ -1,5 +1,7 @@
 package product
 
+//go:generate elval-gen gen -input .
+
 type Product struct {
 	// @evl:validate required
 	// @evl:validate eq:"active"

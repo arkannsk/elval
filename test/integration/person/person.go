@@ -2,6 +2,8 @@ package person
 
 import "time"
 
+//go:generate elval-gen gen -input .
+
 type Person struct {
 	// @evl:validate required
 	// @evl:validate min:2

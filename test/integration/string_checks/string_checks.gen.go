@@ -5,7 +5,8 @@ package string_checks
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -41,31 +42,6 @@ var (
 	}()
 )
 
-func (v *Document) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Document) Validate() error {
-
-	if err := Document_NameValidator.Validate(v.Name); err != nil {
-		return err
-	}
-
-	if err := Document_URLValidator.Validate(v.URL); err != nil {
-		return err
-	}
-
-	if err := Document_ContentValidator.Validate(v.Content); err != nil {
-		return err
-	}
-
-	if err := Document_ImageNameValidator.Validate(v.ImageName); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	File_PathValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Path")
@@ -82,18 +58,39 @@ var (
 	}()
 )
 
+func (v *Document) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *File) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-func (v *File) Validate() error {
-
-	if err := File_PathValidator.Validate(v.Path); err != nil {
+func (v *Document) Validate() error {
+	var err *errs.ValidationError
+	if err = Document_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+	if err = Document_URLValidator.Validate(v.URL); err != nil {
+		return err
+	}
+	if err = Document_ContentValidator.Validate(v.Content); err != nil {
+		return err
+	}
+	if err = Document_ImageNameValidator.Validate(v.ImageName); err != nil {
+		return err
+	}
+	return nil
+}
 
-	if err := File_NameValidator.Validate(v.Name); err != nil {
+func (v *File) Validate() error {
+	var err *errs.ValidationError
+	if err = File_PathValidator.Validate(v.Path); err != nil {
+		return err
+	}
+	if err = File_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
 	return nil

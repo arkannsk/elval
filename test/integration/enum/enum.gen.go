@@ -5,7 +5,8 @@ package enum
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -33,27 +34,6 @@ var (
 	}()
 )
 
-func (v *Order) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Order) Validate() error {
-
-	if err := Order_StatusValidator.Validate(v.Status); err != nil {
-		return err
-	}
-
-	if err := Order_PriorityValidator.Validate(v.Priority); err != nil {
-		return err
-	}
-
-	if err := Order_SizeValidator.Validate(v.Size); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	User_RoleValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Role")
@@ -70,18 +50,36 @@ var (
 	}()
 )
 
+func (v *Order) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *User) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-func (v *User) Validate() error {
-
-	if err := User_RoleValidator.Validate(v.Role); err != nil {
+func (v *Order) Validate() error {
+	var err *errs.ValidationError
+	if err = Order_StatusValidator.Validate(v.Status); err != nil {
 		return err
 	}
+	if err = Order_PriorityValidator.Validate(v.Priority); err != nil {
+		return err
+	}
+	if err = Order_SizeValidator.Validate(v.Size); err != nil {
+		return err
+	}
+	return nil
+}
 
-	if err := User_LevelValidator.Validate(v.Level); err != nil {
+func (v *User) Validate() error {
+	var err *errs.ValidationError
+	if err = User_RoleValidator.Validate(v.Role); err != nil {
+		return err
+	}
+	if err = User_LevelValidator.Validate(v.Level); err != nil {
 		return err
 	}
 	return nil

@@ -4,7 +4,7 @@
 package user
 
 import (
-	"github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/oa"
 )
 
 // OaSchema возвращает OpenAPI схему для структуры User
@@ -62,8 +62,6 @@ func (v *User) OaSchema() *oa.Schema {
 	// Поле Age
 	{
 		prop := oa.Schema{}
-
-		prop.Type = "integer"
 
 		prop.Minimum = oa.Ptr[float64](18)
 		prop.Maximum = oa.Ptr[float64](120)

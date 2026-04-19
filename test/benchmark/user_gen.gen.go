@@ -5,7 +5,8 @@ package benchmark
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -39,16 +40,14 @@ func (v *UserGen) Decorate(ctx context.Context) error {
 }
 
 func (v *UserGen) Validate() error {
-
-	if err := UserGen_NameValidator.Validate(v.Name); err != nil {
+	var err *errs.ValidationError
+	if err = UserGen_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
-	if err := UserGen_EmailValidator.Validate(v.Email); err != nil {
+	if err = UserGen_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
-	if err := UserGen_AgeValidator.Validate(v.Age); err != nil {
+	if err = UserGen_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
 	return nil

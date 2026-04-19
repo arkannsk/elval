@@ -86,8 +86,8 @@ func generateCmd() {
 		}
 	}
 
-	p := parser.NewParser()
-	gen, err := generator.NewGenerator(outputDir, generateOpenAPI)
+	p := parser.NewParser(verbose)
+	gen, err := generator.NewGenerator(outputDir, generateOpenAPI, verbose)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func lintCmd() {
 
 	lintFlags.Parse(os.Args[2:])
 
-	p := parser.NewParser()
+	p := parser.NewParser(verbose)
 
 	// Рекурсивно обходим все поддиректории
 	var files []string

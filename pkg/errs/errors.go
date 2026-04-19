@@ -1,16 +1,15 @@
-package validator
+package errs
 
 import (
-	"errors"
 	"fmt"
 )
 
 // Стандартные ошибки
 var (
-	ErrRequired     = errors.New("поле обязательно")
-	ErrInvalidEmail = errors.New("невалидный email адрес")
-	ErrInvalidPhone = errors.New("невалидный номер телефона")
-	ErrInvalidUUID  = errors.New("невалидный UUID")
+	ErrRequired     = NewValidationError("", "field is required")
+	ErrInvalidEmail = NewValidationError("", "invalid email")
+	ErrInvalidPhone = NewValidationError("", "invalid phone number")
+	ErrInvalidUUID  = NewValidationError("", "invalid UUID")
 )
 
 type ValidationError struct {
@@ -24,7 +23,7 @@ func (e *ValidationError) Error() string {
 }
 
 // NewValidationError создает новую ошибку валидации
-func NewValidationError(rule, format string, args ...interface{}) error {
+func NewValidationError(rule, format string, args ...interface{}) *ValidationError {
 	return &ValidationError{
 		Rule:    rule,
 		Message: fmt.Sprintf(format, args...),

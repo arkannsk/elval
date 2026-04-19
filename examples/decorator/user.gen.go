@@ -5,8 +5,9 @@ package main
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
-	"github.com/google/uuid"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
+	uuid "github.com/google/uuid"
 	"net/http"
 	"os"
 	"time"
@@ -23,21 +24,6 @@ var (
 		v := validator.New[string]("Role")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.Enum[string]("admin", "user", "guest"))
-		return v
-	}()
-
-	User_EnvironmentValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Environment")
-		return v
-	}()
-
-	User_CreatedAtValidator = func() *validator.FieldValidator[time.Time] {
-		v := validator.New[time.Time]("CreatedAt")
-		return v
-	}()
-
-	User_RequestIDValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("RequestID")
 		return v
 	}()
 )
@@ -66,24 +52,11 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
-
-	if err := User_IDValidator.Validate(v.ID); err != nil {
+	var err *errs.ValidationError
+	if err = User_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
-
-	if err := User_RoleValidator.Validate(v.Role); err != nil {
-		return err
-	}
-
-	if err := User_EnvironmentValidator.Validate(v.Environment); err != nil {
-		return err
-	}
-
-	if err := User_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
-		return err
-	}
-
-	if err := User_RequestIDValidator.Validate(v.RequestID); err != nil {
+	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
 	return nil

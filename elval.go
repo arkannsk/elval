@@ -3,6 +3,7 @@ package elval
 import (
 	"time"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/validator"
 )
 
@@ -19,7 +20,7 @@ func ValidateField[T any](fieldName string, value T, rules ...ValidationRule[T])
 // Алиасы
 type (
 	ValidationRule[T any] = validator.ValidationRule[T]
-	ValidationError       = validator.ValidationError
+	ValidationError       = errs.ValidationError
 )
 
 // Правила для строк
@@ -176,7 +177,7 @@ func IfThen[T any](condition func(T) bool, rule ValidationRule[T]) ValidationRul
 }
 
 // Кастомное правило
-func Custom[T any](fn func(T) error) ValidationRule[T] {
+func Custom[T any](fn func(T) *errs.ValidationError) ValidationRule[T] {
 	return validator.Custom(fn)
 }
 

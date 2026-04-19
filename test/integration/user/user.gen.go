@@ -5,7 +5,8 @@ package user
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -55,16 +56,14 @@ func (v *User) Decorate(ctx context.Context) error {
 }
 
 func (v *User) Validate() error {
-
-	if err := User_IDValidator.Validate(v.ID); err != nil {
+	var err *errs.ValidationError
+	if err = User_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
-
-	if err := User_NameValidator.Validate(v.Name); err != nil {
+	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-
-	if err := User_EmailValidator.Validate(v.Email); err != nil {
+	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
 
@@ -72,7 +71,7 @@ func (v *User) Validate() error {
 	if v.Age != nil {
 		val := *v.Age
 		if err := User_AgeValidator.Validate(val); err != nil {
-			return &validator.ValidationError{
+			return &errs.ValidationError{
 				Field:   "Age",
 				Rule:    "nested",
 				Message: "поле Age: " + err.Error(),
@@ -80,7 +79,7 @@ func (v *User) Validate() error {
 		}
 	}
 
-	if err := User_RoleValidator.Validate(v.Role); err != nil {
+	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
 	return nil

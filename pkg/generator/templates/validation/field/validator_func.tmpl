@@ -1,6 +1,6 @@
 {{ define "validator_func" }}
-    func() *validator.FieldValidator[{{ if .Type.IsPointer }}{{ .Type.Name | trimStar }}{{ else }}{{ .Type.Name }}{{ end }}] {
-    v := validator.New[{{ if .Type.IsPointer }}{{ .Type.Name | trimStar }}{{ else }}{{ .Type.Name }}{{ end }}]("{{ .Name }}")
+    func() *validator.FieldValidator[{{ baseType .Type }}] {
+    v := validator.New[{{ baseType .Type }}]("{{ .Name }}")
     {{- $hasRequired := false }}
     {{- range $directive := .Directives }}
         {{- if eq $directive.Type "required" }}
@@ -10,13 +10,13 @@
             {{- if eq $.Type.Name "string" }}
                 v.AddRule(validator.MinLen({{ index $directive.Params 0 }}))
             {{- else }}
-                v.AddRule(validator.Min[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+                v.AddRule(validator.Min[{{ baseType $.Type }}]({{ index $directive.Params 0 }}))
             {{- end }}
         {{- else if eq $directive.Type "max" }}
             {{- if eq $.Type.Name "string" }}
                 v.AddRule(validator.MaxLen({{ index $directive.Params 0 }}))
             {{- else }}
-                v.AddRule(validator.Max[{{ $.Type.Name }}]({{ index $directive.Params 0 }}))
+                v.AddRule(validator.Max[{{ baseType $.Type }}]({{ index $directive.Params 0 }}))
             {{- end }}
         {{- else if eq $directive.Type "eq" }}
             {{- if eq $.Type.Name "string" }}
@@ -81,14 +81,19 @@
         {{- else if eq $directive.Type "date" }}
             v.AddRule(validator.Date({{ range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }}))
         {{- else if isCustomDirective $directive.Type }}
-            v.AddRule(func(value any) error {
-            return validator.ValidateCustom("{{ $directive.Type }}", value, {{ if $directive.Params }}{{ index $directive.Params 0 | printf "%q" }}{{ else }}""{{ end }})
+            v.AddRule(func(value {{ $.Type.Name }}) *errs.ValidationError {
+            {{- $param := "" }}
+            {{- if gt (len $directive.Params) 0 }}
+                {{- $param = index $directive.Params 0 }}
+            {{- end }}
+            return validator.ValidateCustom("{{ $directive.Type }}", value, {{ printf "%q" $param }})
             })
         {{- end }}
     {{- end }}
+    {{- /* Optional: тоже baseType */}}
     {{- if and (not $hasRequired) (hasOptional .Directives) }}
         original := v
-        v = validator.New[{{ $.Type.Name }}]("{{ .Name }}")
+        v = validator.New[{{ baseType .Type }}]("{{ .Name }}")
         v.AddRule(validator.SkipIfZero(original.Validate))
     {{- end }}
     return v

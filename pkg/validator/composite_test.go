@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAnd(t *testing.T) {
@@ -29,9 +30,9 @@ func TestAnd(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "не выполнены условия")
+				assert.Contains(t, err.Error(), "invalid condition")
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -58,9 +59,9 @@ func TestOr(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "ни одно из условий")
+				assert.Contains(t, err.Error(), "all condition failed")
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -89,7 +90,7 @@ func TestIfThen(t *testing.T) {
 			if tt.wantError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

@@ -1,14 +1,15 @@
-# ElVal - Lightning Fast Go Validator with Code Generation
+# ElVal — Lightning Fast Go Validator with Code Generation
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/arkannsk/elval)](https://golang.org/)
 [![License](https://img.shields.io/github/license/arkannsk/elval)](LICENSE)
-[![Benchmarks](https://img.shields.io/badge/benchmarks-463ns%2Fop-brightgreen)](BENCHMARKS.md)
+[![Benchmarks](https://img.shields.io/badge/benchmarks-0_allocs%2Fop-brightgreen)](BENCHMARKS.md)
 
 [//]: # ([![Go Reference]&#40;https://pkg.go.dev/badge/github.com/arkannsk/elval.svg&#41;]&#40;https://pkg.go.dev/github.com/arkannsk/elval&#41;)
 [//]: # ([![Go Report Card]&#40;https://goreportcard.com/badge/github.com/arkannsk/elval&#41;]&#40;https://goreportcard.com/report/github.com/arkannsk/elval&#41;)
 
-**ElVal** is a code generation-based validator for Go that eliminates reflection overhead.
-It's **6x faster** than go-playground/validator with **zero memory allocations**.
+
+**ElVal** is a code generation-based validator for Go that eliminates reflection overhead entirely.
+By generating type-safe validation code at build time, ElVal achieves **6x faster validation** with **zero memory allocations** at runtime.
 
 ## Table of Contents
 

@@ -5,7 +5,8 @@ package url_validation
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -34,27 +35,6 @@ var (
 	}()
 )
 
-func (v *Link) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Link) Validate() error {
-
-	if err := Link_WebsiteValidator.Validate(v.Website); err != nil {
-		return err
-	}
-
-	if err := Link_BlogValidator.Validate(v.Blog); err != nil {
-		return err
-	}
-
-	if err := Link_APIValidator.Validate(v.API); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	Profile_SecureURLValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("SecureURL")
@@ -64,19 +44,6 @@ var (
 		return v
 	}()
 )
-
-func (v *Profile) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Profile) Validate() error {
-
-	if err := Profile_SecureURLValidator.Validate(v.SecureURL); err != nil {
-		return err
-	}
-	return nil
-}
 
 var (
 	Config_AnyURLValidator = func() *validator.FieldValidator[string] {
@@ -110,26 +77,55 @@ var (
 	}()
 )
 
+func (v *Link) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
+func (v *Profile) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Config) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
+func (v *Link) Validate() error {
+	var err *errs.ValidationError
+	if err = Link_WebsiteValidator.Validate(v.Website); err != nil {
+		return err
+	}
+	if err = Link_BlogValidator.Validate(v.Blog); err != nil {
+		return err
+	}
+	if err = Link_APIValidator.Validate(v.API); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *Profile) Validate() error {
+	var err *errs.ValidationError
+	if err = Profile_SecureURLValidator.Validate(v.SecureURL); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (v *Config) Validate() error {
-
-	if err := Config_AnyURLValidator.Validate(v.AnyURL); err != nil {
+	var err *errs.ValidationError
+	if err = Config_AnyURLValidator.Validate(v.AnyURL); err != nil {
 		return err
 	}
-
-	if err := Config_WebURLValidator.Validate(v.WebURL); err != nil {
+	if err = Config_WebURLValidator.Validate(v.WebURL); err != nil {
 		return err
 	}
-
-	if err := Config_DatabaseURLValidator.Validate(v.DatabaseURL); err != nil {
+	if err = Config_DatabaseURLValidator.Validate(v.DatabaseURL); err != nil {
 		return err
 	}
-
-	if err := Config_ClickHouseURLValidator.Validate(v.ClickHouseURL); err != nil {
+	if err = Config_ClickHouseURLValidator.Validate(v.ClickHouseURL); err != nil {
 		return err
 	}
 	return nil

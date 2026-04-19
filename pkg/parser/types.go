@@ -1,16 +1,33 @@
 package parser
 
+import (
+	"fmt"
+	"strings"
+)
+
 // FieldType представляет тип поля с поддержкой слайсов и указателей
 type FieldType struct {
-	Name      string
-	IsSlice   bool
-	IsPointer bool
-	IsStruct  bool
-	IsCustom  bool // кастомный тип (из другого пакета или с дженериками)
+	Name        string
+	IsSlice     bool
+	IsPointer   bool
+	IsStruct    bool
+	IsNamedType bool // true для type X string/int/etc.
+	IsCustom    bool // кастомный тип (из другого пакета или с дженериками)
+	IsGeneric   bool
+	BaseType    string      // for aliases
+	GenericBase string      // "Option", "Result" и т.д.
+	GenericArgs []FieldType // аргументы типа: [string], [int], [User]
 }
 
 // String возвращает строковое представление типа
 func (ft FieldType) String() string {
+	if ft.IsGeneric && len(ft.GenericArgs) > 0 {
+		args := make([]string, len(ft.GenericArgs))
+		for i, arg := range ft.GenericArgs {
+			args[i] = arg.String()
+		}
+		return fmt.Sprintf("%s[%s]", ft.GenericBase, strings.Join(args, ", "))
+	}
 	if ft.IsSlice {
 		return "[]" + ft.Name
 	}
@@ -110,4 +127,6 @@ type ParseResult struct {
 	Package string   // имя пакета
 	Structs []Struct // найденные структуры
 	Errors  []error  // ошибки парсинга
+
+	Imports map[string]string
 }

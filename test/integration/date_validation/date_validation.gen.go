@@ -5,7 +5,8 @@ package date_validation
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
@@ -40,31 +41,6 @@ var (
 	}()
 )
 
-func (v *Event) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Event) Validate() error {
-
-	if err := Event_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
-		return err
-	}
-
-	if err := Event_UpdatedAtValidator.Validate(v.UpdatedAt); err != nil {
-		return err
-	}
-
-	if err := Event_DateOnlyValidator.Validate(v.DateOnly); err != nil {
-		return err
-	}
-
-	if err := Event_TimestampValidator.Validate(v.Timestamp); err != nil {
-		return err
-	}
-	return nil
-}
-
 var (
 	LogEntry_EventTimeValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("EventTime")
@@ -83,18 +59,39 @@ var (
 	}()
 )
 
+func (v *Event) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *LogEntry) Decorate(ctx context.Context) error {
 
 	return nil
 }
 
-func (v *LogEntry) Validate() error {
-
-	if err := LogEntry_EventTimeValidator.Validate(v.EventTime); err != nil {
+func (v *Event) Validate() error {
+	var err *errs.ValidationError
+	if err = Event_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
 	}
+	if err = Event_UpdatedAtValidator.Validate(v.UpdatedAt); err != nil {
+		return err
+	}
+	if err = Event_DateOnlyValidator.Validate(v.DateOnly); err != nil {
+		return err
+	}
+	if err = Event_TimestampValidator.Validate(v.Timestamp); err != nil {
+		return err
+	}
+	return nil
+}
 
-	if err := LogEntry_KitchenTimeValidator.Validate(v.KitchenTime); err != nil {
+func (v *LogEntry) Validate() error {
+	var err *errs.ValidationError
+	if err = LogEntry_EventTimeValidator.Validate(v.EventTime); err != nil {
+		return err
+	}
+	if err = LogEntry_KitchenTimeValidator.Validate(v.KitchenTime); err != nil {
 		return err
 	}
 	return nil

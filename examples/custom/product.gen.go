@@ -5,10 +5,45 @@ package main
 
 import (
 	"context"
-	"github.com/arkannsk/elval/pkg/validator"
+	errs "github.com/arkannsk/elval/pkg/errs"
+	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
-var ()
+var (
+	Product_ColorValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Color")
+		v.AddRule(validator.Required[string]())
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-color", value, "")
+		})
+		return v
+	}()
+
+	Product_CountValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Count")
+		v.AddRule(validator.Required[int]())
+		v.AddRule(func(value int) *errs.ValidationError {
+			return validator.ValidateCustom("x-even", value, "")
+		})
+		return v
+	}()
+
+	Product_ScoreValidator = func() *validator.FieldValidator[int] {
+		v := validator.New[int]("Score")
+		v.AddRule(func(value int) *errs.ValidationError {
+			return validator.ValidateCustom("x-between", value, "10")
+		})
+		return v
+	}()
+
+	Product_DescriptionValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Description")
+		v.AddRule(func(value string) *errs.ValidationError {
+			return validator.ValidateCustom("x-contains", value, "important")
+		})
+		return v
+	}()
+)
 
 func (v *Product) Decorate(ctx context.Context) error {
 
@@ -16,42 +51,18 @@ func (v *Product) Decorate(ctx context.Context) error {
 }
 
 func (v *Product) Validate() error {
-
-	// Кастомная валидация поля Color
-	if err := validator.ValidateCustom("x-color", v.Color, ""); err != nil {
-		return &validator.ValidationError{
-			Field:   "Color",
-			Rule:    "x-color",
-			Message: err.Error(),
-		}
+	var err *errs.ValidationError
+	if err = Product_ColorValidator.Validate(v.Color); err != nil {
+		return err
 	}
-
-	// Кастомная валидация поля Count
-	if err := validator.ValidateCustom("x-even", v.Count, ""); err != nil {
-		return &validator.ValidationError{
-			Field:   "Count",
-			Rule:    "x-even",
-			Message: err.Error(),
-		}
+	if err = Product_CountValidator.Validate(v.Count); err != nil {
+		return err
 	}
-
-	// Кастомная валидация поля Score
-	if err := validator.ValidateCustom("x-between", v.Score, "10"); err != nil {
-		return &validator.ValidationError{
-			Field:   "Score",
-			Rule:    "x-between",
-			Message: err.Error(),
-		}
+	if err = Product_ScoreValidator.Validate(v.Score); err != nil {
+		return err
 	}
-
-	// Кастомная валидация поля Description
-	if err := validator.ValidateCustom("x-contains", v.Description, "important"); err != nil {
-		return &validator.ValidationError{
-			Field:   "Description",
-			Rule:    "x-contains",
-			Message: err.Error(),
-		}
+	if err = Product_DescriptionValidator.Validate(v.Description); err != nil {
+		return err
 	}
-
 	return nil
 }

@@ -3,7 +3,9 @@ package validator
 import (
 	"testing"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRequired(t *testing.T) {
@@ -11,24 +13,24 @@ func TestRequired(t *testing.T) {
 
 	t.Run("непустая строка", func(t *testing.T) {
 		err := rule("hello")
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("пустая строка", func(t *testing.T) {
 		err := rule("")
-		assert.ErrorIs(t, err, ErrRequired)
+		assert.ErrorIs(t, err, errs.ErrRequired)
 	})
 
 	t.Run("число не ноль", func(t *testing.T) {
 		ruleInt := Required[int]()
 		err := ruleInt(42)
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("число ноль", func(t *testing.T) {
 		ruleInt := Required[int]()
 		err := ruleInt(0)
-		assert.ErrorIs(t, err, ErrRequired)
+		assert.ErrorIs(t, err, errs.ErrRequired)
 	})
 }
 
@@ -36,22 +38,22 @@ func TestOptional(t *testing.T) {
 	rule := Optional[string]()
 
 	err := rule("any value")
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	err = rule("")
-	assert.NoError(t, err)
+	require.Nil(t, err)
 }
 
 func TestCustom(t *testing.T) {
-	customRule := Custom(func(s string) error {
+	customRule := Custom(func(s string) *errs.ValidationError {
 		if s != "secret" {
-			return assert.AnError
+			return errs.NewValidationError("", "")
 		}
 		return nil
 	})
 
 	err := customRule("secret")
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	err = customRule("wrong")
 	assert.Error(t, err)

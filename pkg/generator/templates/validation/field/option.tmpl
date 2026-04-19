@@ -1,0 +1,69 @@
+{{- $field := .Field }}
+{{- $struct := .Struct }}
+{{- $inner := .Inner }}
+{{- $directives := $field.Directives }}
+
+{{/* 1. Required проверка */}}
+{{- if hasDirective $directives "required" }}
+    if !{{ $struct }}.{{ $field.Name }}.IsPresent() {
+    return &errs.ValidationError{
+    Field:   "{{ $field.Name }}",
+    Rule:    errs.ErrRequired.Rule,
+    Message: errs.ErrRequired.Message,
+    }
+    }
+{{- end }}
+
+{{/* 2. Извлекаем значение и применяем правила только если present */}}
+if val, ok := {{ $struct }}.{{ $field.Name }}.Value(); ok {
+{{/* STRING */}}
+{{- if eq $inner.Name "string" }}
+    {{- if hasDirective $directives "pattern" }}
+        {{- range $directives }}
+            {{- if eq .Type "pattern" }}
+                {{- $pat := index .Params 0 }}
+                {{- if eq $pat "email" }}
+                    if !_emailRegex.MatchString(val) {
+                    return errs.NewValidationError("pattern:email", "invalid email: %q", val)
+                    }
+                {{- else if eq $pat "uuid" }}
+                    if !_uuidRegex.MatchString(val) {
+                    return errs.NewValidationError("pattern:uuid", "invalid UUID: %q", val)
+                    }
+                {{- end }}
+            {{- end }}
+        {{- end }}
+    {{- end }}
+    {{- /* INT / FLOAT64 */}}
+{{- else if or (eq $inner.Name "int") (eq $inner.Name "int64") (eq $inner.Name "float64") }}
+    {{- range $directives }}
+        {{- if eq .Type "min" }}
+            if val < {{ index .Params 0 }} {
+            return errs.NewValidationError("min:{{ index .Params 0 }}", "must be >= %v, got %v", {{ index .Params 0 }}, val)
+            }
+        {{- else if eq .Type "max" }}
+            if val > {{ index .Params 0 }} {
+            return errs.NewValidationError("max:{{ index .Params 0 }}", "must be <= %v, got %v", {{ index .Params 0 }}, val)
+            }
+        {{- end }}
+    {{- end }}
+    {{- /* TIME */}}
+{{- else if eq $inner.Name "time.Time" }}
+    {{- range $directives }}
+        {{- if eq .Type "min_time" }}
+            if val.Before({{ index .Params 0 }}) {
+            return errs.NewValidationError("min_time", "must be after %v, got %v", {{ index .Params 0 }}, val)
+            }
+        {{- else if eq .Type "max_time" }}
+            if val.After({{ index .Params 0 }}) {
+            return errs.NewValidationError("max_time", "must be before %v, got %v", {{ index .Params 0 }}, val)
+            }
+        {{- end }}
+    {{- end }}
+    {{- /* STRUCT */}}
+{{- else if $inner.IsStruct }}
+    if err := val.Validate(); err != nil {
+    return errs.NewValidationError("nested", "validation failed for %q: %v", "{{ $field.Name }}", err)
+    }
+{{- end }}
+}

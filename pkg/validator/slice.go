@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"fmt"
+	"github.com/arkannsk/elval/pkg/errs"
 )
 
 type SliceValidator[T any] struct {
@@ -62,38 +62,42 @@ func (sv *SliceValidator[T]) Each(validator *FieldValidator[T]) *SliceValidator[
 }
 
 // Validate проверяет слайс
-func (sv *SliceValidator[T]) Validate(value []T) error {
+func (sv *SliceValidator[T]) Validate(value []T) *errs.ValidationError {
 	if sv.required && len(value) == 0 {
-		return fmt.Errorf("поле %s: слайс не может быть nil", sv.fieldName)
+		return errs.NewValidationError("", "field %s: slice cant be nil", sv.fieldName)
 	}
 
 	// Проверка на пустоту
 	if sv.notZero && (len(value) == 0) {
-		return fmt.Errorf("поле %s: слайс не может быть пустым", sv.fieldName)
+		return errs.NewValidationError("", "field %s: slice cant be empty", sv.fieldName)
 	}
 
 	size := len(value)
 
 	// Проверка точного размера
 	if sv.exactSize >= 0 && size != sv.exactSize {
-		return fmt.Errorf("поле %s: ожидался размер %d, получен %d", sv.fieldName, sv.exactSize, size)
+		return errs.NewValidationError("",
+			"field %s: expect size %d, received %d", sv.fieldName, sv.exactSize, size)
 	}
 
 	// Проверка минимального размера
 	if sv.minSize >= 0 && size < sv.minSize {
-		return fmt.Errorf("поле %s: минимальный размер %d, получен %d", sv.fieldName, sv.minSize, size)
+		return errs.NewValidationError("",
+			"field %s: min len %d, received %d", sv.fieldName, sv.minSize, size)
 	}
 
 	// Проверка максимального размера
 	if sv.maxSize >= 0 && size > sv.maxSize {
-		return fmt.Errorf("поле %s: максимальный размер %d, получен %d", sv.fieldName, sv.maxSize, size)
+		return errs.NewValidationError("",
+			"field %s: max len %d, received %d", sv.fieldName, sv.maxSize, size)
 	}
 
 	// Валидация каждого элемента
 	if sv.elementValidator != nil {
 		for i, elem := range value {
 			if err := sv.elementValidator.Validate(elem); err != nil {
-				return fmt.Errorf("поле %s[%d]: %w", sv.fieldName, i, err)
+				return errs.NewValidationError("",
+					"field %s[%d]: %s", sv.fieldName, i, err.Error())
 			}
 		}
 	}
