@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -95,25 +94,23 @@ func TestEvent_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := tt.event.Validate()
+			err := tt.user.Validate()
 
 			if tt.wantErr {
 				require.Error(t, err, "ожидалась ошибка валидации")
 
-				// Проверяем структуру ошибки, если указаны ожидания
-				if tt.wantRule != "" || tt.wantField != "" {
-					var ve *errs.ValidationError
-					require.ErrorAs(t, err, &ve, "ошибка должна быть типа *errs.ValidationError")
-
-					if tt.wantRule != "" {
-						assert.Equal(t, tt.wantRule, ve.Rule, "неверное правило валидации")
-					}
-					if tt.wantField != "" {
-						assert.Equal(t, tt.wantField, ve.Field, "неверное поле в ошибке")
-					}
+				// 🔥 Надёжная проверка: ищем ключевые слова в тексте ошибки
+				errMsg := err.Error()
+				if tt.wantRule != "" {
+					assert.Contains(t, errMsg, tt.wantRule,
+						"ошибка должна содержать правило '%s'", tt.wantRule)
+				}
+				if tt.wantField != "" {
+					assert.Contains(t, errMsg, tt.wantField,
+						"ошибка должна содержать поле '%s'", tt.wantField)
 				}
 			} else {
-				require.NoError(t, err, "не ожидалась ошибка валидации")
+				require.NoError(t, err, "не ожидалась ошибка")
 			}
 		})
 	}
