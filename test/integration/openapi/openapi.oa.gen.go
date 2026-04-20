@@ -23,8 +23,8 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.MinLength = oa.Ptr[int64](3)
 		prop.MaxLength = oa.Ptr[int64](50)
 
-		prop.Title = "\"User Name\""
-		prop.Description = "\"Full name of the user\""
+		prop.Title = "User Name"
+		prop.Description = "Full name of the user"
 		prop.Example = "John Doe"
 
 		schema.Properties["name"] = prop
@@ -84,7 +84,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		schema.Required = append(schema.Required, "status")
 		prop.Enum = []interface{}{"active", "inactive", "archived"}
 
-		prop.Description = "\"Product status\""
+		prop.Description = "Product status"
 
 		schema.Properties["status"] = prop
 	}
