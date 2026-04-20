@@ -12,8 +12,8 @@ func (v *Pet) OaSchema() *oa.Schema {
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 2),
 		Required:   make([]string, 0, 2),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле Type
 	{
 		prop := oa.Schema{}
 
@@ -23,7 +23,6 @@ func (v *Pet) OaSchema() *oa.Schema {
 
 		schema.Properties["type"] = prop
 	}
-	// Поле Name
 	{
 		prop := oa.Schema{}
 
@@ -43,21 +42,23 @@ func (v *Pet) OaSchema() *oa.Schema {
 	return schema
 }
 
+func (v *Pet) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/oa_discriminator.Pet"
+}
+
 func (v *Cat) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 2),
 		Required:   make([]string, 0, 2),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле Pet
 	{
 		prop := oa.Schema{}
-
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
-	// Поле Meows
 	{
 		prop := oa.Schema{}
 
@@ -71,21 +72,23 @@ func (v *Cat) OaSchema() *oa.Schema {
 	return schema
 }
 
+func (v *Cat) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/oa_discriminator.Cat"
+}
+
 func (v *Dog) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 2),
 		Required:   make([]string, 0, 2),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле Pet
 	{
 		prop := oa.Schema{}
-
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
-	// Поле BarkVolume
 	{
 		prop := oa.Schema{}
 
@@ -97,4 +100,8 @@ func (v *Dog) OaSchema() *oa.Schema {
 	}
 
 	return schema
+}
+
+func (v *Dog) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/oa_discriminator.Dog"
 }
