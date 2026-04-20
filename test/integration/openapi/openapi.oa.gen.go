@@ -7,14 +7,13 @@ import (
 	oa "github.com/arkannsk/elval/pkg/oa"
 )
 
-// OaSchema возвращает OpenAPI схему для структуры User
 func (v *User) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 4),
 		Required:   make([]string, 0, 4),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле Name
 	{
 		prop := oa.Schema{}
 
@@ -30,7 +29,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-	// Поле Email
 	{
 		prop := oa.Schema{}
 
@@ -43,7 +41,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["email"] = prop
 	}
-	// Поле Age
 	{
 		prop := oa.Schema{}
 
@@ -54,7 +51,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["age"] = prop
 	}
-	// Поле Phone
 	{
 		prop := oa.Schema{}
 
@@ -65,17 +61,21 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["phone"] = prop
 	}
+
 	return schema
 }
 
-// OaSchema возвращает OpenAPI схему для структуры Product
+func (v *User) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/openapi.User"
+}
+
 func (v *Product) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 4),
 		Required:   make([]string, 0, 4),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле Status
 	{
 		prop := oa.Schema{}
 
@@ -88,7 +88,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["status"] = prop
 	}
-	// Поле Price
 	{
 		prop := oa.Schema{}
 
@@ -100,7 +99,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["price"] = prop
 	}
-	// Поле Quantity
 	{
 		prop := oa.Schema{}
 
@@ -111,7 +109,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["quantity"] = prop
 	}
-	// Поле Code
 	{
 		prop := oa.Schema{}
 
@@ -123,17 +120,21 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["code"] = prop
 	}
+
 	return schema
 }
 
-// OaSchema возвращает OpenAPI схему для структуры Order
+func (v *Product) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/openapi.Product"
+}
+
 func (v *Order) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 3),
 		Required:   make([]string, 0, 3),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле ID
 	{
 		prop := oa.Schema{}
 
@@ -143,7 +144,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["id"] = prop
 	}
-	// Поле CreatedAt
 	{
 		prop := oa.Schema{}
 
@@ -154,7 +154,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["createdat"] = prop
 	}
-	// Поле Items
 	{
 		prop := oa.Schema{}
 
@@ -168,5 +167,10 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["items"] = prop
 	}
+
 	return schema
+}
+
+func (v *Order) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/openapi.Order"
 }

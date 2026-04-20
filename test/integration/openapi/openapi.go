@@ -8,8 +8,8 @@ type User struct {
 	// @evl:validate required
 	// @evl:validate min:3
 	// @evl:validate max:50
-	// @oa:title "User Name"
-	// @oa:description "Full name of the user"
+	// @oa:title User Name
+	// @oa:description Full name of the user
 	// @oa:example "John Doe"
 	Name string
 
@@ -30,7 +30,7 @@ type User struct {
 type Product struct {
 	// @evl:validate required
 	// @evl:validate enum:active,inactive,archived
-	// @oa:description "Product status"
+	// @oa:description Product status
 	Status string
 
 	// @evl:validate required

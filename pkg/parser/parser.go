@@ -6,15 +6,21 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
 
 // Parser парсит Go файлы и извлекает аннотации валидации
 type Parser struct {
-	fset        *token.FileSet
-	verbose     bool
-	typeAliases map[string]string
+	fset           *token.FileSet
+	verbose        bool
+	typeAliases    map[string]string
+	currentPackage string
+	packagePath    string
+	currentModule  string
+	moduleRoot     string
 }
 
 // NewParser создает новый парсер
@@ -27,15 +33,35 @@ func NewParser(verbose bool) *Parser {
 
 // ParseFile парсит файл и возвращает структуры с аннотациями
 func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
-	node, err := parser.ParseFile(p.fset, filename, nil, parser.ParseComments)
+	// 🔥 Конвертируем входной файл в абсолютный путь СРАЗУ
+	absFile, err := filepath.Abs(filename)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка парсинга файла %s: %w", filename, err)
+		absFile = filename
 	}
+
+	node, err := parser.ParseFile(p.fset, absFile, nil, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка парсинга файла %s: %w", absFile, err)
+	}
+
+	p.currentPackage = node.Name.Name
+	p.currentModule = p.getModulePath(absFile)
+	mRoot, err := p.findModuleRoot(absFile)
+	if err != nil {
+		return nil, err
+	}
+	p.moduleRoot = mRoot
+	p.packagePath = p.getPackagePath(absFile, mRoot)
 
 	result := &ParseResult{
 		Package: node.Name.Name,
 		Structs: make([]Struct, 0),
 		Errors:  make([]error, 0),
+	}
+
+	if p.verbose {
+		log.Printf("DEBUG: File=%s | Module=%s | Root=%s | PkgPath=%s",
+			filename, p.currentModule, p.moduleRoot, p.packagePath)
 	}
 
 	// Сначала собираем все структуры в файле (даже без аннотаций)
@@ -59,7 +85,14 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 			switch base := typeSpec.Type.(type) {
 			case *ast.StructType:
 				// Настоящая структура — добавляем в allStructs
-				allStructs[name] = &Struct{Name: name, File: filename, Fields: []Field{}}
+				allStructs[name] = &Struct{
+					Name:        name,
+					File:        filename,
+					Fields:      []Field{},
+					Package:     p.currentPackage,
+					PackagePath: p.packagePath,
+					Module:      p.currentModule,
+				}
 
 			case *ast.Ident:
 				// Алиас на примитив: type Theme string
@@ -125,8 +158,46 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					Decorators:    p.parseFieldDecorators(field),
 					Line:          p.fset.Position(field.Pos()).Line,
 					OaAnnotations: p.parseFieldOaAnnotations(field),
+					IsEmbedded:    len(field.Names) == 0, // если имён нет — это встраивание
 				})
 			}
+
+			structOaAnnotations := p.parseStructOaAnnotations(genDecl, typeSpec)
+
+			var disc *OaDiscriminator
+			for _, ann := range structOaAnnotations {
+				switch ann.Type {
+				case "discriminator.propertyName":
+					if disc == nil {
+						disc = &OaDiscriminator{Mapping: make(map[string]string)}
+					}
+					disc.PropertyName = strings.Trim(ann.Value, `"`)
+				case "discriminator.mapping":
+					if disc == nil {
+						disc = &OaDiscriminator{Mapping: make(map[string]string)}
+					}
+					if parts := strings.SplitN(ann.Value, ":", 2); len(parts) == 2 {
+						key := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+						val := strings.Trim(strings.TrimSpace(parts[1]), `"`)
+						disc.Mapping[key] = val
+					}
+				}
+			}
+			if disc != nil && disc.PropertyName != "" {
+				s.Discriminator = disc
+			}
+			if s.Discriminator != nil && len(s.OaOneOf) > 0 {
+				for _, typeName := range s.OaOneOf {
+					if _, ok := s.Discriminator.Mapping[typeName]; !ok {
+						if p.verbose {
+							log.Printf("WARNING: Struct %s: oneOf type %q not in discriminator mapping",
+								s.Name, typeName)
+						}
+						// Опционально: добавить в result.Errors
+					}
+				}
+			}
+
 			// Добавляем ВСЕ структуры в результат
 			// Фильтрация будет в генераторе
 			result.Structs = append(result.Structs, *s)
@@ -151,6 +222,7 @@ func (p *Parser) parseFieldTypeExpr(expr ast.Expr, allStructs map[string]*Struct
 		// 1. Проверяем, структура ли это
 		if _, ok := allStructs[t.Name]; ok {
 			ft.IsStruct = true
+
 			return ft
 		}
 
@@ -179,6 +251,9 @@ func (p *Parser) parseFieldTypeExpr(expr ast.Expr, allStructs map[string]*Struct
 		return ft
 	case *ast.SelectorExpr:
 		ft.Name = p.exprToString(t)
+		ft.Package = p.exprToString(t.X)
+		ft.PackagePath = p.packagePath
+		ft.Module = p.currentModule
 		ft.IsCustom = true
 
 	case *ast.StarExpr: // *T
@@ -307,7 +382,7 @@ func (p *Parser) parseFieldDirectives(field *ast.Field) []Directive {
 
 func (p *Parser) parseFieldOaAnnotations(field *ast.Field) []OaAnnotation {
 	var oas []OaAnnotation
-	re := regexp.MustCompile(`@oa:([a-zA-Z_-]+)\s+(.+)`)
+	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
 
 	// Check comments after field
 	if field.Comment != nil {
@@ -341,6 +416,131 @@ func (p *Parser) extractOaAnnotations(text string, re *regexp.Regexp) []OaAnnota
 		}
 	}
 	return oas
+}
+
+func (p *Parser) extractStructDiscriminator(s *Struct) {
+	var disc *OaDiscriminator
+
+	for _, field := range s.Fields {
+		for _, ann := range field.OaAnnotations {
+			if p.verbose {
+				log.Printf("DEBUG: Struct=%s Field=%s OA[%s]=%q",
+					s.Name, field.Name, ann.Type, ann.Value)
+			}
+
+			switch ann.Type {
+			case "discriminator.propertyName":
+				if disc == nil {
+					disc = &OaDiscriminator{Mapping: make(map[string]string)}
+				}
+				disc.PropertyName = ann.Value
+				if p.verbose {
+					log.Printf("DEBUG: Found discriminator.propertyName=%q", ann.Value)
+				}
+
+			case "discriminator.mapping":
+				if disc == nil {
+					disc = &OaDiscriminator{Mapping: make(map[string]string)}
+				}
+				if parts := strings.SplitN(ann.Value, ":", 2); len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					val := strings.TrimSpace(parts[1])
+					disc.Mapping[key] = val
+					if p.verbose {
+						log.Printf("DEBUG: Found discriminator.mapping[%q]=%q", key, val)
+					}
+				}
+			case "oneOf":
+				// "Cat,Dog" → ["Cat", "Dog"]
+				for _, t := range strings.Split(ann.Value, ",") {
+					s.OaOneOf = append(s.OaOneOf, strings.TrimSpace(t))
+				}
+			case "oneOf-ref":
+				// "#/components/schemas/Cat,#/components/schemas/Dog"
+				for _, r := range strings.Split(ann.Value, ",") {
+					s.OaOneOfRefs = append(s.OaOneOfRefs, strings.TrimSpace(r))
+				}
+			case "anyOf":
+				for _, t := range strings.Split(ann.Value, ",") {
+					s.OaAnyOf = append(s.OaAnyOf, strings.TrimSpace(t))
+				}
+			case "anyOf-ref":
+				for _, r := range strings.Split(ann.Value, ",") {
+					s.OaAnyOfRefs = append(s.OaAnyOfRefs, strings.TrimSpace(r))
+				}
+			}
+		}
+	}
+
+	if disc != nil && disc.PropertyName != "" {
+		s.Discriminator = disc
+		if p.verbose {
+			log.Printf("DEBUG: Struct %s has discriminator: %+v", s.Name, disc)
+		}
+	} else if p.verbose {
+		log.Printf("DEBUG: Struct %s: no valid discriminator found", s.Name)
+	}
+}
+
+// getModulePath читает модуль из go.mod в директории файла
+func (p *Parser) getModulePath(filename string) string {
+	dir := filepath.Dir(filename)
+	for {
+		modFile := filepath.Join(dir, "go.mod")
+		if data, err := os.ReadFile(modFile); err == nil {
+			for _, line := range strings.Split(string(data), "\n") {
+				if strings.HasPrefix(line, "module ") {
+					return strings.TrimSpace(strings.TrimPrefix(line, "module "))
+				}
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		} // корень ФС
+		dir = parent
+	}
+	return ""
+}
+
+// findModuleRoot ищет директорию с go.mod, поднимаясь вверх от filename
+// Возвращает абсолютный путь к корню модуля (например, "/home/user/projects/myrepo")
+func (p *Parser) findModuleRoot(filename string) (string, error) {
+	dir := filepath.Dir(filename)
+	for {
+		modFile := filepath.Join(dir, "go.mod")
+		if _, err := os.Stat(modFile); err == nil {
+			return filepath.Abs(dir)
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("go.mod not found for %s", filename)
+		}
+		dir = parent
+	}
+}
+
+// getPackagePath вычисляет путь пакета относительно корня модуля
+// Пример:
+//
+//	модуль="github.com/arkannsk/elval"
+//	файл="/home/user/elval/test/integration/oa_unique_refs/user/user.go"
+//	moduleRoot="/home/user/elval"
+//	→ возвращает "test/integration/oa_unique_refs/user"
+func (p *Parser) getPackagePath(filename, moduleRoot string) string {
+	if moduleRoot == "" {
+		return filepath.Base(filepath.Dir(filename))
+	}
+
+	fileDir := filepath.Dir(filename)
+
+	rel, err := filepath.Rel(moduleRoot, fileDir)
+	if err != nil || rel == "." {
+		return filepath.Base(fileDir)
+	}
+
+	// Приводим к slash-формату для OpenAPI
+	return filepath.ToSlash(rel)
 }
 
 // extractDirectives извлекает директивы из текста комментария
@@ -381,6 +581,29 @@ func (p *Parser) extractDirectives(text string, re *regexp.Regexp) []Directive {
 	}
 
 	return directives
+}
+
+// parseStructOaAnnotations парсит OA-аннотации на уровне структуры
+// Проверяет и GenDecl.Doc, и TypeSpec.Doc (комментарии могут быть в любом месте)
+func (p *Parser) parseStructOaAnnotations(genDecl *ast.GenDecl, typeSpec *ast.TypeSpec) []OaAnnotation {
+	var oas []OaAnnotation
+	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
+
+	// 🔥 Проверяем оба возможных источника комментариев
+	commentGroups := []*ast.CommentGroup{}
+	if genDecl.Doc != nil {
+		commentGroups = append(commentGroups, genDecl.Doc)
+	}
+	if typeSpec.Doc != nil {
+		commentGroups = append(commentGroups, typeSpec.Doc)
+	}
+
+	for _, cg := range commentGroups {
+		for _, comment := range cg.List {
+			oas = append(oas, p.extractOaAnnotations(comment.Text, re)...)
+		}
+	}
+	return oas
 }
 
 func (r *ParseResult) ValidateDirectives() []DirectiveError {
@@ -489,9 +712,13 @@ func getFieldName(field *ast.Field) string {
 	if len(field.Names) > 0 {
 		return field.Names[0].Name
 	}
+
 	// Анонимное поле (встраивание)
-	if ident, ok := field.Type.(*ast.Ident); ok {
-		return ident.Name
+	switch t := field.Type.(type) {
+	case *ast.Ident:
+		return t.Name // локальный тип: Address
+	case *ast.SelectorExpr:
+		return t.Sel.Name // внешний тип: user.User → "User"
 	}
 	return ""
 }

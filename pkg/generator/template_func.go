@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -103,9 +104,24 @@ var templateFucMap = template.FuncMap{
 		}
 		return false
 	},
-	"toLower":   strings.ToLower,
-	"contains":  strings.Contains,
-	"hasSuffix": strings.HasSuffix,
+	"toLower":    strings.ToLower,
+	"contains":   strings.Contains,
+	"hasSuffix":  strings.HasSuffix,
+	"regexMatch": regexp.MatchString,
+	"split":      strings.Split,
+	"trim":       strings.TrimSpace,
+	"trimPrefix": strings.TrimPrefix,
+	"trimSuffix": strings.TrimSuffix,
+	"trimQuotes": func(s string) string {
+		s = strings.TrimSpace(s)
+		if len(s) >= 2 {
+			if (s[0] == '"' && s[len(s)-1] == '"') ||
+				(s[0] == '\'' && s[len(s)-1] == '\'') {
+				return s[1 : len(s)-1]
+			}
+		}
+		return s
+	},
 	"trimStar": func(s string) string {
 		return strings.TrimPrefix(s, "*")
 	},
@@ -143,5 +159,50 @@ var templateFucMap = template.FuncMap{
 			return ft.BaseType
 		}
 		return name
+	},
+	"uniqueRef": func(typeName, typePackage, typeModule, structPackage, structModule string) string {
+		// Если тип из другого модуля — полный путь
+		if typeModule != "" && typeModule != structModule {
+			return fmt.Sprintf("%s/%s.%s", typeModule, typePackage, typeName)
+		}
+		// Если тип из другого пакета в том же модуле
+		if typePackage != "" && typePackage != structPackage {
+			return fmt.Sprintf("%s.%s", typePackage, typeName)
+		}
+		// Локальный тип
+		return typeName
+	},
+	"safeExample": func(val string) string {
+		val = strings.TrimSpace(val)
+		// Если значение выглядит как JSON-объект или массив → оборачиваем в backticks
+		if len(val) > 0 && (val[0] == '{' || val[0] == '[') {
+			return fmt.Sprintf("`%s`", val)
+		}
+		// Для простых значений (строки, числа, bool) оставляем как есть
+		return val
+	},
+	"globalRefFor": func(typeName, typePkgPath, typeMod, structPkgPath, structMod string) string {
+		if typeMod != "" && typeMod != structMod {
+			return fmt.Sprintf("%s/%s.%s", typeMod, typePkgPath, typeName)
+		}
+		if typePkgPath != "" && typePkgPath != structPkgPath {
+			return fmt.Sprintf("%s.%s", typePkgPath, typeName)
+		}
+		return typeName
+	},
+	"buildGlobalRef": func(typeName, pkgPath, module string) string {
+		// 1. Если typeName уже содержит слэш → это полный путь типа (internal/models.User)
+		if strings.Contains(typeName, "/") {
+			return fmt.Sprintf("%s/%s", module, typeName)
+		}
+
+		// 2. Если typeName содержит точку → это пакет.тип (user.User)
+		//    Формируем: module/pkgPath/user.User (слэш перед pkg.Type)
+		if strings.Contains(typeName, ".") {
+			return fmt.Sprintf("%s/%s/%s", module, pkgPath, typeName)
+		}
+
+		// 3. Локальный тип (User) → module/pkgPath.Type (точка перед типом)
+		return fmt.Sprintf("%s/%s.%s", module, pkgPath, typeName)
 	},
 }

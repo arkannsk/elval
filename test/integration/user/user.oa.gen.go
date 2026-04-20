@@ -7,14 +7,13 @@ import (
 	oa "github.com/arkannsk/elval/pkg/oa"
 )
 
-// OaSchema возвращает OpenAPI схему для структуры User
 func (v *User) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
 		Properties: make(map[string]oa.Schema, 5),
 		Required:   make([]string, 0, 5),
+		Ref:        v.GlobalRef(),
 	}
-	// Поле ID
 	{
 		prop := oa.Schema{}
 
@@ -24,12 +23,11 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Pattern = `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
 		prop.Format = "uuid"
 
-		prop.Description = "Unique identifier for the user"
+		prop.Description = "\"Unique identifier for the user\""
 		prop.Example = "550e8400-e29b-41d4-a716-446655440000"
 
 		schema.Properties["id"] = prop
 	}
-	// Поле Name
 	{
 		prop := oa.Schema{}
 
@@ -39,13 +37,12 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.MinLength = oa.Ptr[int64](3)
 		prop.MaxLength = oa.Ptr[int64](50)
 
-		prop.Title = "Full Name"
-		prop.Description = "The user's full name"
+		prop.Title = "\"Full Name\""
+		prop.Description = "\"The user's full name\""
 		prop.Example = "John Doe"
 
 		schema.Properties["name"] = prop
 	}
-	// Поле Email
 	{
 		prop := oa.Schema{}
 
@@ -59,18 +56,16 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["email"] = prop
 	}
-	// Поле Age
 	{
 		prop := oa.Schema{}
 
 		prop.Minimum = oa.Ptr[float64](18)
 		prop.Maximum = oa.Ptr[float64](120)
 
-		prop.Description = "Age in years (optional)"
+		prop.Description = "\"Age in years (optional)\""
 
 		schema.Properties["age"] = prop
 	}
-	// Поле Role
 	{
 		prop := oa.Schema{}
 
@@ -79,9 +74,14 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Required = append(schema.Required, "role")
 		prop.Enum = []interface{}{"admin", "user", "moderator"}
 
-		prop.Description = "User role in the system"
+		prop.Description = "\"User role in the system\""
 
 		schema.Properties["role"] = prop
 	}
+
 	return schema
+}
+
+func (v *User) GlobalRef() string {
+	return "github.com/arkannsk/elval/test/integration/user.User"
 }

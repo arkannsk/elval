@@ -1,11 +1,21 @@
 {{ define "openapi/field/annotations" }}
-    {{- range $oa := .OaAnnotations }}
+    {{- $field := . }}
+    {{- $module := $.Module }}
+    {{- $pkgPath := $.PkgPath }}
+
+    {{- if $.Field }}
+        {{- $field = $.Field }}
+        {{- $module = $.Module }}
+        {{- $pkgPath = $.PkgPath }}
+    {{- end }}
+
+    {{- range $oa := $field.OaAnnotations }}
         {{- if eq $oa.Type "title" }}
-            prop.Title = {{ $oa.Value | printf "%s" }}
+            prop.Title = {{ $oa.Value | printf "%q" }}
         {{- else if eq $oa.Type "description" }}
-            prop.Description = {{ $oa.Value | printf "%s" }}
+            prop.Description = {{ $oa.Value | printf "%q" }}
         {{- else if eq $oa.Type "example" }}
-            prop.Example = {{ $oa.Value | printf "%s" }}
+            prop.Example = {{ safeExample $oa.Value }}
         {{- else if eq $oa.Type "format" }}
             {{- if eq $oa.Value "email" }}
                 prop.Format = "email"
@@ -14,8 +24,46 @@
             {{- else if eq $oa.Value "uuid" }}
                 prop.Format = "uuid"
             {{- else }}
-                prop.Format = {{ $oa.Value | printf "%s" }}
+                prop.Format = {{ $oa.Value | printf "%q" }}
             {{- end }}
+
+        {{- else if eq $oa.Type "oneOf" }}
+            {{- $clean := trimQuotes $oa.Value }}
+            prop.OneOf = []oa.Schema{
+            {{- range $t := split $clean "," }}
+                {{- $typeName := trimQuotes (trim $t) }}
+                {{- $ref := buildGlobalRef $typeName $.PkgPath $.Module }}
+                {Ref: "#/components/schemas/{{ $ref }}"},
+            {{- end }}
+            }
+
+        {{- else if eq $oa.Type "oneOf-ref" }}
+            {{- $clean := trimQuotes $oa.Value }}
+            prop.OneOf = []oa.Schema{
+            {{- range $r := split $clean "," }}
+                {{- $ref := trimQuotes (trim $r) }}
+                {Ref: {{ printf "%q" $ref }}},
+            {{- end }}
+            }
+
+        {{- else if eq $oa.Type "anyOf" }}
+            {{- $clean := trimQuotes $oa.Value }}
+            prop.AnyOf = []oa.Schema{
+            {{- range $t := split $clean "," }}
+                {{- $typeName := trimQuotes (trim $t) }}
+                {{- $ref := buildGlobalRef $typeName $.PkgPath $.Module }}
+                {Ref: "#/components/schemas/{{ $ref }}"},
+            {{- end }}
+            }
+
+        {{- else if eq $oa.Type "anyOf-ref" }}
+            {{- $clean := trimQuotes $oa.Value }}
+            prop.AnyOf = []oa.Schema{
+            {{- range $r := split $clean "," }}
+                {{- $ref := trimQuotes (trim $r) }}
+                {Ref: {{ printf "%q" $ref }}},
+            {{- end }}
+            }
         {{- end }}
     {{- end }}
 {{ end }}

@@ -8,6 +8,9 @@ import (
 // FieldType представляет тип поля с поддержкой слайсов и указателей
 type FieldType struct {
 	Name        string
+	Package     string
+	PackagePath string
+	Module      string
 	IsSlice     bool
 	IsPointer   bool
 	IsStruct    bool
@@ -51,21 +54,44 @@ type OaAnnotation struct {
 
 // Field представляет поле структуры с аннотациями
 type Field struct {
-	Name          string      // имя поля
-	Type          FieldType   // тип поля
+	Name          string // имя поля
+	Package       string
+	PackagePath   string
+	Module        string    // модуль типа: "github.com/myorg/api"
+	Type          FieldType // тип поля
+	IsEmbedded    bool
 	Directives    []Directive // список директив валидации
 	Decorators    []Decorator // декораторы
 	Line          int         // номер строки в файле (для ошибок)
 	OaAnnotations []OaAnnotation
 	Description   string
+
+	OaOneOf     []string // для полей с union-типами
+	OaOneOfRefs []string
+	OaAnyOf     []string
+	OaAnyOfRefs []string
 }
 
 // Struct представляет структуру с полями для валидации
 type Struct struct {
-	Name        string  // имя структуры
-	Fields      []Field // поля с аннотациями
-	File        string  // путь к файлу
-	Description string
+	Name          string // имя структуры
+	Package       string
+	PackagePath   string
+	Module        string  // путь модуля: "github.com/myorg/api"
+	Fields        []Field // поля с аннотациями
+	File          string  // путь к файлу
+	Description   string
+	Discriminator *OaDiscriminator `json:"-"` // не сериализуем, только для генерации
+
+	OaOneOf     []string // имена типов: ["Cat", "Dog"]
+	OaOneOfRefs []string // прямые рефы: ["#/components/schemas/Cat"]
+	OaAnyOf     []string
+	OaAnyOfRefs []string
+}
+
+type OaDiscriminator struct {
+	PropertyName string
+	Mapping      map[string]string
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации

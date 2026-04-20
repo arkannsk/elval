@@ -1,0 +1,12 @@
+{{ define "openapi/discriminator" }}
+    {{- if .Discriminator }}
+        schema.Discriminator = &oa.Discriminator{
+        PropertyName: {{ .Discriminator.PropertyName | printf "%q" }},
+        Mapping: map[string]string{
+        {{- range $k, $v := .Discriminator.Mapping }}
+            {{ printf "%q" $k }}: {{ printf "%q" $v }},
+        {{- end }}
+        },
+        }
+    {{- end }}
+{{ end }}
