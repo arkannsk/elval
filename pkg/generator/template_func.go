@@ -46,81 +46,27 @@ var templateFucMap = template.FuncMap{
 	"itoa": func(i int) string {
 		return strconv.Itoa(i)
 	},
-	"hasCustomDirective": func(directives []parser.Directive) bool {
-		for _, d := range directives {
-			if strings.HasPrefix(d.Type, "x-") {
-				return true
-			}
-		}
-		return false
-	},
 	"isCustomDirective": func(dirType string) bool {
 		return strings.HasPrefix(dirType, "x-")
 
 	},
-	"hasHTTPContext": func(structs []parser.Struct) bool {
-		for _, s := range structs {
-			for _, f := range s.Fields {
-				for _, d := range f.Decorators {
-					if d.Type == "httpctx-get" {
-						return true
-					}
-				}
-			}
-		}
-		return false
-	},
-	"hasEnvGet": func(structs []parser.Struct) bool {
-		for _, s := range structs {
-			for _, f := range s.Fields {
-				for _, d := range f.Decorators {
-					if d.Type == "env-get" {
-						return true
-					}
-				}
-			}
-		}
-		return false
-	},
-	"hasUUIDGen": func(structs []parser.Struct) bool {
-		for _, s := range structs {
-			for _, f := range s.Fields {
-				for _, d := range f.Decorators {
-					if d.Type == "uuid-gen" {
-						return true
-					}
-				}
-			}
-		}
-		return false
-	},
-	"hasOaSchema": func(structs []parser.Struct) bool {
-		for _, s := range structs {
-			for _, f := range s.Fields {
-				if len(f.OaAnnotations) > 0 {
-					return true
-				}
-			}
-		}
-		return false
-	},
 	"toLower":    strings.ToLower,
 	"contains":   strings.Contains,
 	"hasSuffix":  strings.HasSuffix,
+	"hasPrefix":  strings.HasPrefix,
 	"regexMatch": regexp.MatchString,
 	"split":      strings.Split,
 	"trim":       strings.TrimSpace,
 	"trimPrefix": strings.TrimPrefix,
 	"trimSuffix": strings.TrimSuffix,
 	"trimQuotes": func(s string) string {
-		s = strings.TrimSpace(s)
-		if len(s) >= 2 {
-			if (s[0] == '"' && s[len(s)-1] == '"') ||
-				(s[0] == '\'' && s[len(s)-1] == '\'') {
-				return s[1 : len(s)-1]
-			}
-		}
-		return s
+		return trimQuotes(s)
+	},
+	"oaString": func(val string) string {
+		// 1. Убираем внешние кавычки, если они есть
+		val = trimQuotes(val)
+		// 2. Оборачиваем в Go-строковый литерал
+		return fmt.Sprintf("%q", val)
 	},
 	"trimStar": func(s string) string {
 		return strings.TrimPrefix(s, "*")
@@ -205,4 +151,38 @@ var templateFucMap = template.FuncMap{
 		// 3. Локальный тип (User) → module/pkgPath.Type (точка перед типом)
 		return fmt.Sprintf("%s/%s.%s", module, pkgPath, typeName)
 	},
+	"generateSchemaTypeCode": func(typeName string, prefix string) string {
+		switch typeName {
+		case "string":
+			return fmt.Sprintf("%s.Type = \"string\"", prefix)
+		case "time.Time":
+			return fmt.Sprintf(`%s.Type = "string" %s.Format = "date-time"`, prefix, prefix)
+		case "bool":
+			return fmt.Sprintf("%s.Type = \"boolean\"", prefix)
+
+		// Integers
+		case "int", "int8", "int16", "int32", "int64",
+			"uint", "uint8", "uint16", "uint32", "uint64":
+			return fmt.Sprintf("%s.Type = \"integer\"", prefix)
+
+		// Numbers
+		case "float32", "float64":
+			return fmt.Sprintf("%s.Type = \"number\"", prefix)
+
+		default:
+			// Если тип не распознан как примитив, возвращаем пустую строку или ошибку
+			return ""
+		}
+	},
+}
+
+func trimQuotes(s string) string {
+	s = strings.TrimSpace(s)
+	if len(s) >= 2 {
+		if (s[0] == '"' && s[len(s)-1] == '"') ||
+			(s[0] == '\'' && s[len(s)-1] == '\'') {
+			return s[1 : len(s)-1]
+		}
+	}
+	return s
 }

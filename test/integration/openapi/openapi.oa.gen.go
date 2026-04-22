@@ -159,6 +159,7 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
+
 		prop.Items.Type = "string"
 
 		schema.Required = append(schema.Required, "items")

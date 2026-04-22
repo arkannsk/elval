@@ -128,6 +128,14 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 				}
 
 				fieldType := p.typeParser.ParseExpr(field.Type, allStructs)
+
+				if p.verbose {
+					log.Printf(`PARSED: fieldName: %s, exprType: %T, val: %s → IsGeneric=%v, 
+						Base=%q, Args=%+v, IsSlice=%v`,
+						fieldName, field.Type, exprToString(field.Type), fieldType.IsGeneric,
+						fieldType.GenericBase, fieldType.GenericArgs, fieldType.IsSlice)
+				}
+
 				directives := p.annotationParser.ParseFieldDirectives(field)
 
 				// Валидация директив

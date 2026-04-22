@@ -6,25 +6,43 @@
     {{- if $f.Type.IsSlice }}
         prop.Type = "array"
         prop.Items = &oa.Schema{}
-        {{- /* Извлекаем имя элемента: []User -> User */}}
-        {{- $elemName := trimPrefix $f.Type.Name "[]" }}
 
-        {{- /* Проверяем примитивы */}}
-        {{- if eq $elemName "string" }}
-            prop.Items.Type = "string"
-        {{- else if eq $elemName "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" }}
-            prop.Items.Type = "integer"
-        {{- else if eq $elemName "float32" "float64" }}
-            prop.Items.Type = "number"
-        {{- else if eq $elemName "bool" }}
-            prop.Items.Type = "boolean"
-        {{- else if eq $elemName "time.Time" }}
-            prop.Items.Type = "string"
-            prop.Items.Format = "date-time"
+        {{- /* Извлекаем имя элемента из []User или [2]float64 */}}
+        {{- $name := $f.Type.Name }}
+        {{- /* Убираем префикс [] или [N] */}}
+        {{- if hasPrefix $name "[]" }}
+            {{- $name = trimPrefix $name "[]" }}
         {{- else }}
-            {{- /* Не примитив → считаем структурой и генерируем $ref */}}
-            {{- /* Используем пакет/модуль родителя как fallback для globalRefFor */}}
-            prop.Items.Ref = "#/components/schemas/{{ globalRefFor $elemName $f.Type.PackagePath $f.Type.Module $pkg $mod }}"
+            {{- /* Это [N]T: находим первую ] и берем всё после неё */}}
+            {{- $parts := split $name "]" }}
+            {{- if gt (len $parts) 1 }}
+                {{- $name = index $parts 1 }}
+            {{- end }}
+        {{- end }}
+
+        {{- /* Теперь $name содержит "User" или "float64" */}}
+
+        {{- /* Проверяем, является ли элемент примитивом */}}
+        {{- if isPrimitive $name }}
+            {{- if eq $name "string" }}
+                prop.Items.Type = "string"
+            {{- else if eq $name "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" }}
+                prop.Items.Type = "integer"
+            {{- else if eq $name "float32" "float64" }}
+                prop.Items.Type = "number"
+            {{- else if eq $name "bool" }}
+                prop.Items.Type = "boolean"
+            {{- else if eq $name "time.Time" }}
+                prop.Items.Type = "string"
+                prop.Items.Format = "date-time"
+            {{- end }}
+        {{- else }}
+            {{- /* Это структура: генерируем Ref */}}
+            {{- if $f.OaRewriteRef }}
+                prop.Items.Ref = "#/components/schemas/{{ $f.OaRewriteRef }}"
+            {{- else }}
+                prop.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name $f.Type.PackagePath $f.Type.Module }}"
+            {{- end }}
         {{- end }}
 
     {{- else if eq $f.Type.Name "string" }}

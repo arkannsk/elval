@@ -53,11 +53,6 @@ func (tp *TypeParser) ParseExpr(expr ast.Expr, allStructs map[string]*Struct) Fi
 		ft.IsCustom = true
 	}
 
-	if tp.verbose {
-		fmt.Printf("PARSED: %s → IsGeneric=%v, Base=%q, Args=%+v\n",
-			exprToString(expr), ft.IsGeneric, ft.GenericBase, ft.GenericArgs)
-	}
-
 	return ft
 }
 
@@ -95,12 +90,23 @@ func (tp *TypeParser) parseIdent(t *ast.Ident, allStructs map[string]*Struct) Fi
 }
 
 func (tp *TypeParser) parseSelector(t *ast.SelectorExpr) FieldType {
-	return FieldType{
-		Name:        exprToString(t),
-		Package:     exprToString(t.X),
-		PackagePath: tp.currentPkg, // упрощённо: берём текущий пакет
+	name := exprToString(t)
+	pkg := exprToString(t.X)
+
+	// Проверяем, не является ли это известным примитивом (time.Time, time.Duration)
+	isPrimitive := name == "time.Time" || name == "time.Duration"
+	ft := FieldType{
+		Name:        name,
+		Package:     pkg,
+		PackagePath: tp.currentPkg, // Для внешних типов путь текущего пакета, но для rewrite это не критично
 		IsCustom:    true,
 	}
+
+	if !isPrimitive {
+		ft.IsStruct = true
+	}
+
+	return ft
 }
 
 func (tp *TypeParser) parsePointer(t *ast.StarExpr, allStructs map[string]*Struct) FieldType {
@@ -117,8 +123,8 @@ func (tp *TypeParser) parsePointer(t *ast.StarExpr, allStructs map[string]*Struc
 }
 
 func (tp *TypeParser) parseArray(t *ast.ArrayType, allStructs map[string]*Struct) FieldType {
+	inner := tp.ParseExpr(t.Elt, allStructs)
 	if t.Len == nil { // слайс []T
-		inner := tp.ParseExpr(t.Elt, allStructs)
 		return FieldType{
 			Name:        "[]" + inner.Name,
 			IsSlice:     true,
@@ -129,10 +135,17 @@ func (tp *TypeParser) parseArray(t *ast.ArrayType, allStructs map[string]*Struct
 			GenericArgs: inner.GenericArgs,
 		}
 	}
-	// массив [N]T
+	lenStr := exprToString(t.Len) // например, "2" или "3"
+
 	return FieldType{
-		Name:     getTypeString(t),
-		IsCustom: true,
+		Name:        fmt.Sprintf("[%s]%s", lenStr, inner.Name), // "[2]float64"
+		IsSlice:     true,
+		IsStruct:    inner.IsStruct,
+		IsCustom:    inner.IsCustom,
+		IsGeneric:   inner.IsGeneric,
+		GenericBase: inner.GenericBase,
+		GenericArgs: inner.GenericArgs,
+		BaseType:    lenStr,
 	}
 }
 
@@ -186,7 +199,9 @@ func exprToString(e ast.Expr) string {
 		if v.Len == nil {
 			return "[]" + exprToString(v.Elt)
 		}
-		return fmt.Sprintf("[%s]%s", exprToString(v.Len), exprToString(v.Elt))
+		// Для массивов [N]T рекурсивно обрабатываем длину и элемент
+		lenStr := exprToString(v.Len)
+		return fmt.Sprintf("[%s]%s", lenStr, exprToString(v.Elt))
 	case *ast.IndexExpr:
 		return exprToString(v.X) + "[" + exprToString(v.Index) + "]"
 	case *ast.IndexListExpr:
@@ -199,12 +214,10 @@ func exprToString(e ast.Expr) string {
 		return fmt.Sprintf("map[%s]%s", exprToString(v.Key), exprToString(v.Value))
 	case *ast.ParenExpr:
 		return "(" + exprToString(v.X) + ")"
+	case *ast.BasicLit:
+		return v.Value
+
 	default:
 		return "unknown"
 	}
-}
-
-// getTypeString — legacy-хелпер для совместимости
-func getTypeString(expr ast.Expr) string {
-	return exprToString(expr)
 }
