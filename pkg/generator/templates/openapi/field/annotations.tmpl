@@ -11,9 +11,9 @@
 
     {{- range $oa := $field.OaAnnotations }}
         {{- if eq $oa.Type "title" }}
-            prop.Title = {{ $oa.Value | printf "%q" }}
+            prop.Title = {{ oaString $oa.Value }}
         {{- else if eq $oa.Type "description" }}
-            prop.Description = {{ $oa.Value | printf "%q" }}
+            prop.Description = {{ oaString $oa.Value }}
         {{- else if eq $oa.Type "example" }}
             prop.Example = {{ safeExample $oa.Value }}
         {{- else if eq $oa.Type "format" }}
@@ -24,7 +24,7 @@
             {{- else if eq $oa.Value "uuid" }}
                 prop.Format = "uuid"
             {{- else }}
-                prop.Format = {{ $oa.Value | printf "%q" }}
+                prop.Format = {{ oaString $oa.Value }}
             {{- end }}
 
         {{- else if eq $oa.Type "oneOf" }}

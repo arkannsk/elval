@@ -40,7 +40,7 @@ var (
 		v := validator.New[string]("SecureURL")
 		v.AddRule(validator.Required[string]())
 		v.AddRule(validator.HTTPURL())
-		v.AddRule(validator.StartsWith("https://"))
+		v.AddRule(validator.StartsWith("https:/"))
 		return v
 	}()
 )

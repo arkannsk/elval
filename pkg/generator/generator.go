@@ -88,6 +88,10 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 		}
 	}
 
+	if g.verbose {
+		log.Printf("DEBUG: Generating validation for %s, Package=%q", sourceFile, parseResult.Package)
+	}
+
 	// 1. Генерируем файл валидации
 	if len(structsForValidation) > 0 {
 		data := struct {

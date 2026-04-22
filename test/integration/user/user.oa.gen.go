@@ -23,7 +23,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Pattern = `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
 		prop.Format = "uuid"
 
-		prop.Description = "\"Unique identifier for the user\""
+		prop.Description = "Unique identifier for the user"
 		prop.Example = "550e8400-e29b-41d4-a716-446655440000"
 
 		schema.Properties["id"] = prop
@@ -37,8 +37,8 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.MinLength = oa.Ptr[int64](3)
 		prop.MaxLength = oa.Ptr[int64](50)
 
-		prop.Title = "\"Full Name\""
-		prop.Description = "\"The user's full name\""
+		prop.Title = "Full Name"
+		prop.Description = "The user's full name"
 		prop.Example = "John Doe"
 
 		schema.Properties["name"] = prop
@@ -62,7 +62,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Minimum = oa.Ptr[float64](18)
 		prop.Maximum = oa.Ptr[float64](120)
 
-		prop.Description = "\"Age in years (optional)\""
+		prop.Description = "Age in years (optional)"
 
 		schema.Properties["age"] = prop
 	}
@@ -74,7 +74,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Required = append(schema.Required, "role")
 		prop.Enum = []interface{}{"admin", "user", "moderator"}
 
-		prop.Description = "\"User role in the system\""
+		prop.Description = "User role in the system"
 
 		schema.Properties["role"] = prop
 	}

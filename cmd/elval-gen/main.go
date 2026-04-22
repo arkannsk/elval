@@ -142,8 +142,6 @@ func generateCmd() {
 	}
 }
 
-// cmd/elval-gen/main.go
-
 func lintCmd() {
 	var inputDir string
 	var verbose bool

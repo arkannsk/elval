@@ -1,0 +1,83 @@
+{{ define "openapi/field/slice" }}
+    {{- $f := .Field }}
+    {{- $pkgPath := .PkgPath }}
+    {{- $module := .Module }}
+
+    prop.Type = "array"
+    prop.Items = &oa.Schema{}
+
+    {{- /* Извлекаем имя первого элемента */}}
+    {{- $name := $f.Type.Name }}
+    {{- if hasPrefix $name "[]" }}
+        {{- $name = trimPrefix $name "[]" }}
+    {{- else }}
+        {{- $parts := split $name "]" }}
+        {{- if gt (len $parts) 1 }}
+            {{- $name = index $parts 1 }}
+        {{- end }}
+    {{- end }}
+
+    {{- /* Уровень 1: Проверка примитива или рекурсия */}}
+    {{- if isPrimitive $name }}
+        {{ template "set_primitive_type" (dict "TypeName" $name "Prefix" "prop.Items") }}
+    {{- else if or (hasPrefix $name "[]") (hasPrefix $name "[") }}
+        {{- /* Уровень 2: Элемент сам является массивом */}}
+        prop.Items.Type = "array"
+        prop.Items.Items = &oa.Schema{}
+
+        {{- /* Извлекаем имя второго элемента */}}
+        {{- $name2 := $name }}
+        {{- if hasPrefix $name2 "[]" }}
+            {{- $name2 = trimPrefix $name2 "[]" }}
+        {{- else }}
+            {{- $parts2 := split $name2 "]" }}
+            {{- if gt (len $parts2) 1 }}
+                {{- $name2 = index $parts2 1 }}
+            {{- end }}
+        {{- end }}
+
+        {{- if isPrimitive $name2 }}
+            {{ template "set_primitive_type" (dict "TypeName" $name2 "Prefix" "prop.Items.Items") }}
+        {{- else if or (hasPrefix $name2 "[]") (hasPrefix $name2 "[") }}
+            {{- /* Уровень 3: Третий уровень вложенности */}}
+            prop.Items.Items.Type = "array"
+            prop.Items.Items.Items = &oa.Schema{}
+
+            {{- /* Извлекаем имя третьего элемента */}}
+            {{- $name3 := $name2 }}
+            {{- if hasPrefix $name3 "[]" }}
+                {{- $name3 = trimPrefix $name3 "[]" }}
+            {{- else }}
+                {{- $parts3 := split $name3 "]" }}
+                {{- if gt (len $parts3) 1 }}
+                    {{- $name3 = index $parts3 1 }}
+                {{- end }}
+            {{- end }}
+
+            {{- if isPrimitive $name3 }}
+                {{ template "set_primitive_type" (dict "TypeName" $name3 "Prefix" "prop.Items.Items.Items") }}
+            {{- else }}
+                {{- /* Если на 3-м уровне структура, нужен Ref */}}
+                prop.Items.Items.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name3 $pkgPath $module }}"
+            {{- end }}
+        {{- else }}
+            {{- /* Если на 2-м уровне структура, нужен Ref */}}
+            prop.Items.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name2 $pkgPath $module }}"
+        {{- end }}
+    {{- else }}
+        {{- /* Если на 1-м уровне структура, нужен Ref */}}
+        {{- if $f.OaRewriteRef }}
+            prop.Items.Ref = "#/components/schemas/{{ $f.OaRewriteRef }}"
+        {{- else }}
+            prop.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name $f.Type.PackagePath $f.Type.Module }}"
+        {{- end }}
+    {{- end }}
+{{ end }}
+
+{{/* Вспомогательный шаблон для установки типа примитива через хелпер */}}
+{{ define "set_primitive_type" }}
+    {{- $code := generateSchemaTypeCode .TypeName .Prefix }}
+    {{- if $code }}
+        {{ $code }}
+    {{- end }}
+{{ end }}

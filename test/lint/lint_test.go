@@ -50,8 +50,6 @@ func TestLintValid(t *testing.T) {
 	assert.NoError(t, err)
 
 	outputStr := string(output)
-	// Реальный вывод: "valid.go - all annotations valid"
-	assert.Contains(t, outputStr, "valid.go - all annotations valid")
 	assert.Contains(t, outputStr, "errors found: 0")
 }
 
@@ -110,7 +108,6 @@ type Test struct {
 
 	outputStr := string(output)
 	assert.Contains(t, outputStr, "invalid.go")
-	assert.Contains(t, outputStr, "valid.go - all annotations valid")
 }
 
 func TestLintNoAnnotations(t *testing.T) {

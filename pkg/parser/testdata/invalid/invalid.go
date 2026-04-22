@@ -1,7 +1,5 @@
 package invalid
 
-// testdata/invalid/invalid.go
-
 type InvalidStruct struct {
 	// @evl:validate required
 	// @evl:validate min:10

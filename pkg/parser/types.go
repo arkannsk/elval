@@ -70,6 +70,8 @@ type Field struct {
 	OaOneOfRefs []string
 	OaAnyOf     []string
 	OaAnyOfRefs []string
+
+	OaRewriteRef string
 }
 
 // Struct представляет структуру с полями для валидации
@@ -155,4 +157,27 @@ type ParseResult struct {
 	Errors  []error  // ошибки парсинга
 
 	Imports map[string]string
+}
+
+// ValidateDirectives валидирует все директивы в результате парсинга
+func (r *ParseResult) ValidateDirectives() []DirectiveError {
+	var errors []DirectiveError
+	for _, s := range r.Structs {
+		for _, field := range s.Fields {
+			for _, dir := range field.Directives {
+				if err := ValidateDirective(dir, field.Type); err != nil {
+					errors = append(errors, DirectiveError{
+						File:      s.File,
+						Line:      field.Line,
+						Struct:    s.Name,
+						Field:     field.Name,
+						Directive: dir.Type,
+						Message:   err.Error(),
+						Severity:  SeverityError, // по умолчанию error
+					})
+				}
+			}
+		}
+	}
+	return errors
 }
