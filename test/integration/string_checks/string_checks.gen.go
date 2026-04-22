@@ -20,7 +20,7 @@ var (
 	Document_URLValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("URL")
 		v.AddRule(validator.Required[string]())
-		v.AddRule(validator.StartsWith("https://"))
+		v.AddRule(validator.StartsWith("https:/"))
 		v.AddRule(validator.EndsWith(".com"))
 		return v
 	}()

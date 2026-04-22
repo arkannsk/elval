@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-// pkg/parser/directives.go
-
 func validateDirective(dir Directive, ft FieldType) (Severity, error) {
 	// 1. Кастомные директивы с префиксом x- всегда валидны (warning, так как требуют регистрации)
 	if strings.HasPrefix(dir.Type, "x-") {

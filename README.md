@@ -2,7 +2,7 @@
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/arkannsk/elval)](https://golang.org/)
 [![License](https://img.shields.io/github/license/arkannsk/elval)](LICENSE)
-[![Benchmarks](https://img.shields.io/badge/benchmarks-0_allocs%2Fop-brightgreen)](BENCHMARKS.md)
+[![Benchmarks](https://img.shields.io/badge/benchmarks-440_allocs%2Fop-brightgreen)](BENCHMARKS.md)
 
 [//]: # ([![Go Reference]&#40;https://pkg.go.dev/badge/github.com/arkannsk/elval.svg&#41;]&#40;https://pkg.go.dev/github.com/arkannsk/elval&#41;)
 [//]: # ([![Go Report Card]&#40;https://goreportcard.com/badge/github.com/arkannsk/elval&#41;]&#40;https://goreportcard.com/report/github.com/arkannsk/elval&#41;)
