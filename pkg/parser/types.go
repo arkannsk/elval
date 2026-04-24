@@ -71,7 +71,8 @@ type Field struct {
 	OaAnyOf     []string
 	OaAnyOfRefs []string
 
-	OaRewriteRef string
+	OaRewriteRef  string
+	OaRewriteType string
 }
 
 // Struct представляет структуру с полями для валидации

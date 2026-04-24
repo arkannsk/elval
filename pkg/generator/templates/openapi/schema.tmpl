@@ -15,18 +15,35 @@
         {
         prop := oa.Schema{}
 
-        {{- /* 1. Простая структура (не слайс) */}}
-        {{- if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
+        {{- /* ПРИОРИТЕТ 1: Явное переопределение типа на примитив (@oa:rewrite.type) */}}
+        {{- if $field.OaRewriteType }}
+            {{- if eq $field.OaRewriteType "string" }}
+                prop.Type = "string"
+            {{- else if eq $field.OaRewriteType "integer" }}
+                prop.Type = "integer"
+            {{- else if eq $field.OaRewriteType "number" }}
+                prop.Type = "number"
+            {{- else if eq $field.OaRewriteType "boolean" }}
+                prop.Type = "boolean"
+            {{- else if eq $field.OaRewriteType "array" }}
+                prop.Type = "array"
+                prop.Items = &oa.Schema{}
+            {{- end }}
+
+            {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
+        {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
             {{- if $field.OaRewriteRef }}
                 prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
             {{- else }}
                 prop.Ref = "#/components/schemas/{{ globalRefFor $field.Type.Name $field.Type.PackagePath $field.Type.Module $.PackagePath $.Module }}"
             {{- end }}
+
+            {{- /* ПРИОРИТЕТ 3: Слайсы и массивы — делегируем в специализированный шаблон slice */}}
         {{- else if $field.Type.IsSlice }}
             {{- $ctx := dict "Field" $field "PkgPath" $.PackagePath "Module" $.Module }}
             {{ template "openapi/field/slice" $ctx }}
 
-            {{- /* 3. Всё остальное (примитивы, указатели на примитивы, map и т.д.) */}}
+            {{- /* ПРИОРИТЕТ 4: Всё остальное (примитивы, указатели на примитивы, map и т.д.) */}}
         {{- else }}
             {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
             {{ template "openapi/field/type" $ctx }}

@@ -148,9 +148,12 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 
 				// Парсим OA-аннотации и обрабатываем @oa-rewrite: ref
 				oaAnnotations := p.annotationParser.ParseFieldOaAnnotations(field)
-				var rewriteRef string
+				var rewriteRef, rewriteType string
 				remainingOa := make([]OaAnnotation, 0, len(oaAnnotations))
 				for _, ann := range oaAnnotations {
+					if ann.Type == "rewrite.type" {
+						rewriteType = trimQuotes(ann.Value)
+					}
 					if ann.Type == "rewrite.ref" {
 						rewriteRef = trimQuotes(ann.Value)
 					} else {
@@ -167,6 +170,7 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					OaAnnotations: remainingOa,
 					IsEmbedded:    len(field.Names) == 0,
 					OaRewriteRef:  rewriteRef,
+					OaRewriteType: rewriteType,
 				})
 			}
 
