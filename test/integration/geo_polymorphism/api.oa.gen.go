@@ -16,7 +16,7 @@ func (v *CreateLocationRequest) OaSchema() *oa.Schema {
 	}
 	{
 		prop := oa.Schema{}
-		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/pkg/docs.FeatureDocs"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 
 		schema.Properties["feature"] = prop
 	}
@@ -47,7 +47,7 @@ func (v *ListLocationsResponse) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/pkg/docs.FeatureDocs"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 
 		schema.Properties["features"] = prop
 	}
