@@ -37,6 +37,8 @@ const (
 	DirLte DirectiveType = "lte" // меньше или равно
 	DirGt  DirectiveType = "gt"  // больше
 	DirGte DirectiveType = "gte" // больше или равно
+
+	DirRequiredIf DirectiveType = "required_if"
 )
 
 const (
@@ -67,7 +69,7 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 	},
 	DirOptional: {
 		Description:  "поле опционально",
-		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration"},
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "time.Time", "time.Duration", "struct", "any"},
 		ParamCount:   paramsCntNone,
 		Example:      "@evl:validate optional",
 	},
@@ -209,22 +211,52 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 		ParamCount:   paramsCntOne,
 		Example:      "@evl:validate gte:18",
 	},
+	DirRequiredIf: {
+		Description:  "поле обязательно, если другое поле имеет указанное значение",
+		AllowedTypes: []string{"string", "int", "int8", "int16", "int32", "int64", "float32", "float64", "bool", "slice", "pointer", "any"},
+		ParamCount:   paramsCntTwo, // field:value
+		Example:      "@evl:validate required_if:Status active",
+	},
 }
 
 // ValidateDirective обновляем с учетом базового типа для указателей
 func ValidateDirective(dir Directive, ft FieldType) error {
-	baseType := ft.Name
-	isPointer := ft.IsPointer
-	if isPointer {
-		baseType = strings.TrimPrefix(baseType, "*")
+	// 1. Кастомные директивы с префиксом x- всегда валидны
+	if strings.HasPrefix(dir.Type, "x-") {
+		return nil
 	}
 
-	// Для указателей используем тип "pointer"
-	actualType := baseType
-	if ft.IsSlice {
-		actualType = "slice"
-	} else if ft.IsPointer {
-		actualType = "pointer"
+	var baseType string
+	var actualType string
+
+	if ft.IsGeneric && len(ft.GenericArgs) > 0 {
+		// Если это дженерик (например, Option[string]), берем внутренний тип
+		inner := ft.GenericArgs[0]
+		baseType = inner.Name
+		actualType = inner.Name
+
+		if inner.IsPointer {
+			actualType = "pointer"
+		} else if inner.IsSlice {
+			actualType = "slice"
+		}
+	} else {
+		// Обычная логика для не-дженериков
+		baseType = ft.Name
+
+		// Очищаем указатель от имени типа для baseType
+		if ft.IsPointer {
+			baseType = strings.TrimPrefix(baseType, "*")
+		}
+
+		// actualType определяет категорию типа для разрешенных списков
+		if ft.IsSlice {
+			actualType = "slice"
+		} else if ft.IsPointer {
+			actualType = "pointer"
+		} else {
+			actualType = baseType
+		}
 	}
 
 	info, ok := SupportedDirectives[DirectiveType(dir.Type)]
@@ -244,8 +276,13 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 			typeSupported = true
 			break
 		}
-		// Для конкретных типов
+		// Для конкретных типов (например, time.Time, time.Duration)
 		if allowedType == baseType {
+			typeSupported = true
+			break
+		}
+		// Если разрешен "any", подходит всё
+		if allowedType == "any" {
 			typeSupported = true
 			break
 		}
@@ -255,18 +292,22 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 		return fmt.Errorf("директива %s не поддерживается для типа %s", dir.Type, ft.String())
 	}
 
-	// Дополнительные проверки для конкретных директив (без изменений)
+	// Дополнительные проверки для конкретных директив
 	switch dir.Type {
 	case string(DirMin), string(DirMax):
 		if len(dir.Params) > 0 {
 			param := dir.Params[0]
-			if actualType == "string" || actualType == "slice" {
-				if val, err := strconv.Atoi(param); err != nil || val < 0 {
-					return fmt.Errorf("параметр %s должен быть неотрицательным целым числом", param)
-				}
-			} else if baseType == "time.Duration" {
+
+			// Определяем, является ли тип time.Duration (для простых типов, указателей и дженериков)
+			isTimeDuration := (baseType == "time.Duration")
+
+			if isTimeDuration {
 				if _, err := time.ParseDuration(param); err != nil {
 					return fmt.Errorf("параметр %s должен быть валидной длительностью (например, 1h, 30m, 500ms)", param)
+				}
+			} else if actualType == "string" || actualType == "slice" {
+				if val, err := strconv.Atoi(param); err != nil || val < 0 {
+					return fmt.Errorf("параметр %s должен быть неотрицательным целым числом", param)
 				}
 			} else {
 				if _, err := strconv.ParseFloat(param, 64); err != nil {
@@ -309,8 +350,16 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 			minVal := dir.Params[0]
 			maxVal := dir.Params[1]
 
-			// Для строк проверяем что min и max - числа и min <= max
-			if ft.IsSlice || ft.Name == "string" {
+			isTimeDuration := (baseType == "time.Duration")
+
+			if isTimeDuration {
+				if _, err := time.ParseDuration(minVal); err != nil {
+					return fmt.Errorf("минимальное значение должно быть валидной длительностью")
+				}
+				if _, err := time.ParseDuration(maxVal); err != nil {
+					return fmt.Errorf("максимальное значение должно быть валидной длительностью")
+				}
+			} else if ft.IsSlice || baseType == "string" {
 				minInt, errMin := strconv.Atoi(minVal)
 				maxInt, errMax := strconv.Atoi(maxVal)
 				if errMin != nil || errMax != nil {
@@ -320,7 +369,6 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 					return fmt.Errorf("min (%d) не может быть больше max (%d)", minInt, maxInt)
 				}
 			} else {
-				// Для чисел проверяем что min <= max
 				minFloat, errMin := strconv.ParseFloat(minVal, 64)
 				maxFloat, errMax := strconv.ParseFloat(maxVal, 64)
 				if errMin != nil || errMax != nil {

@@ -8,7 +8,7 @@ import (
 
 // CreateLocationRequest запрос на создание локации
 type CreateLocationRequest struct {
-	// @oa:rewrite.ref "github.com/arkannsk/elval/test/integration/geo_polymorphism/pkg/docs.FeatureDocs"
+	// @oa:rewrite.ref "github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 	Feature geojson.Feature `json:"feature"`
 
 	// Обычное поле
@@ -18,6 +18,6 @@ type CreateLocationRequest struct {
 // ListLocationsResponse ответ со списком локаций
 type ListLocationsResponse struct {
 	// Слайс структур с переопределением
-	// @oa:rewrite.ref "github.com/arkannsk/elval/test/integration/geo_polymorphism/pkg/docs.FeatureDocs"
+	// @oa:rewrite.ref "github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 	Features []geojson.Feature `json:"features"`
 }
