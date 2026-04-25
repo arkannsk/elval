@@ -14,29 +14,37 @@ Additionally, ElVal generates **OpenAPI 3.0 schemas** directly from your struct 
 
 ## Table of Contents
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Commands](#commands)
-- [Validation Annotations](#validation-annotations)
-  - [Required & Optional](#required--optional)
-  - [String Validators](#string-validators)
-  - [Numeric Validators](#numeric-validators)
-  - [Comparison Validators](#comparison-validators)
-  - [Enum Validators](#enum-validators)
-  - [Date & Duration Validators](#date--duration-validators)
-  - [Slice Validators](#slice-validators)
-  - [URL Validators](#url-validators)
-- [OpenAPI Generation](#openapi-generation)
-  - [Basic Annotations](#basic-annotations)
-  - [External Types & Stubs](#external-types--stubs)
-  - [Polymorphism (Discriminator & OneOf)](#polymorphism-discriminator--oneof)
-  - [Type Rewriting](#type-rewriting)
-- [Nested Structures & Generics](#nested-structures--generics)
-- [Custom Validators](#custom-validators)
-- [Decorators](#decorators)
-- [Linting](#linting)
-- [Performance](#performance)
+* [ElVal — Lightning Fast Go Validator with Code Generation &amp; OpenAPI Support](#elval--lightning-fast-go-validator-with-code-generation--openapi-support)
+    * [Table of Contents](#table-of-contents)
+    * [Features](#features)
+    * [Quick Start](#quick-start)
+        * [1\. Define your struct with annotations](#1-define-your-struct-with-annotations)
+        * [2\. Generate validation code](#2-generate-validation-code)
+        * [3\. Use the generated Validate method](#3-use-the-generated-validate-method)
+    * [Commands](#commands)
+    * [Annotations](#annotations)
+        * [Required &amp; Optional](#required--optional)
+        * [String Validators](#string-validators)
+        * [Numeric Validators](#numeric-validators)
+        * [Comparison Validators](#comparison-validators)
+        * [Enum Validators](#enum-validators)
+        * [Date Validators (time\.Time)](#date-validators-timetime)
+        * [Duration Validators (time\.Duration)](#duration-validators-timeduration)
+        * [Slice Validators](#slice-validators)
+        * [URL Validators](#url-validators)
+    * [Nested Structures](#nested-structures)
+    * [Custom Validators](#custom-validators)
+        * [Register validator](#register-validator)
+        * [Use in struct](#use-in-struct)
+    * [Decorators](#decorators)
+    * [OpenAPI](#openapi)
+        * [OpenAPI Annotations](#openapi-annotations)
+            * [External Types &amp; Stubs](#external-types--stubs)
+            * [Reference the Stub in your API Struct:](#reference-the-stub-in-your-api-struct)
+            * [Polymorphism (Discriminator &amp; OneOf):](#polymorphism-discriminator--oneof)
+            * [Type Rewriting](#type-rewriting)
+            * [Nested Structures &amp; Generics](#nested-structures--generics)
+    * [Performance](#performance)
 
 ## Features
 
@@ -361,7 +369,7 @@ type FeatureDocs struct {
 }
 ```
 
-Reference the Stub in your API Struct:
+#### Reference the Stub in your API Struct:
 
 ```go
 package api
@@ -376,7 +384,7 @@ type CreateLocationRequest struct {
     UserID string `json:"user_id"`
 }
 ```
-Polymorphism (Discriminator & OneOf):
+#### Polymorphism (Discriminator & OneOf):
 
 Support for discriminated unions using @oa:discriminator and @oa:oneOf. This is useful for modeling heterogeneous 
 collections like GeoJSON geometries.
