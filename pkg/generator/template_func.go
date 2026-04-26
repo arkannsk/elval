@@ -56,6 +56,12 @@ var templateFucMap = template.FuncMap{
 	"hasPrefix":  strings.HasPrefix,
 	"regexMatch": regexp.MatchString,
 	"split":      strings.Split,
+	"title": func(s string) string {
+		if len(s) == 0 {
+			return s
+		}
+		return strings.ToUpper(s[:1]) + s[1:]
+	},
 	"trim":       strings.TrimSpace,
 	"trimPrefix": strings.TrimPrefix,
 	"trimSuffix": strings.TrimSuffix,
@@ -151,6 +157,15 @@ var templateFucMap = template.FuncMap{
 		// 3. Локальный тип (User) → module/pkgPath.Type (точка перед типом)
 		return fmt.Sprintf("%s/%s.%s", module, pkgPath, typeName)
 	},
+	// Для разделения строки enum
+	"splitList": func(s string, sep string) []string {
+		parts := strings.Split(s, sep)
+		var result []string
+		for _, p := range parts {
+			result = append(result, strings.TrimSpace(p))
+		}
+		return result
+	},
 	"generateSchemaTypeCode": func(typeName string, prefix string) string {
 		switch typeName {
 		case "string":
@@ -159,12 +174,10 @@ var templateFucMap = template.FuncMap{
 			return fmt.Sprintf(`%s.Type = "string" %s.Format = "date-time"`, prefix, prefix)
 		case "bool":
 			return fmt.Sprintf("%s.Type = \"boolean\"", prefix)
-
 		// Integers
 		case "int", "int8", "int16", "int32", "int64",
 			"uint", "uint8", "uint16", "uint32", "uint64":
 			return fmt.Sprintf("%s.Type = \"integer\"", prefix)
-
 		// Numbers
 		case "float32", "float64":
 			return fmt.Sprintf("%s.Type = \"number\"", prefix)

@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"log"
 	"path/filepath"
+	"strings"
 )
 
 // Parser парсит Go-файлы и извлекает аннотации валидации
@@ -196,10 +197,10 @@ func (p *Parser) parseFieldsSecondPass(
 				oaAnnotations := p.annotationParser.ParseFieldOaAnnotations(field)
 
 				// Извлекаем специфичные поля и фильтруем список аннотаций
-				rewriteRef, rewriteType, isFieldIgnored, remainingOa := p.processFieldAnnotations(oaAnnotations)
+				fAnot := p.processFieldAnnotations(oaAnnotations)
 
 				// Если поле игнорируется, пропускаем его добавление
-				if isFieldIgnored {
+				if fAnot.IsIgnored {
 					if p.verbose {
 						log.Printf("DEBUG: Skipping ignored field %s in struct %s", fieldName, s.Name)
 					}
@@ -212,11 +213,13 @@ func (p *Parser) parseFieldsSecondPass(
 					Directives:    directives,
 					Decorators:    p.parseFieldDecorators(field),
 					Line:          p.fset.Position(field.Pos()).Line,
-					OaAnnotations: remainingOa,
+					OaAnnotations: fAnot.Remaining,
 					IsEmbedded:    len(field.Names) == 0,
-					OaRewriteRef:  rewriteRef,
-					OaRewriteType: rewriteType,
+					OaRewriteRef:  fAnot.RewriteRef,
+					OaRewriteType: fAnot.RewriteType,
 					IsIgnored:     false, // Поле уже отфильтровано, но для надежности ставим false
+					OaIn:          fAnot.OaIn,
+					OaParamName:   fAnot.OaParamName,
 				})
 			}
 
@@ -245,21 +248,41 @@ func (p *Parser) parseFieldsSecondPass(
 
 // processFieldAnnotations обрабатывает список аннотаций поля, извлекая специфичные значения
 // и возвращая очищенный список аннотаций для дальнейшего использования в шаблонах.
-func (p *Parser) processFieldAnnotations(annotations []OaAnnotation) (rewriteRef, rewriteType string, isIgnored bool, remaining []OaAnnotation) {
-	remaining = make([]OaAnnotation, 0, len(annotations))
+func (p *Parser) processFieldAnnotations(annotations []OaAnnotation) parseFieldAnnotations {
+	result := parseFieldAnnotations{}
+	remaining := make([]OaAnnotation, 0, len(annotations))
 
 	for _, ann := range annotations {
 		switch ann.Type {
 		case "rewrite.ref":
-			rewriteRef = trimQuotes(ann.Value)
+			result.RewriteRef = trimQuotes(ann.Value)
 		case "rewrite.type":
-			rewriteType = trimQuotes(ann.Value)
+			result.RewriteType = trimQuotes(ann.Value)
 		case "ignore":
-			isIgnored = true
+			result.IsIgnored = true
+		case "in":
+			// Формат: "path id" или "query fields"
+			parts := strings.Fields(ann.Value)
+			if len(parts) >= 1 {
+				result.OaIn = parts[0] // "path", "query", etc.
+			}
+			if len(parts) >= 2 {
+				result.OaParamName = parts[1] // "id", "fields", etc.
+			}
 		default:
 			remaining = append(remaining, ann)
 		}
 	}
+	result.Remaining = remaining
 
-	return rewriteRef, rewriteType, isIgnored, remaining
+	return result
+}
+
+type parseFieldAnnotations struct {
+	RewriteRef  string
+	RewriteType string
+	IsIgnored   bool
+	OaIn        string
+	OaParamName string
+	Remaining   []OaAnnotation
 }

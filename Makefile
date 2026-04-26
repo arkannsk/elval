@@ -20,10 +20,10 @@ gen: install
 	go generate ./...
 
 gen-spec:
-	go run ./cmd/elval-gen generate -i .
+	go run ./cmd/elval-gen gen -i ./..
 
 # unit tests. R=1 for race flag, C=1 for cover
-test: gen
+test: gen-spec
 	go test $(if $(R),-race,) $(if $(C),-cover,) ./...
 
 # benchmark

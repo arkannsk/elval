@@ -131,7 +131,7 @@ func (tp *TypeParser) parseArray(t *ast.ArrayType, allStructs map[string]*Struct
 			IsStruct:    inner.IsStruct,
 			IsCustom:    inner.IsCustom,
 			IsGeneric:   inner.IsGeneric,
-			GenericBase: inner.GenericBase,
+			GenericBase: inner.Name,
 			GenericArgs: inner.GenericArgs,
 		}
 	}
@@ -143,7 +143,7 @@ func (tp *TypeParser) parseArray(t *ast.ArrayType, allStructs map[string]*Struct
 		IsStruct:    inner.IsStruct,
 		IsCustom:    inner.IsCustom,
 		IsGeneric:   inner.IsGeneric,
-		GenericBase: inner.GenericBase,
+		GenericBase: inner.Name,
 		GenericArgs: inner.GenericArgs,
 		BaseType:    lenStr,
 	}

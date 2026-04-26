@@ -1,0 +1,171 @@
+{{ define "openapi/params" }}
+    // OaParams возвращает параметры OpenAPI для этой структуры
+    func (v *{{ .Name }}) OaParams() []*oa.Parameter {
+    params := []*oa.Parameter{}
+    {{- range $field := .Fields }}
+        {{- if ne $field.OaIn "" }}
+
+            {{/* Определяем имя параметра */}}
+            {{- $paramName := $field.Name }}
+            {{- if ne $field.OaParamName "" }}
+                {{- $paramName = $field.OaParamName }}
+            {{- end }}
+
+            {{/* Определяем Go-тип для конвертации в OpenAPI */}}
+            {{- $goTypeName := "" -}}
+            {{- if $field.Type.IsSlice -}}
+                {{- $goTypeName = $field.Type.GenericBase -}}
+            {{- else if $field.Type.IsPointer -}}
+                {{- $goTypeName = $field.Type.GenericBase -}}
+            {{- else -}}
+                {{- $goTypeName = $field.Type.Name -}}
+            {{- end }}
+
+            {{/* Конвертируем Go-тип в OpenAPI-тип */}}
+            {{- $oaType := "object" -}}
+
+            {{- /* Если это слайс, тип параметра всегда array */}}
+            {{- if $field.Type.IsSlice -}}
+                {{- $oaType = "array" -}}
+            {{- else -}}
+                {{- if eq $goTypeName "string" -}}
+                    {{- $oaType = "string" -}}
+                {{- else if or (eq $goTypeName "int") (eq $goTypeName "int8") (eq $goTypeName "int16") (eq $goTypeName "int32") (eq $goTypeName "int64") -}}
+                    {{- $oaType = "integer" -}}
+                {{- else if or (eq $goTypeName "uint") (eq $goTypeName "uint8") (eq $goTypeName "uint16") (eq $goTypeName "uint32") (eq $goTypeName "uint64") -}}
+                    {{- $oaType = "integer" -}}
+                {{- else if or (eq $goTypeName "float32") (eq $goTypeName "float64") -}}
+                    {{- $oaType = "number" -}}
+                {{- else if eq $goTypeName "bool" -}}
+                    {{- $oaType = "boolean" -}}
+                {{- else if eq $goTypeName "time.Time" -}}
+                    {{- $oaType = "string" -}}
+                {{- end }}
+            {{- end }}
+
+            params = append(params, &oa.Parameter{
+            Name:     {{ printf "%q" $paramName }},
+            {{- if eq $field.OaIn "path" }}
+                In:       oa.ParamPath,
+            {{- else if eq $field.OaIn "query" }}
+                In:       oa.ParamQuery,
+            {{- else if eq $field.OaIn "header" }}
+                In:       oa.ParamHeader,
+            {{- else if eq $field.OaIn "cookie" }}
+                In:       oa.ParamCookie,
+            {{- end }}
+            Required: {{ if eq $field.OaIn "path" }}true{{ else }}false{{ end }},
+            Schema:   v.getFieldSchema({{ printf "%q" $field.Name }}),
+            })
+        {{- end }}
+    {{- end }}
+    return params
+    }
+
+    // getFieldSchema вспомогательный метод для получения схемы конкретного поля
+    func (v *{{ .Name }}) getFieldSchema(fieldName string) *oa.Schema {
+    switch fieldName {
+    {{- range $field := .Fields }}
+        case {{ printf "%q" $field.Name }}:
+        {{/* Определяем Go-тип элемента (для слайсов) или самого поля */}}
+        {{- $goTypeName := "" -}}
+        {{- if $field.Type.IsSlice -}}
+            {{- $goTypeName = $field.Type.GenericBase -}}
+        {{- else if $field.Type.IsPointer -}}
+            {{- $goTypeName = $field.Type.GenericBase -}}
+        {{- else -}}
+            {{- $goTypeName = $field.Type.Name -}}
+        {{- end }}
+
+        {{/* Конвертируем в OpenAPI тип */}}
+        {{- $oaType := "object" -}}
+
+        {{- /* Если это слайс, тип схемы - array */}}
+        {{- if $field.Type.IsSlice -}}
+            {{- $oaType = "array" -}}
+        {{- else -}}
+            {{- if eq $goTypeName "string" -}}
+                {{- $oaType = "string" -}}
+            {{- else if or (eq $goTypeName "int") (eq $goTypeName "int64") (eq $goTypeName "uint") (eq $goTypeName "uint64") -}}
+                {{- $oaType = "integer" -}}
+            {{- else if or (eq $goTypeName "float32") (eq $goTypeName "float64") -}}
+                {{- $oaType = "number" -}}
+            {{- else if eq $goTypeName "bool" -}}
+                {{- $oaType = "boolean" -}}
+            {{- else if eq $goTypeName "time.Time" -}}
+                {{- $oaType = "string" -}}
+            {{- end }}
+        {{- end }}
+
+        {{/* Извлекаем формат из аннотаций @oa:format */}}
+        {{- $format := "" -}}
+        {{- range $ann := $field.OaAnnotations -}}
+            {{- if eq $ann.Type "format" -}}
+                {{- $format = $ann.Value -}}
+            {{- end -}}
+        {{- end -}}
+
+        {{/* Извлекаем enum из аннотаций @oa:enum */}}
+        {{- $enumStr := "" -}}
+        {{- range $ann := $field.OaAnnotations -}}
+            {{- if eq $ann.Type "enum" -}}
+                {{- $enumStr = $ann.Value -}}
+            {{- end -}}
+        {{- end -}}
+
+        return &oa.Schema{
+        Type: {{ printf "%q" $oaType }},
+        {{- if ne $format "" }}
+            Format: {{ printf "%q" $format }},
+        {{- end }}
+
+        {{- /* Если это слайс, добавляем Items */}}
+        {{- if $field.Type.IsSlice }}
+            {{/* Определяем тип элемента слайса из GenericBase */}}
+            {{- $itemsGoType := $field.Type.GenericBase -}}
+
+            {{- $itemsOaType := "object" -}}
+            {{- /* Явная проверка для string */}}
+            {{- if eq $itemsGoType "string" -}}
+                {{- $itemsOaType = "string" -}}
+            {{- else if or (eq $itemsGoType "int") (eq $itemsGoType "int64") (eq $itemsGoType "uint") (eq $itemsGoType "uint64") -}}
+                {{- $itemsOaType = "integer" -}}
+            {{- else if or (eq $itemsGoType "float32") (eq $itemsGoType "float64") -}}
+                {{- $itemsOaType = "number" -}}
+            {{- else if eq $itemsGoType "bool" -}}
+                {{- $itemsOaType = "boolean" -}}
+            {{- else if eq $itemsGoType "time.Time" -}}
+                {{- $itemsOaType = "string" -}}
+            {{- end }}
+
+            Items: &oa.Schema{
+            Type: {{ printf "%q" $itemsOaType }},
+            },
+        {{- end }}
+
+        {{- /* Если есть enum, генерируем массив значений */}}
+        {{- if ne $enumStr "" }}
+            Enum: []any{
+            {{- $first := true -}}
+            {{- /* ВАЖНО: Используйте splitList, который должен быть добавлен в FuncMap генератора */}}
+            {{- range $val := splitList $enumStr "," -}}
+                {{- if not $first }}, {{ end -}}
+                {{- $first = false -}}
+                {{- $cleanVal := trimQuotes $val -}}
+                {{- if eq $oaType "string" }}
+                    {{ printf "%q" $cleanVal }}
+                {{- else if or (eq $oaType "integer") (eq $oaType "number") }}
+                    {{ $cleanVal }}
+                {{- else }}
+                    {{ printf "%q" $cleanVal }}
+                {{- end }}
+            {{- end }}
+            },
+        {{- end }}
+        }
+    {{- end }}
+    default:
+    return nil
+    }
+    }
+{{ end }}

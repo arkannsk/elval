@@ -66,18 +66,27 @@ func generateCmd() {
 	var generateOpenAPI bool
 
 	genFlags := flag.NewFlagSet("generate", flag.ExitOnError)
-	genFlags.StringVar(&inputDir, "input", ".", "")
-	genFlags.StringVar(&inputDir, "i", ".", "")
-	genFlags.StringVar(&outputDir, "output", "", "")
-	genFlags.StringVar(&outputDir, "o", "", "")
-	genFlags.BoolVar(&verbose, "v", false, "")
-	genFlags.BoolVar(&generateOpenAPI, "openapi", false, "")
+	// Используем разные переменные для кратких и полных флагов, чтобы не было конфликтов при парсинге
+	genFlags.StringVar(&inputDir, "input", ".", "Input directory")
+	genFlags.StringVar(&inputDir, "i", ".", "Short for -input")
+
+	genFlags.StringVar(&outputDir, "output", "", "Output directory (default: same as input)")
+	genFlags.StringVar(&outputDir, "o", "", "Short for -output")
+
+	genFlags.BoolVar(&verbose, "v", false, "Verbose output")
+	genFlags.BoolVar(&verbose, "verbose", false, "Verbose output") // Алиас
+
+	genFlags.BoolVar(&generateOpenAPI, "openapi", false, "Generate OpenAPI schemas")
 
 	genFlags.Parse(os.Args[2:])
 
 	if outputDir == "" {
 		outputDir = inputDir
 	}
+
+	// Нормализуем пути
+	inputDir, _ = filepath.Abs(inputDir)
+	outputDir, _ = filepath.Abs(outputDir)
 
 	if verbose {
 		fmt.Printf("Generating code for %s\n", inputDir)
@@ -92,27 +101,44 @@ func generateCmd() {
 		log.Fatal(err)
 	}
 
-	files, err := filepath.Glob(filepath.Join(inputDir, "*.go"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	generated := 0
 	skipped := 0
+	errors := 0
 
-	for _, file := range files {
-		if strings.HasSuffix(file, ".gen.go") || strings.HasSuffix(file, ".oa.gen.go") {
-			continue
+	// Рекурсивный обход директорий
+	err = filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Пропускаем директории
+		if info.IsDir() {
+			return nil
+		}
+
+		name := info.Name()
+
+		// ИГНОРИРУЕМ сгенерированные файлы, чтобы избежать person.gen.gen.go
+		if strings.HasSuffix(name, ".gen.go") ||
+			strings.HasSuffix(name, ".oa.gen.go") ||
+			strings.HasSuffix(name, "_test.go") {
+			return nil
+		}
+
+		// Обрабатываем только исходные .go файлы
+		if !strings.HasSuffix(name, ".go") {
+			return nil
 		}
 
 		if verbose {
-			fmt.Printf("  Processing: %s\n", filepath.Base(file))
+			fmt.Printf("  Processing: %s\n", path)
 		}
 
-		result, err := p.ParseFile(file)
+		result, err := p.ParseFile(path)
 		if err != nil {
-			log.Printf("Parse error %s: %v", file, err)
-			continue
+			log.Printf("Parse error %s: %v", path, err)
+			errors++
+			return nil // Продолжаем обработку других файлов
 		}
 
 		if len(result.Structs) == 0 {
@@ -120,25 +146,51 @@ func generateCmd() {
 				fmt.Printf("    Skip (no structs with annotations)\n")
 			}
 			skipped++
-			continue
+			return nil
 		}
 
-		if err := gen.Generate(result, file); err != nil {
-			log.Printf("Generation error for %s: %v", file, err)
-			continue
+		// Определяем относительный путь для сохранения структуры папок в outputDir
+		relPath, err := filepath.Rel(inputDir, filepath.Dir(path))
+		if err != nil {
+			relPath = "."
+		}
+
+		targetDir := filepath.Join(outputDir, relPath)
+
+		// Создаем целевую директорию, если её нет
+		if err := os.MkdirAll(targetDir, 0755); err != nil {
+			log.Printf("Error creating dir %s: %v", targetDir, err)
+			return nil
+		}
+
+		// Генерируем файл
+		baseName := strings.TrimSuffix(filepath.Base(path), ".go")
+		outFilePath := filepath.Join(targetDir, baseName+".gen.go")
+
+		if err := gen.Generate(result, outFilePath); err != nil {
+			log.Printf("Generation error for %s: %v", path, err)
+			errors++
+			return nil
 		}
 
 		generated++
 		if verbose {
-			fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".gen.go")
+			fmt.Printf("    Generated %s\n", outFilePath)
 			if generateOpenAPI {
-				fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".oa.gen.go")
+				oaOutPath := filepath.Join(targetDir, baseName+".oa.gen.go")
+				fmt.Printf("    Generated %s\n", oaOutPath)
 			}
 		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Fatalf("Walk error: %v", err)
 	}
 
 	if verbose {
-		fmt.Printf("\nStatistics: generated %d, skipped %d\n", generated, skipped)
+		fmt.Printf("\nStatistics: generated %d, skipped %d, errors %d\n", generated, skipped, errors)
 	}
 }
 

@@ -38,3 +38,23 @@ func NewSchema() *Schema {
 		Required:   []string{},
 	}
 }
+
+// ParamType тип параметра
+type ParamType string
+
+const (
+	ParamPath   ParamType = "path"
+	ParamQuery  ParamType = "query"
+	ParamHeader ParamType = "header"
+	ParamCookie ParamType = "cookie"
+)
+
+// Parameter описание параметра для OpenAPI
+type Parameter struct {
+	Name        string    `json:"name"`
+	In          ParamType `json:"in"`
+	Description string    `json:"description,omitempty"`
+	Required    bool      `json:"required,omitempty"`
+	Schema      *Schema   `json:"schema"`
+	Example     any       `json:"example,omitempty"`
+}

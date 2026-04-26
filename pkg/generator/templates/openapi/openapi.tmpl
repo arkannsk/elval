@@ -9,4 +9,42 @@
 
 {{ range $struct := .Structs }}
     {{ template "openapi/schema" $struct }}
+
+    {{/* Проверяем, есть ли в структуре поля с @oa:in */}}
+    {{ $hasHttpParams := false }}
+    {{ range $struct.Fields }}
+        {{ if ne .OaIn "" }}
+            {{ $hasHttpParams = true }}
+        {{ end }}
+    {{ end }}
+
+    {{ if $hasHttpParams }}
+        {{ template "openapi/params" $struct }}
+        {{ template "http/parser" $struct }}
+    {{ end }}
 {{ end }}
+
+{{/*
+   Блок: toOpenAPIType
+   Конвертирует Go тип в OpenAPI тип
+*/}}
+{{/*{{ define "toOpenAPIType" }}*/}}
+{{/*    {{ $type := . -}}*/}}
+{{/*    {{ if eq $type "string" -}}*/}}
+{{/*        string*/}}
+{{/*    {{ else if or (eq $type "int") (eq $type "int8") (eq $type "int16") (eq $type "int32") (eq $type "int64") -}}*/}}
+{{/*        integer*/}}
+{{/*    {{ else if or (eq $type "uint") (eq $type "uint8") (eq $type "uint16") (eq $type "uint32") (eq $type "uint64") -}}*/}}
+{{/*        integer*/}}
+{{/*    {{ else if or (eq $type "float32") (eq $type "float64") -}}*/}}
+{{/*        number*/}}
+{{/*    {{ else if eq $type "bool" -}}*/}}
+{{/*        boolean*/}}
+{{/*    {{ else if eq $type "time.Time" -}}*/}}
+{{/*        string*/}}
+{{/*    {{ else if hasPrefix $type "[]" -}}*/}}
+{{/*        array*/}}
+{{/*    {{ else -}}*/}}
+{{/*        object*/}}
+{{/*    {{ end -}}*/}}
+{{/*{{ end }}*/}}

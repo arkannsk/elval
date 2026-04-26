@@ -151,11 +151,11 @@ func DurationNotZero() ValidationRule[time.Duration] {
 	return validator.DurationNotZero()
 }
 
-func DurationMin(min time.Duration) ValidationRule[time.Duration] {
+func DurationMin(min string) ValidationRule[time.Duration] {
 	return validator.DurationMin(min)
 }
 
-func DurationMax(max time.Duration) ValidationRule[time.Duration] {
+func DurationMax(max string) ValidationRule[time.Duration] {
 	return validator.DurationMax(max)
 }
 

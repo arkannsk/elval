@@ -48,8 +48,8 @@ func main() {
 	// Duration
 	err = elval.Validate(5*time.Second,
 		elval.RequiredDuration(),
-		elval.DurationMin(1*time.Second),
-		elval.DurationMax(10*time.Second),
+		elval.DurationMin("1s"),
+		elval.DurationMax("10s"),
 	)
 	fmt.Println("Duration:", err)
 
