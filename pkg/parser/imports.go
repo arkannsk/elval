@@ -47,10 +47,53 @@ func CollectValidationImports(structs []Struct) map[string]string {
 	return required
 }
 
-// CollectOpenAPIImports собирает импорты для OpenAPI-схем
+// CollectOpenAPIImports собирает импорты для OpenAPI-схем и HTTP парсинга
 func CollectOpenAPIImports(structs []Struct) map[string]string {
-	return map[string]string{
+	required := map[string]string{
 		"oa": "github.com/arkannsk/elval/pkg/oa",
+	}
+
+	for _, s := range structs {
+		for _, field := range s.Fields {
+			// Проверяем, есть ли у поля аннотация @oa:in
+			if field.OaIn != "" {
+				// Добавляем net/http для Parse(r *http.Request)
+				required["net/http"] = "net/http"
+
+				// Проверяем тип поля для strconv и time
+				checkTypeForHTTPImports(field.Type, required)
+			}
+		}
+	}
+
+	return required
+}
+
+// checkTypeForHTTPImports проверяет тип поля и добавляет strconv/time если нужно
+func checkTypeForHTTPImports(ft FieldType, required map[string]string) {
+	// Определяем базовый тип
+	baseName := ft.Name
+	if ft.IsSlice {
+		baseName = ft.GenericBase // Для []int берем "int"
+	} else if ft.IsPointer {
+		baseName = ft.GenericBase // Для *int берем "int"
+	}
+
+	// Числовые типы требуют strconv
+	if isNumericType(baseName) {
+		required["strconv"] = "strconv"
+	}
+
+	// Time требует time
+	if baseName == "time.Time" || baseName == "time.Duration" {
+		required["time"] = "time"
+	}
+
+	// Рекурсивная проверка для сложных типов (если нужно)
+	if ft.IsGeneric && len(ft.GenericArgs) > 0 {
+		for _, arg := range ft.GenericArgs {
+			checkTypeForHTTPImports(arg, required)
+		}
 	}
 }
 
@@ -73,4 +116,15 @@ func checkTypeForImports(ft FieldType, required map[string]string, needsElval *b
 			required["time"] = "time"
 		}
 	}
+}
+
+// isNumericType проверяет, является ли строка именем числового типа Go
+func isNumericType(name string) bool {
+	switch name {
+	case "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64":
+		return true
+	}
+	return false
 }

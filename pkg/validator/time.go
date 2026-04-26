@@ -81,8 +81,15 @@ func TimeNotZero() ValidationRule[time.Time] {
 	}
 }
 
-// DurationMin проверяет минимальную длительность
-func DurationMin(min time.Duration) ValidationRule[time.Duration] {
+// DurationMin проверяет минимальную длительность (принимает строку для удобства генерации)
+func DurationMin(minStr string) ValidationRule[time.Duration] {
+	min, err := time.ParseDuration(minStr)
+	if err != nil {
+		// В случае ошибки парсинга в рантайме (хотя это маловероятно при корректной генерации)
+		return func(value time.Duration) *errs.ValidationError {
+			return errs.NewValidationError("min", "invalid duration format: %v", minStr)
+		}
+	}
 	return func(value time.Duration) *errs.ValidationError {
 		if value < min {
 			return errs.NewValidationError("min", "duration min: %v", min)
@@ -92,10 +99,16 @@ func DurationMin(min time.Duration) ValidationRule[time.Duration] {
 }
 
 // DurationMax проверяет максимальную длительность
-func DurationMax(max time.Duration) ValidationRule[time.Duration] {
+func DurationMax(maxStr string) ValidationRule[time.Duration] {
+	max, err := time.ParseDuration(maxStr)
+	if err != nil {
+		return func(value time.Duration) *errs.ValidationError {
+			return errs.NewValidationError("max", "invalid duration format: %v", maxStr)
+		}
+	}
 	return func(value time.Duration) *errs.ValidationError {
 		if value > max {
-			return errs.NewValidationError("max", "max date: %v", max)
+			return errs.NewValidationError("max", "duration max: %v", max)
 		}
 		return nil
 	}

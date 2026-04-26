@@ -1,6 +1,6 @@
 package multiline_description
 
-//go:generate elval-gen gen -input . -openapi -v
+//go:generate elval-gen gen -input . -openapi
 
 type User struct {
 	// @oa:title "User Name"
