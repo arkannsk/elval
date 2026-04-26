@@ -15,7 +15,7 @@
         {{- else if eq $oa.Type "description" }}
             prop.Description = {{ oaString $oa.Value }}
         {{- else if eq $oa.Type "example" }}
-            prop.Example = {{ safeExample $oa.Value }}
+            prop.Example = {{ printf "%q" (trimQuotes $oa.Value) }}
         {{- else if eq $oa.Type "format" }}
             {{- if eq $oa.Value "email" }}
                 prop.Format = "email"

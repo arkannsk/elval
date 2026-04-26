@@ -29,9 +29,9 @@ func (v *PointDocs) OaSchema() *oa.Schema {
 
 		prop.Items.Type = "number"
 
-		prop.Title = "Coordinates"
 		prop.Description = "[longitude, latitude]"
-		prop.Example = `[37.6173, 55.7558]`
+		prop.Title = "Coordinates"
+		prop.Example = "[37.6173, 55.7558]"
 
 		schema.Properties["coordinates"] = prop
 	}
@@ -67,8 +67,8 @@ func (v *PolygonDocs) OaSchema() *oa.Schema {
 
 		prop.Items.Items.Type = "number"
 
-		prop.Title = "Coordinates"
 		prop.Description = "Array of linear rings"
+		prop.Title = "Coordinates"
 
 		schema.Properties["coordinates"] = prop
 	}
@@ -90,8 +90,8 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 	{
 		prop := oa.Schema{}
 
-		prop.Title = "Geometry"
 		prop.Description = "The geometric shape"
+		prop.Title = "Geometry"
 		prop.OneOf = []oa.Schema{
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PointDocs"},
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PolygonDocs"},
@@ -102,8 +102,8 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 	{
 		prop := oa.Schema{}
 
-		prop.Title = "Properties"
 		prop.Description = "Arbitrary properties"
+		prop.Title = "Properties"
 
 		schema.Properties["properties"] = prop
 	}

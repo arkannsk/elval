@@ -27,7 +27,6 @@ func NewParser(verbose bool) *Parser {
 	}
 }
 
-// ParseFile парсит файл и возвращает структуры с аннотациями
 func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	absFile, err := filepath.Abs(filename)
 	if err != nil {
@@ -61,6 +60,21 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 	}
 
 	// 3. Первый проход: собираем все структуры и алиасы
+	allStructs, typeAliases := p.parseStructsFirstPass(node, filename, modInfo)
+	p.typeParser.typeAliases = typeAliases
+
+	// 4. Второй проход: парсим поля структур и заполняем результат
+	p.parseFieldsSecondPass(node, allStructs, result, filename, modInfo)
+
+	if p.verbose {
+		log.Printf("DEBUG: Parsed %s, found %d structs in result", filename, len(result.Structs))
+	}
+
+	return result, nil
+}
+
+// parseStructsFirstPass проходит по всем объявлениям типов и создает карту структур.
+func (p *Parser) parseStructsFirstPass(node *ast.File, filename string, modInfo *ModuleInfo) (map[string]*Struct, map[string]string) {
 	allStructs := make(map[string]*Struct)
 	typeAliases := make(map[string]string)
 
@@ -77,8 +91,27 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 			}
 
 			name := typeSpec.Name.Name
-			switch base := typeSpec.Type.(type) {
-			case *ast.StructType:
+
+			// Проверяем, является ли тип структурой
+			if _, isStruct := typeSpec.Type.(*ast.StructType); isStruct {
+
+				// Проверяем @oa:ignore на уровне структуры ДО добавления в карту
+				structOaAnnotations := p.annotationParser.ParseStructOaAnnotations(genDecl, typeSpec)
+				isIgnored := false
+				for _, ann := range structOaAnnotations {
+					if ann.Type == "ignore" {
+						isIgnored = true
+						break
+					}
+				}
+
+				if isIgnored {
+					if p.verbose {
+						log.Printf("DEBUG: Skipping ignored struct %s in %s", name, filename)
+					}
+					continue // Пропускаем структуру целиком
+				}
+
 				allStructs[name] = &Struct{
 					Name:        name,
 					File:        filename,
@@ -86,18 +119,30 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					Package:     modInfo.Package,
 					PackagePath: modInfo.PackagePath,
 					Module:      modInfo.Module,
+					IsIgnored:   false,
 				}
-			case *ast.Ident:
-				typeAliases[name] = base.Name
-			case *ast.SelectorExpr:
-				typeAliases[name] = exprToString(base)
+			} else {
+				// Обработка алиасов
+				switch base := typeSpec.Type.(type) {
+				case *ast.Ident:
+					typeAliases[name] = base.Name
+				case *ast.SelectorExpr:
+					typeAliases[name] = exprToString(base)
+				}
 			}
 		}
 	}
 
-	p.typeParser.typeAliases = typeAliases
+	return allStructs, typeAliases
+}
 
-	// 4. Второй проход: парсим поля структур
+// parseFieldsSecondPass проходит по структурам, парсит их поля и добавляет в result.Structs
+func (p *Parser) parseFieldsSecondPass(
+	node *ast.File,
+	allStructs map[string]*Struct,
+	result *ParseResult,
+	filename string,
+	modInfo *ModuleInfo) {
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok || genDecl.Tok != token.TYPE {
@@ -110,13 +155,14 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 				continue
 			}
 
-			structType, ok := typeSpec.Type.(*ast.StructType)
-			if !ok {
+			// Берем структуру из карты. Если её там нет (например, это алиас или игнорируемая структура), пропускаем
+			s := allStructs[typeSpec.Name.Name]
+			if s == nil {
 				continue
 			}
 
-			s := allStructs[typeSpec.Name.Name]
-			if s == nil {
+			structType, ok := typeSpec.Type.(*ast.StructType)
+			if !ok {
 				continue
 			}
 
@@ -146,35 +192,36 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 					}
 				}
 
-				// Парсим OA-аннотации и обрабатываем @oa-rewrite: ref
+				// Парсим OA-аннотации
 				oaAnnotations := p.annotationParser.ParseFieldOaAnnotations(field)
-				var rewriteRef, rewriteType string
-				remainingOa := make([]OaAnnotation, 0, len(oaAnnotations))
-				for _, ann := range oaAnnotations {
-					if ann.Type == "rewrite.type" {
-						rewriteType = trimQuotes(ann.Value)
+
+				// Извлекаем специфичные поля и фильтруем список аннотаций
+				rewriteRef, rewriteType, isFieldIgnored, remainingOa := p.processFieldAnnotations(oaAnnotations)
+
+				// Если поле игнорируется, пропускаем его добавление
+				if isFieldIgnored {
+					if p.verbose {
+						log.Printf("DEBUG: Skipping ignored field %s in struct %s", fieldName, s.Name)
 					}
-					if ann.Type == "rewrite.ref" {
-						rewriteRef = trimQuotes(ann.Value)
-					} else {
-						remainingOa = append(remainingOa, ann)
-					}
+					continue
 				}
 
 				s.Fields = append(s.Fields, Field{
 					Name:          fieldName,
 					Type:          fieldType,
 					Directives:    directives,
-					Decorators:    p.parseFieldDecorators(field), // можно тоже вынести
+					Decorators:    p.parseFieldDecorators(field),
 					Line:          p.fset.Position(field.Pos()).Line,
 					OaAnnotations: remainingOa,
 					IsEmbedded:    len(field.Names) == 0,
 					OaRewriteRef:  rewriteRef,
 					OaRewriteType: rewriteType,
+					IsIgnored:     false, // Поле уже отфильтровано, но для надежности ставим false
 				})
 			}
 
-			// Парсим аннотации структуры
+			// Парсим аннотации структуры (discriminator, oneOf и т.д.)
+			// Примечание: мы уже проверили ignore в первом проходе, но здесь нам нужны остальные аннотации
 			structOaAnnotations := p.annotationParser.ParseStructOaAnnotations(genDecl, typeSpec)
 			p.annotationParser.ExtractDiscriminator(s, structOaAnnotations)
 
@@ -190,13 +237,29 @@ func (p *Parser) ParseFile(filename string) (*ParseResult, error) {
 				}
 			}
 
+			// Добавляем структуру в результат
 			result.Structs = append(result.Structs, *s)
 		}
 	}
+}
 
-	if p.verbose {
-		log.Printf("DEBUG: Parsed %s, node.Name.Name=%q", filename, node.Name.Name)
+// processFieldAnnotations обрабатывает список аннотаций поля, извлекая специфичные значения
+// и возвращая очищенный список аннотаций для дальнейшего использования в шаблонах.
+func (p *Parser) processFieldAnnotations(annotations []OaAnnotation) (rewriteRef, rewriteType string, isIgnored bool, remaining []OaAnnotation) {
+	remaining = make([]OaAnnotation, 0, len(annotations))
+
+	for _, ann := range annotations {
+		switch ann.Type {
+		case "rewrite.ref":
+			rewriteRef = trimQuotes(ann.Value)
+		case "rewrite.type":
+			rewriteType = trimQuotes(ann.Value)
+		case "ignore":
+			isIgnored = true
+		default:
+			remaining = append(remaining, ann)
+		}
 	}
 
-	return result, nil
+	return rewriteRef, rewriteType, isIgnored, remaining
 }

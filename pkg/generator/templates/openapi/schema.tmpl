@@ -8,7 +8,7 @@
     }
 
     {{- if .Description }}
-        schema.Description = {{ trimQuotes .Description | printf "%q" }}
+        schema.Description = {{ oaString .Description }}
     {{- end }}
 
     {{- range $field := .Fields }}

@@ -35,7 +35,7 @@ func (v *User) OaSchema() *oa.Schema {
 	{
 		prop := oa.Schema{}
 
-		prop.Example = `{"street":"Lenina 10","zipCode":"101000"}`
+		prop.Example = "{\"street\":\"Lenina 10\",\"zipCode\":\"101000\"}"
 
 		schema.Properties["address"] = prop
 	}

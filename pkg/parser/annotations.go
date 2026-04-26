@@ -36,30 +36,118 @@ func (ap *AnnotationParser) ParseFieldDirectives(field *ast.Field) []Directive {
 // ParseFieldOaAnnotations извлекает @oa: аннотации из поля
 func (ap *AnnotationParser) ParseFieldOaAnnotations(field *ast.Field) []OaAnnotation {
 	var oas []OaAnnotation
-	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
 
-	for _, cg := range []*ast.CommentGroup{field.Comment, field.Doc} {
-		if cg != nil {
-			for _, comment := range cg.List {
-				oas = append(oas, ap.extractOaAnnotations(comment.Text, re)...)
+	// Собираем все тексты комментариев в один блок
+	var commentTexts []string
+	if field.Doc != nil {
+		for _, c := range field.Doc.List {
+			commentTexts = append(commentTexts, c.Text)
+		}
+	}
+	if field.Comment != nil {
+		for _, c := range field.Comment.List {
+			commentTexts = append(commentTexts, c.Text)
+		}
+	}
+
+	if len(commentTexts) == 0 {
+		return nil
+	}
+
+	// Парсим аннотации из каждой строки отдельно, чтобы сохранить порядок
+	re := regexp.MustCompile(`@oa[-:]([a-zA-Z_.-]+)(?:\s+(.+))?`)
+
+	// Временное хранилище для объединения description
+	var descriptions []string
+	var otherAnnotations []OaAnnotation
+
+	for _, text := range commentTexts {
+		matches := re.FindAllStringSubmatch(text, -1)
+		for _, match := range matches {
+			if len(match) >= 3 {
+				annType := match[1]
+				val := strings.TrimSpace(match[2])
+				val = trimQuotes(val)
+
+				if annType == "description" && val != "" {
+					descriptions = append(descriptions, val)
+				} else {
+					otherAnnotations = append(otherAnnotations, OaAnnotation{
+						Type:  annType,
+						Value: val,
+					})
+				}
 			}
 		}
 	}
+
+	// Если есть описания, объединяем их в одну аннотацию
+	if len(descriptions) > 0 {
+		oas = append(oas, OaAnnotation{
+			Type:  "description",
+			Value: strings.Join(descriptions, "\n"),
+		})
+	}
+
+	// Добавляем остальные аннотации
+	oas = append(oas, otherAnnotations...)
+
 	return oas
 }
 
-// ParseStructOaAnnotations извлекает @oa: аннотации на уровне структуры
 func (ap *AnnotationParser) ParseStructOaAnnotations(genDecl *ast.GenDecl, typeSpec *ast.TypeSpec) []OaAnnotation {
 	var oas []OaAnnotation
-	re := regexp.MustCompile(`@oa:([a-zA-Z_.-]+)\s+(.+)`)
 
-	for _, cg := range []*ast.CommentGroup{genDecl.Doc, typeSpec.Doc} {
-		if cg != nil {
-			for _, comment := range cg.List {
-				oas = append(oas, ap.extractOaAnnotations(comment.Text, re)...)
+	var commentTexts []string
+	if genDecl.Doc != nil {
+		for _, c := range genDecl.Doc.List {
+			commentTexts = append(commentTexts, c.Text)
+		}
+	}
+	if typeSpec.Doc != nil {
+		for _, c := range typeSpec.Doc.List {
+			commentTexts = append(commentTexts, c.Text)
+		}
+	}
+
+	if len(commentTexts) == 0 {
+		return nil
+	}
+
+	re := regexp.MustCompile(`@oa[-:]([a-zA-Z_.-]+)(?:\s+(.+))?`)
+
+	var descriptions []string
+	var otherAnnotations []OaAnnotation
+
+	for _, text := range commentTexts {
+		matches := re.FindAllStringSubmatch(text, -1)
+		for _, match := range matches {
+			if len(match) >= 3 {
+				annType := match[1]
+				val := strings.TrimSpace(match[2])
+				val = trimQuotes(val)
+
+				if annType == "description" && val != "" {
+					descriptions = append(descriptions, val)
+				} else {
+					otherAnnotations = append(otherAnnotations, OaAnnotation{
+						Type:  annType,
+						Value: val,
+					})
+				}
 			}
 		}
 	}
+
+	if len(descriptions) > 0 {
+		oas = append(oas, OaAnnotation{
+			Type:  "description",
+			Value: strings.Join(descriptions, "\n"),
+		})
+	}
+
+	oas = append(oas, otherAnnotations...)
+
 	return oas
 }
 

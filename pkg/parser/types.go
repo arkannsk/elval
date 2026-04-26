@@ -66,6 +66,7 @@ type Field struct {
 	OaAnnotations []OaAnnotation
 	Description   string
 
+	IsIgnored   bool
 	OaOneOf     []string // для полей с union-типами
 	OaOneOfRefs []string
 	OaAnyOf     []string
@@ -83,6 +84,7 @@ type Struct struct {
 	Module        string  // путь модуля: "github.com/myorg/api"
 	Fields        []Field // поля с аннотациями
 	File          string  // путь к файлу
+	IsIgnored     bool
 	Description   string
 	Discriminator *OaDiscriminator `json:"-"` // не сериализуем, только для генерации
 
