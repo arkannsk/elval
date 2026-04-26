@@ -28,14 +28,14 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		prop.Type = "number"
 
-		prop.Example = 2999.99
+		prop.Example = "2999.99"
 
 		schema.Properties["total"] = prop
 	}
 	{
 		prop := oa.Schema{}
 
-		prop.Example = `{"warehouse":"Main","zone":"A-1","deliveryWindow":"09:00-12:00"}`
+		prop.Example = "{\"warehouse\":\"Main\",\"zone\":\"A-1\",\"deliveryWindow\":\"09:00-12:00\"}"
 
 		schema.Properties["shippingaddress"] = prop
 	}

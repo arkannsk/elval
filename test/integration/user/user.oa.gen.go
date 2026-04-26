@@ -37,8 +37,8 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.MinLength = oa.Ptr[int64](3)
 		prop.MaxLength = oa.Ptr[int64](50)
 
-		prop.Title = "Full Name"
 		prop.Description = "The user's full name"
+		prop.Title = "Full Name"
 		prop.Example = "John Doe"
 
 		schema.Properties["name"] = prop

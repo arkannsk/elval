@@ -1,5 +1,5 @@
 {{ define "openapi/field/description" }}
     {{- if .Description }}
-        prop.Description = {{ .Description | printf "%q" }}
+        prop.Description = {{ oaString .Description }}
     {{- end }}
 {{ end }}

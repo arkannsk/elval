@@ -64,7 +64,7 @@ func (v *Cat) OaSchema() *oa.Schema {
 
 		prop.Type = "boolean"
 
-		prop.Example = true
+		prop.Example = "true"
 
 		schema.Properties["meows"] = prop
 	}
@@ -94,7 +94,7 @@ func (v *Dog) OaSchema() *oa.Schema {
 
 		prop.Type = "integer"
 
-		prop.Example = 5
+		prop.Example = "5"
 
 		schema.Properties["barkvolume"] = prop
 	}
