@@ -15,6 +15,7 @@ type Ignore struct {
 	Name string `json:"name"`
 }
 
+// @oa:description try to read this
 type IgnoreField struct {
 	Name string `json:"name"`
 	// @oa:ignore

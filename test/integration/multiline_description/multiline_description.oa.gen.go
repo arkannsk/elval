@@ -4,18 +4,18 @@
 package multiline_description
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *User) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 1),
+		Properties: make(map[string]*oa.Schema, 1),
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -35,12 +35,12 @@ func (v *User) GlobalRef() string {
 func (v *IgnoreField) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 1),
+		Properties: make(map[string]*oa.Schema, 1),
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 

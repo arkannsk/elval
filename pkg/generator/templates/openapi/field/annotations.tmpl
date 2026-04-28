@@ -29,7 +29,7 @@
 
         {{- else if eq $oa.Type "oneOf" }}
             {{- $clean := trimQuotes $oa.Value }}
-            prop.OneOf = []oa.Schema{
+            prop.OneOf = []*oa.Schema{
             {{- range $t := split $clean "," }}
                 {{- $typeName := trimQuotes (trim $t) }}
                 {{- $ref := buildGlobalRef $typeName $.PkgPath $.Module }}
@@ -39,7 +39,7 @@
 
         {{- else if eq $oa.Type "oneOf-ref" }}
             {{- $clean := trimQuotes $oa.Value }}
-            prop.OneOf = []oa.Schema{
+            prop.OneOf = []*oa.Schema{
             {{- range $r := split $clean "," }}
                 {{- $ref := trimQuotes (trim $r) }}
                 {Ref: {{ printf "%q" $ref }}},
@@ -48,7 +48,7 @@
 
         {{- else if eq $oa.Type "anyOf" }}
             {{- $clean := trimQuotes $oa.Value }}
-            prop.AnyOf = []oa.Schema{
+            prop.AnyOf = []*oa.Schema{
             {{- range $t := split $clean "," }}
                 {{- $typeName := trimQuotes (trim $t) }}
                 {{- $ref := buildGlobalRef $typeName $.PkgPath $.Module }}
@@ -58,7 +58,7 @@
 
         {{- else if eq $oa.Type "anyOf-ref" }}
             {{- $clean := trimQuotes $oa.Value }}
-            prop.AnyOf = []oa.Schema{
+            prop.AnyOf = []*oa.Schema{
             {{- range $r := split $clean "," }}
                 {{- $ref := trimQuotes (trim $r) }}
                 {Ref: {{ printf "%q" $ref }}},

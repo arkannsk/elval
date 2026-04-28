@@ -4,18 +4,18 @@
 package oa_discriminator
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *Pet) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -24,7 +24,7 @@ func (v *Pet) OaSchema() *oa.Schema {
 		schema.Properties["type"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -49,18 +49,18 @@ func (v *Pet) GlobalRef() string {
 func (v *Cat) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "boolean"
 
@@ -79,18 +79,18 @@ func (v *Cat) GlobalRef() string {
 func (v *Dog) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "integer"
 

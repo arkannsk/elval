@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/arkannsk/elval/pkg/parser"
+	ann "github.com/arkannsk/elval/pkg/parser/annotations"
 )
 
 var templateFucMap = template.FuncMap{
@@ -35,7 +36,7 @@ var templateFucMap = template.FuncMap{
 		}
 		return dict, nil
 	},
-	"hasOptional": func(directives []parser.Directive) bool {
+	"hasOptional": func(directives []ann.Directive) bool {
 		for _, d := range directives {
 			if d.Type == "optional" {
 				return true
@@ -87,7 +88,7 @@ var templateFucMap = template.FuncMap{
 		_, ok := primitives[name]
 		return ok
 	},
-	"hasDirective": func(directives []parser.Directive, name string) bool {
+	"hasDirective": func(directives []ann.Directive, name string) bool {
 		for _, d := range directives {
 			if d.Type == name {
 				return true

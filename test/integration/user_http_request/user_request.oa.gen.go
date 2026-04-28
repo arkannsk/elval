@@ -4,19 +4,19 @@
 package user_http_request
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 	"net/http"
 )
 
 func (v *GetUserRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 4),
+		Properties: make(map[string]*oa.Schema, 4),
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -29,7 +29,7 @@ func (v *GetUserRequest) OaSchema() *oa.Schema {
 		schema.Properties["id"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
@@ -41,7 +41,7 @@ func (v *GetUserRequest) OaSchema() *oa.Schema {
 		schema.Properties["fields"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -50,7 +50,7 @@ func (v *GetUserRequest) OaSchema() *oa.Schema {
 		schema.Properties["requestid"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 

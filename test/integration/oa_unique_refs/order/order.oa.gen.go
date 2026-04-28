@@ -4,18 +4,18 @@
 package order
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *Order) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 3),
+		Properties: make(map[string]*oa.Schema, 3),
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -24,7 +24,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		schema.Properties["id"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "number"
 
@@ -33,7 +33,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		schema.Properties["total"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Example = "{\"warehouse\":\"Main\",\"zone\":\"A-1\",\"deliveryWindow\":\"09:00-12:00\"}"
 

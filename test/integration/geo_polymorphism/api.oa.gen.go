@@ -4,24 +4,24 @@
 package geo_polymorphism
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *CreateLocationRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 
 		schema.Properties["feature"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -38,12 +38,12 @@ func (v *CreateLocationRequest) GlobalRef() string {
 func (v *ListLocationsResponse) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 1),
+		Properties: make(map[string]*oa.Schema, 1),
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}

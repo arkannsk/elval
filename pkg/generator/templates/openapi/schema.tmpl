@@ -2,7 +2,7 @@
     func (v *{{ .Name }}) OaSchema() *oa.Schema {
     schema := &oa.Schema{
     Type:       "object",
-    Properties: make(map[string]oa.Schema, {{ len .Fields }}),
+    Properties: make(map[string]*oa.Schema, {{ len .Fields }}),
     Required:   make([]string, 0, {{ len .Fields }}),
     Ref:        v.GlobalRef(),
     }
@@ -13,25 +13,18 @@
 
     {{- range $field := .Fields }}
         {
-        prop := oa.Schema{}
+        prop := &oa.Schema{}
 
-        {{- /* ПРИОРИТЕТ 1: Явное переопределение типа на примитив (@oa:rewrite.type) */}}
+        {{- /* (@oa:rewrite.type) */}}
         {{- if $field.OaRewriteType }}
-            {{- if eq $field.OaRewriteType "string" }}
-                prop.Type = "string"
-            {{- else if eq $field.OaRewriteType "integer" }}
-                prop.Type = "integer"
-            {{- else if eq $field.OaRewriteType "number" }}
-                prop.Type = "number"
-            {{- else if eq $field.OaRewriteType "boolean" }}
-                prop.Type = "boolean"
-            {{- else if eq $field.OaRewriteType "array" }}
-                prop.Type = "array"
-                prop.Items = &oa.Schema{}
+            prop.Type = {{ oaString $field.OaRewriteType }}
+            {{- if eq $field.OaRewriteType "array" }}
+            prop.Items = &oa.Schema{}
             {{- end }}
+        {{- end }}
 
-            {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
-        {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
+        {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
+        {{- if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
             {{- if $field.OaRewriteRef }}
                 prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
             {{- else }}

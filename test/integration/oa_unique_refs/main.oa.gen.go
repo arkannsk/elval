@@ -4,20 +4,20 @@
 package main
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *APIResponse) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 1),
+		Properties: make(map[string]*oa.Schema, 1),
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
-		prop.OneOf = []oa.Schema{
+		prop.OneOf = []*oa.Schema{
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs/user.User"},
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs/order.Order"},
 		}
@@ -35,17 +35,18 @@ func (v *APIResponse) GlobalRef() string {
 func (v *UserResponse) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
+		prop.Ref = "#/components/schemas/user.User"
 
 		schema.Properties["user"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -64,17 +65,18 @@ func (v *UserResponse) GlobalRef() string {
 func (v *OrderResponse) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
+		prop.Ref = "#/components/schemas/order.Order"
 
 		schema.Properties["order"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 

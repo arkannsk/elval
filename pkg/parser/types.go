@@ -3,6 +3,8 @@ package parser
 import (
 	"fmt"
 	"strings"
+
+	ann "github.com/arkannsk/elval/pkg/parser/annotations"
 )
 
 // FieldType представляет тип поля с поддержкой слайсов и указателей
@@ -47,11 +49,6 @@ type Directive struct {
 	Raw    string   // исходный текст
 }
 
-type OaAnnotation struct {
-	Type  string // title, description, example, format, etc.
-	Value string
-}
-
 // Field представляет поле структуры с аннотациями
 type Field struct {
 	Name          string // имя поля
@@ -60,17 +57,18 @@ type Field struct {
 	Module        string    // модуль типа: "github.com/myorg/api"
 	Type          FieldType // тип поля
 	IsEmbedded    bool
-	Directives    []Directive // список директив валидации
-	Decorators    []Decorator // декораторы
-	Line          int         // номер строки в файле (для ошибок)
-	OaAnnotations []OaAnnotation
+	Directives    []ann.Directive // список директив валидации
+	Decorators    []Decorator     // декораторы
+	Line          int             // номер строки в файле (для ошибок)
+	OaAnnotations []ann.OaAnnotation
 	Description   string
 
-	IsIgnored   bool
-	OaOneOf     []string // для полей с union-типами
-	OaOneOfRefs []string
-	OaAnyOf     []string
-	OaAnyOfRefs []string
+	IsIgnored     bool
+	Discriminator *ann.OaDiscriminator
+	OaOneOf       []string // для полей с union-типами
+	OaOneOfRefs   []string
+	OaAnyOf       []string
+	OaAnyOfRefs   []string
 
 	OaRewriteRef  string
 	OaRewriteType string
@@ -81,25 +79,22 @@ type Field struct {
 
 // Struct представляет структуру с полями для валидации
 type Struct struct {
-	Name          string // имя структуры
-	Package       string
-	PackagePath   string
-	Module        string  // путь модуля: "github.com/myorg/api"
-	Fields        []Field // поля с аннотациями
-	File          string  // путь к файлу
-	IsIgnored     bool
-	Description   string
-	Discriminator *OaDiscriminator `json:"-"` // не сериализуем, только для генерации
+	Name        string // имя структуры
+	Package     string
+	PackagePath string
+	Module      string  // путь модуля: "github.com/myorg/api"
+	Fields      []Field // поля с аннотациями
+	File        string  // путь к файлу
+	IsIgnored   bool
+	Description string
 
-	OaOneOf     []string // имена типов: ["Cat", "Dog"]
-	OaOneOfRefs []string // прямые рефы: ["#/components/schemas/Cat"]
-	OaAnyOf     []string
-	OaAnyOfRefs []string
-}
+	RawOaAnnotations []ann.OaAnnotation
 
-type OaDiscriminator struct {
-	PropertyName string
-	Mapping      map[string]string
+	Discriminator *ann.OaDiscriminator `json:"-"` // не сериализуем, только для генерации
+	OaOneOf       []string             // имена типов: ["Cat", "Dog"]
+	OaOneOfRefs   []string             // прямые рефы: ["#/components/schemas/Cat"]
+	OaAnyOf       []string
+	OaAnyOfRefs   []string
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации

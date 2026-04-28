@@ -4,26 +4,27 @@
 package rewrite
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *UploadRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 		prop.Type = "string"
+		prop.Ref = "#/components/schemas/json.RawMessage"
 
 		prop.Description = "JSON payload as a base64 encoded string"
 
 		schema.Properties["payload"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 

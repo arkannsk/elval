@@ -4,25 +4,25 @@
 package docs
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *PointDocs) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
 		schema.Properties["type"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
@@ -46,19 +46,19 @@ func (v *PointDocs) GlobalRef() string {
 func (v *PolygonDocs) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
 		schema.Properties["type"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
@@ -83,16 +83,16 @@ func (v *PolygonDocs) GlobalRef() string {
 func (v *FeatureDocs) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 2),
+		Properties: make(map[string]*oa.Schema, 2),
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Description = "The geometric shape"
 		prop.Title = "Geometry"
-		prop.OneOf = []oa.Schema{
+		prop.OneOf = []*oa.Schema{
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PointDocs"},
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PolygonDocs"},
 		}
@@ -100,7 +100,7 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 		schema.Properties["geometry"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Description = "Arbitrary properties"
 		prop.Title = "Properties"
