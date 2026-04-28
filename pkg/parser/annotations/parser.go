@@ -105,6 +105,7 @@ func ParseDirectivesFromTexts(texts []string) []Directive {
 
 // CleanComment удаляет маркеры комментариев из строки
 func CleanComment(text string) string {
+	text = strings.TrimSpace(text)
 	text = strings.TrimPrefix(text, "//")
 	text = strings.TrimPrefix(text, "/*")
 	text = strings.TrimSuffix(text, "*/")
