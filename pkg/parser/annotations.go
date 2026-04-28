@@ -58,6 +58,12 @@ func (ap *AnnotationParser) ProcessFieldAnnotations(rawAnnotations []ann.OaAnnot
 	return ann.ProcessFieldAnnotations(rawAnnotations)
 }
 
+// ParseFieldDecorators @evl:decor
+func (ap *AnnotationParser) ParseFieldDecorators(field *ast.Field) []ann.Decorator {
+	texts := CollectCommentTexts(field.Doc, field.Comment)
+	return ann.ParseDecoratorsFromTexts(texts)
+}
+
 // structAdapter реализует интерфейс DiscriminatorTarget для parser.Struct
 type structAdapter struct {
 	s *Struct
