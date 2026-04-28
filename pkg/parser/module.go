@@ -12,7 +12,7 @@ type ModuleInfo struct {
 	Module      string // "github.com/arkannsk/elval"
 	Package     string // "user"
 	PackagePath string // "test/integration/oa_unique_refs/user"
-	ModuleRoot  string // "/home/user/elval" (абсолютный путь)
+	ModuleRoot  string // "/home/user/elval" (absolute)
 }
 
 // resolveModuleInfo вычисляет информацию о модуле для данного файла

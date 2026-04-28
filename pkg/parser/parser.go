@@ -137,7 +137,6 @@ func (p *Parser) parseFieldsSecondPass(
 	result *ParseResult,
 	filename string,
 	_ *ModuleInfo) {
-
 	for _, decl := range node.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok || genDecl.Tok != token.TYPE {
@@ -162,9 +161,6 @@ func (p *Parser) parseFieldsSecondPass(
 
 			for _, field := range structType.Fields.List {
 				fieldName := getFieldName(field)
-				if fieldName == "" {
-					continue
-				}
 
 				fieldType := p.typeParser.ParseExpr(field.Type, allStructs)
 

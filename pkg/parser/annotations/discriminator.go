@@ -28,6 +28,11 @@ func ExtractDiscriminatorData(target DiscriminatorTarget, annotations []OaAnnota
 
 	for _, ann := range annotations {
 		switch ann.Type {
+		case "discriminator":
+			if disc == nil {
+				disc = &OaDiscriminator{Mapping: make(map[string]string)}
+			}
+			disc.PropertyName = trimQuotes(ann.Value)
 		case "discriminator.propertyName":
 			if disc == nil {
 				disc = &OaDiscriminator{Mapping: make(map[string]string)}
