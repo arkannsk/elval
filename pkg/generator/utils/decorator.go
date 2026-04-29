@@ -1,8 +1,19 @@
-package generator
+package utils
 
 import "fmt"
 
-// GenerateDecoratorCode генерирует код Go для конкретного декоратора
+// GenerateDecoratorCode generates Go code for a specific decorator type.
+// It takes the decorator type (e.g., "ctx-get", "env-get"), the parameter name
+// (if applicable, e.g., key for ctx-get), and the target field name.
+// It returns a string containing the generated Go code snippet.
+//
+// Supported decorator types:
+//   - ctx-get: Retrieves value from context.
+//   - httpctx-get: Retrieves header from HTTP request in context.
+//   - env-get: Retrieves value from environment variable.
+//   - time-now: Sets current time.
+//   - uuid-gen: Generates a new UUID.
+//   - trim, lower, upper: String manipulation functions.
 func GenerateDecoratorCode(decType string, paramName string, fieldName string) string {
 	switch decType {
 	case "ctx-get":
