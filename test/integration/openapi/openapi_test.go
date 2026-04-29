@@ -3,7 +3,7 @@ package openapi
 import (
 	"testing"
 
-	"github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

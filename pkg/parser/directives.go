@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	ann "github.com/arkannsk/elval/pkg/parser/annotations"
 )
 
 // DirectiveType тип директивы
@@ -220,7 +222,7 @@ var SupportedDirectives = map[DirectiveType]DirectiveInfo{
 }
 
 // ValidateDirective обновляем с учетом базового типа для указателей
-func ValidateDirective(dir Directive, ft FieldType) error {
+func ValidateDirective(dir ann.Directive, ft FieldType) error {
 	// 1. Кастомные директивы с префиксом x- всегда валидны
 	if strings.HasPrefix(dir.Type, "x-") {
 		return nil
@@ -350,7 +352,7 @@ func ValidateDirective(dir Directive, ft FieldType) error {
 			minVal := dir.Params[0]
 			maxVal := dir.Params[1]
 
-			isTimeDuration := (baseType == "time.Duration")
+			isTimeDuration := baseType == "time.Duration"
 
 			if isTimeDuration {
 				if _, err := time.ParseDuration(minVal); err != nil {

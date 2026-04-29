@@ -4,18 +4,18 @@
 package openapi
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *User) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 4),
+		Properties: make(map[string]*oa.Schema, 4),
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -30,7 +30,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["name"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -42,7 +42,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["email"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "integer"
 
@@ -52,7 +52,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["age"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -72,12 +72,12 @@ func (v *User) GlobalRef() string {
 func (v *Product) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 4),
+		Properties: make(map[string]*oa.Schema, 4),
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -89,7 +89,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		schema.Properties["status"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "number"
 
@@ -100,7 +100,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		schema.Properties["price"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "integer"
 
@@ -110,7 +110,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		schema.Properties["quantity"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -131,12 +131,12 @@ func (v *Product) GlobalRef() string {
 func (v *Order) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 3),
+		Properties: make(map[string]*oa.Schema, 3),
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -145,7 +145,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		schema.Properties["id"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 		prop.Format = "date-time"
@@ -155,7 +155,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		schema.Properties["createdat"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}

@@ -50,7 +50,7 @@ func CollectValidationImports(structs []Struct) map[string]string {
 // CollectOpenAPIImports собирает импорты для OpenAPI-схем и HTTP парсинга
 func CollectOpenAPIImports(structs []Struct) map[string]string {
 	required := map[string]string{
-		"oa": "github.com/arkannsk/elval/pkg/oa",
+		"oa": "github.com/arkannsk/elval/pkg/openapi",
 	}
 
 	for _, s := range structs {

@@ -7,6 +7,7 @@ import (
 
 //go:generate elval-gen gen -input ./user -openapi
 //go:generate elval-gen gen -input ./order -openapi
+//go:generate elval-gen gen -input . -openapi
 
 // APIResponse структура, которая использует оба типа с конфликтом имён
 // @oa:oneOf "UserResponse,OrderResponse"

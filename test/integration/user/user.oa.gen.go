@@ -4,18 +4,18 @@
 package user
 
 import (
-	oa "github.com/arkannsk/elval/pkg/oa"
+	oa "github.com/arkannsk/elval/pkg/openapi"
 )
 
 func (v *User) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]oa.Schema, 5),
+		Properties: make(map[string]*oa.Schema, 5),
 		Required:   make([]string, 0, 5),
 		Ref:        v.GlobalRef(),
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -29,7 +29,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["id"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -44,7 +44,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["name"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 
@@ -57,7 +57,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["email"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Minimum = oa.Ptr[float64](18)
 		prop.Maximum = oa.Ptr[float64](120)
@@ -67,7 +67,7 @@ func (v *User) OaSchema() *oa.Schema {
 		schema.Properties["age"] = prop
 	}
 	{
-		prop := oa.Schema{}
+		prop := &oa.Schema{}
 
 		prop.Type = "string"
 

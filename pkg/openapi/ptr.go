@@ -1,4 +1,4 @@
-package oa
+package openapi
 
 func Ptr[T any](v T) *T {
 	return &v

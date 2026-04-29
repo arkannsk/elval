@@ -2,7 +2,6 @@ package parser
 
 import (
 	"go/ast"
-	"strings"
 )
 
 // getFieldName возвращает имя поля из ast.Field
@@ -29,16 +28,4 @@ func isBuiltin(name string) bool {
 		"string": true, "byte": true, "rune": true, "error": true, "any": true,
 	}[name]
 	return ok
-}
-
-// trimQuotes убирает внешние кавычки из строки
-func trimQuotes(s string) string {
-	s = strings.TrimSpace(s)
-	if len(s) >= 2 {
-		if (s[0] == '"' && s[len(s)-1] == '"') ||
-			(s[0] == '\'' && s[len(s)-1] == '\'') {
-			return s[1 : len(s)-1]
-		}
-	}
-	return s
 }
