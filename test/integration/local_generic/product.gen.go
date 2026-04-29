@@ -5,6 +5,7 @@ package local_generic
 
 import (
 	"context"
+	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -25,24 +26,6 @@ var (
 	}()
 )
 
-func (v *Review) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Review) Validate() error {
-	var err *errs.ValidationError
-	if err = Review_CommentValidator.Validate(v.Comment); err != nil {
-		return err
-	}
-	if val, ok := v.Rating.Value(); ok {
-		if err = Review_RatingValidator.Validate(val); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 var (
 	Product_NameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Name")
@@ -59,8 +42,27 @@ var (
 	}()
 )
 
+func (v *Review) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *Product) Decorate(ctx context.Context) error {
 
+	return nil
+}
+
+func (v *Review) Validate() error {
+	var err *errs.ValidationError
+	if err = Review_CommentValidator.Validate(v.Comment); err != nil {
+		return err
+	}
+	if wrapper := elval.Unwrap[int](v.Rating); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = Review_RatingValidator.Validate(val); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -69,21 +71,13 @@ func (v *Product) Validate() error {
 	if err = Product_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-	for _, val := range v.unpackReviews() {
-		if err = Product_ReviewsValidator.Validate(val); err != nil {
-			return err
+	for _, item := range v.Reviews {
+		if wrapper := elval.Unwrap[Review](item); wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = Product_ReviewsValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
-}
-
-// unpackReviews
-func (v *Product) unpackReviews() []Review {
-	res := make([]Review, 0, len(v.Reviews))
-	for _, opt := range v.Reviews {
-		if val, ok := opt.Value(); ok {
-			res = append(res, val)
-		}
-	}
-	return res
 }

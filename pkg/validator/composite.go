@@ -1,44 +1,40 @@
 package validator
 
 import (
-	"strings"
-
 	"github.com/arkannsk/elval/pkg/errs"
 )
 
-// And комбинирует несколько правил - все должны выполниться
+// And объединяет несколько правил, все они должны пройти.
 func And[T any](rules ...ValidationRule[T]) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
-		var errors []string
 		for _, rule := range rules {
 			if err := rule(value); err != nil {
-				errors = append(errors, err.Error())
+				return err
 			}
-		}
-		if len(errors) > 0 {
-			return errs.NewValidationError("", "invalid condition: %s", strings.Join(errors, "; "))
 		}
 		return nil
 	}
 }
 
-// Or комбинирует правила - достаточно выполнения хотя бы одного
+// Or объединяет несколько правил, хотя бы одно должно пройти.
 func Or[T any](rules ...ValidationRule[T]) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
-		var errors []string
+		var lastErr *errs.ValidationError
 		for _, rule := range rules {
 			if err := rule(value); err == nil {
 				return nil
 			} else {
-				errors = append(errors, err.Error())
+				lastErr = err
 			}
 		}
-		return errs.NewValidationError("",
-			"all condition failed: %s", strings.Join(errors, "; "))
+		if lastErr != nil {
+			return lastErr
+		}
+		return errs.NewValidationError("", "or", "all rules failed")
 	}
 }
 
-// IfThen условное правило
+// IfThen применяет правило только если условие истинно.
 func IfThen[T any](condition func(T) bool, rule ValidationRule[T]) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if condition(value) {

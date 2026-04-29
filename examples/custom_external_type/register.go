@@ -13,10 +13,10 @@ func init() {
 	validator.RegisterCustom("x-option-present", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "x-option-present", "ожидается mo.Option[string]")
 		}
 		if opt.IsAbsent() {
-			return errs.NewValidationError("", "значение обязательно")
+			return errs.NewValidationError("", "x-option-present", "значение обязательно")
 		}
 		return nil
 	})
@@ -25,10 +25,10 @@ func init() {
 	validator.RegisterCustom("x-option-absent", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "x-option-absent", "ожидается mo.Option[string]")
 		}
 		if opt.IsPresent() {
-			return errs.NewValidationError("", "значение должно быть пустым")
+			return errs.NewValidationError("", "x-option-absent", "значение должно быть пустым")
 
 		}
 		return nil
@@ -38,7 +38,7 @@ func init() {
 	validator.RegisterCustom("x-option-value-min", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "x-option-value-min", "ожидается mo.Option[string]")
 		}
 		if opt.IsAbsent() {
 			return nil // пустой Option пропускаем
@@ -47,7 +47,7 @@ func init() {
 		val := opt.MustGet()
 		if len(val) < 3 {
 			return errs.NewValidationError("",
-				"значение должно содержать минимум 3 символа, текущая длина: %d", len(val))
+				"x-option-value-min", "значение должно содержать минимум 3 символа, текущая длина: %d", len(val))
 		}
 		return nil
 	})
@@ -56,7 +56,7 @@ func init() {
 	validator.RegisterCustom("x-option-value-max", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "", "ожидается mo.Option[string]")
 		}
 		if opt.IsAbsent() {
 			return nil
@@ -65,7 +65,7 @@ func init() {
 		val := opt.MustGet()
 		if len(val) > 50 {
 			return errs.NewValidationError("",
-				"значение должно содержать максимум 50 символов, текущая длина: %d", len(val))
+				"x-option-value-max", "значение должно содержать максимум 50 символов, текущая длина: %d", len(val))
 		}
 		return nil
 	})
@@ -74,7 +74,7 @@ func init() {
 	validator.RegisterCustom("x-option-value-eq", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "x-option-value-eq", "ожидается mo.Option[string]")
 		}
 		if opt.IsAbsent() {
 			return nil
@@ -82,7 +82,7 @@ func init() {
 
 		val := opt.MustGet()
 		if val != params {
-			return errs.NewValidationError("", "значение должно содержать '%s', текущее: '%s'", params, val)
+			return errs.NewValidationError("", "x-option-value-eq", "значение должно содержать '%s', текущее: '%s'", params, val)
 		}
 		return nil
 	})
@@ -91,7 +91,7 @@ func init() {
 	validator.RegisterCustom("x-option-value-contains", func(value any, params string) *errs.ValidationError {
 		opt, ok := value.(mo.Option[string])
 		if !ok {
-			return errs.NewValidationError("", "ожидается mo.Option[string]")
+			return errs.NewValidationError("", "x-option-value-contains", "ожидается mo.Option[string]")
 		}
 		if opt.IsAbsent() {
 			return nil
@@ -99,7 +99,8 @@ func init() {
 
 		val := opt.MustGet()
 		if !strings.Contains(val, params) {
-			return errs.NewValidationError("", "значение должно содержать '%s', текущее: '%s'", params, val)
+			return errs.NewValidationError("", "x-option-value-contains",
+				"значение должно содержать '%s', текущее: '%s'", params, val)
 		}
 		return nil
 	})

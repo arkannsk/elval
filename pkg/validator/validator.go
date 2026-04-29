@@ -31,8 +31,10 @@ func (fv *FieldValidator[T]) AddRule(rule ValidationRule[T]) *FieldValidator[T] 
 func (fv *FieldValidator[T]) Validate(value T) *errs.ValidationError {
 	for _, rule := range fv.rules {
 		if err := rule(value); err != nil {
-			return errs.NewValidationError(
-				"", "rule type: %T, field: %s err:%s", rule, fv.fieldName, err.Error())
+			if err.Field == "" {
+				err.Field = fv.fieldName
+			}
+			return err
 		}
 	}
 	return nil

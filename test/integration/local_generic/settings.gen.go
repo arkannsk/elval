@@ -5,14 +5,15 @@ package local_generic
 
 import (
 	"context"
+	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
 
 var (
-	UserSettings_ThemeValidator = func() *validator.FieldValidator[Theme] {
-		v := validator.New[Theme]("Theme")
-		v.AddRule(validator.Required[Theme]())
+	UserSettings_ThemeValidator = func() *validator.FieldValidator[string] {
+		v := validator.New[string]("Theme")
+		v.AddRule(validator.Required[string]())
 		return v
 	}()
 
@@ -37,15 +38,17 @@ func (v *UserSettings) Decorate(ctx context.Context) error {
 
 func (v *UserSettings) Validate() error {
 	var err *errs.ValidationError
-	if err = UserSettings_ThemeValidator.Validate(v.Theme); err != nil {
+	if err = UserSettings_ThemeValidator.Validate((string)(v.Theme)); err != nil {
 		return err
 	}
-	if val, ok := v.PrimaryColor.Value(); ok {
+	if wrapper := elval.Unwrap[string](v.PrimaryColor); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = UserSettings_PrimaryColorValidator.Validate(val); err != nil {
 			return err
 		}
 	}
-	if val, ok := v.NotificationEmail.Value(); ok {
+	if wrapper := elval.Unwrap[string](v.NotificationEmail); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = UserSettings_NotificationEmailValidator.Validate(val); err != nil {
 			return err
 		}

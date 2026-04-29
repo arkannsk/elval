@@ -26,7 +26,7 @@ func TestMinLen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
 			}
@@ -51,7 +51,7 @@ func TestMaxLen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
 			}
@@ -78,7 +78,7 @@ func TestLenRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
 			}
@@ -104,7 +104,7 @@ func TestMatchRegexp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
 			}
@@ -132,6 +132,7 @@ func TestEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.email)
 			if tt.wantError {
+				require.Error(t, err)
 				assert.ErrorIs(t, err, errs.ErrInvalidEmail)
 			} else {
 				require.Nil(t, err)
@@ -162,6 +163,7 @@ func TestPhone(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.phone)
 			if tt.wantError {
+				require.Error(t, err)
 				assert.ErrorIs(t, err, errs.ErrInvalidPhone)
 			} else {
 				require.Nil(t, err)
@@ -186,6 +188,7 @@ func TestUUID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := rule(tt.uuid)
 			if tt.wantError {
+				require.Error(t, err)
 				assert.ErrorIs(t, err, errs.ErrInvalidUUID)
 			} else {
 				require.Nil(t, err)

@@ -212,7 +212,7 @@ func TestOrderValidation(t *testing.T) {
 				Total:  100.50,
 				Items:  []string{},
 			},
-			wantError: false, // optional, пустой допустим
+			wantError: false,
 		},
 	}
 

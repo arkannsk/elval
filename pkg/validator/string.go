@@ -5,81 +5,79 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/arkannsk/elval/pkg/errs"
 )
 
-// MinLen минимальная длина строки (в символах)
+// MinLen возвращает правило минимальной длины строки.
 func MinLen(min int) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if utf8.RuneCountInString(value) < min {
-			return errs.NewValidationError("min_len", "min len %d", min)
+	return func(s string) *errs.ValidationError {
+		if len(s) < min {
+			return errs.NewValidationError("", "minlen", "length must be at least %d", min)
 		}
 		return nil
 	}
 }
 
-// MaxLen максимальная длина строки (в символах)
+// MaxLen возвращает правило максимальной длины строки.
 func MaxLen(max int) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if utf8.RuneCountInString(value) > max {
-			return errs.NewValidationError("max_len", "max len %d символов", max)
+	return func(s string) *errs.ValidationError {
+		if len(s) > max {
+			return errs.NewValidationError("", "maxlen", "length must be at most %d", max)
 		}
 		return nil
 	}
 }
 
-// LenRange диапазон длины строки
+// LenRange возвращает правило диапазона длины строки.
 func LenRange(min, max int) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		length := utf8.RuneCountInString(value)
-		if length < min || length > max {
-			return errs.NewValidationError("len_range", "len range must be in range %d - %d", min, max)
+	return func(s string) *errs.ValidationError {
+		if len(s) < min || len(s) > max {
+			return errs.NewValidationError("", "lenrange", "length must be between %d and %d", min, max)
 		}
 		return nil
 	}
 }
 
-// MatchRegexp проверка по регулярному выражению
+// MatchRegexp возвращает правило соответствия регулярному выражению.
 func MatchRegexp(pattern string) ValidationRule[string] {
 	re := regexp.MustCompile(pattern)
-	return func(value string) *errs.ValidationError {
-		if !re.MatchString(value) {
-			return errs.NewValidationError("regexp", "value pattern is: %s", pattern)
+	return func(s string) *errs.ValidationError {
+		if !re.MatchString(s) {
+			return errs.NewValidationError("", "pattern", "value does not match pattern: %s", pattern)
 		}
 		return nil
 	}
 }
 
-// Email проверка email
+// Email возвращает правило проверки формата email.
 func Email() ValidationRule[string] {
+	// Простая проверка regex для email
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return func(value string) *errs.ValidationError {
-		if !emailRegex.MatchString(value) {
+	return func(s string) *errs.ValidationError {
+		if !emailRegex.MatchString(s) {
 			return errs.ErrInvalidEmail
 		}
 		return nil
 	}
 }
 
-// Phone проверка телефона
+// Phone возвращает правило проверки формата телефона.
 func Phone() ValidationRule[string] {
-	// Регулярка для телефона: опциональный +, затем от 8 до 15 цифр
 	phoneRegex := regexp.MustCompile(`^\+?[0-9]{8,15}$`)
-	return func(value string) *errs.ValidationError {
-		if !phoneRegex.MatchString(value) {
+	return func(s string) *errs.ValidationError {
+		if !phoneRegex.MatchString(s) {
 			return errs.ErrInvalidPhone
 		}
 		return nil
 	}
 }
 
-// UUID проверка UUID
+// UUID возвращает правило проверки формата UUID v4.
 func UUID() ValidationRule[string] {
-	uuidRegex := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
-	return func(value string) *errs.ValidationError {
-		if !uuidRegex.MatchString(value) {
+	uuidRegex := regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+	return func(s string) *errs.ValidationError {
+		if !uuidRegex.MatchString(s) {
 			return errs.ErrInvalidUUID
 		}
 		return nil
@@ -95,17 +93,17 @@ func URL() ValidationRule[string] {
 
 		u, err := url.Parse(value)
 		if err != nil {
-			return errs.NewValidationError("url", "невалидный URL: %s", err.Error())
+			return errs.NewValidationError("", "url", "невалидный URL: %s", err.Error())
 		}
 
 		// Проверяем наличие схемы
 		if u.Scheme == "" {
-			return errs.NewValidationError("url", "URL должен содержать схему (например, http://, https://, postgres://)")
+			return errs.NewValidationError("", "url", "URL должен содержать схему (например, http://, https://, postgres://)")
 		}
 
 		// Проверяем наличие хоста или пути
 		if u.Host == "" && u.Path == "" {
-			return errs.NewValidationError("url", "невалидный URL: отсутствует хост или путь")
+			return errs.NewValidationError("", "url", "невалидный URL: отсутствует хост или путь")
 		}
 
 		return nil
@@ -121,11 +119,11 @@ func URLWithScheme(allowedSchemes ...string) ValidationRule[string] {
 
 		u, err := url.Parse(value)
 		if err != nil {
-			return errs.NewValidationError("url", "невалидный URL: %s", err.Error())
+			return errs.NewValidationError("", "url", "невалидный URL: %s", err.Error())
 		}
 
 		if u.Scheme == "" {
-			return errs.NewValidationError("url", "URL должен содержать схему")
+			return errs.NewValidationError("", "url", "URL должен содержать схему")
 		}
 
 		// Проверяем схему
@@ -138,11 +136,11 @@ func URLWithScheme(allowedSchemes ...string) ValidationRule[string] {
 		}
 
 		if !schemeAllowed {
-			return errs.NewValidationError("url", "неподдерживаемая схема: %s, разрешены: %v", u.Scheme, allowedSchemes)
+			return errs.NewValidationError("", "url", "неподдерживаемая схема: %s, разрешены: %v", u.Scheme, allowedSchemes)
 		}
 
 		if u.Host == "" {
-			return errs.NewValidationError("url", "URL должен содержать хост")
+			return errs.NewValidationError("", "url", "URL должен содержать хост")
 		}
 
 		return nil
@@ -167,56 +165,56 @@ func DSN() ValidationRule[string] {
 		// clickhouse://user:pass@localhost:9000/db
 		u, err := url.Parse(value)
 		if err != nil {
-			return errs.NewValidationError("dsn", "невалидный DSN: %s", err.Error())
+			return errs.NewValidationError("", "dsn", "невалидный DSN: %s", err.Error())
 		}
 
 		if u.Scheme == "" {
-			return errs.NewValidationError("dsn", "DSN должен содержать схему (postgres://, mysql://, clickhouse://)")
+			return errs.NewValidationError("", "dsn", "DSN должен содержать схему (postgres://, mysql://, clickhouse://)")
 		}
 
 		if u.Host == "" {
-			return errs.NewValidationError("dsn", "DSN должен содержать хост")
+			return errs.NewValidationError("", "dsn", "DSN должен содержать хост")
 		}
 
 		return nil
 	}
 }
 
-// NotEmpty проверка что строка не пустая
+// NotEmpty возвращает правило, запрещающее пустые строки.
 func NotEmpty() ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if value == "" {
-			return errs.ErrRequired
+	return func(s string) *errs.ValidationError {
+		if strings.TrimSpace(s) == "" {
+			return errs.NewValidationError("", "notempty", "field cannot be empty or whitespace")
 		}
 		return nil
 	}
 }
 
-// Contains проверяет что строка содержит подстроку
+// Contains проверяет, содержит ли строка подстроку substr
 func Contains(substr string) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if !strings.Contains(value, substr) {
-			return errs.NewValidationError("contains", "строка должна содержать '%s'", substr)
+	return func(s string) *errs.ValidationError {
+		if !strings.Contains(s, substr) {
+			return errs.NewValidationError("", "contains", "string must contain '%s'", substr)
 		}
 		return nil
 	}
 }
 
-// StartsWith проверяет что строка начинается с префикса
+// StartsWith проверяет, начинается ли строка с префикса prefix
 func StartsWith(prefix string) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if !strings.HasPrefix(value, prefix) {
-			return errs.NewValidationError("starts_with", "строка должна начинаться с '%s'", prefix)
+	return func(s string) *errs.ValidationError {
+		if !strings.HasPrefix(s, prefix) {
+			return errs.NewValidationError("", "starts_with", "string must start with '%s'", prefix)
 		}
 		return nil
 	}
 }
 
-// EndsWith проверяет что строка заканчивается суффиксом
+// EndsWith проверяет, заканчивается ли строка суффиксом suffix
 func EndsWith(suffix string) ValidationRule[string] {
-	return func(value string) *errs.ValidationError {
-		if !strings.HasSuffix(value, suffix) {
-			return errs.NewValidationError("ends_with", "строка должна заканчиваться на '%s'", suffix)
+	return func(s string) *errs.ValidationError {
+		if !strings.HasSuffix(s, suffix) {
+			return errs.NewValidationError("", "ends_with", "string must end with '%s'", suffix)
 		}
 		return nil
 	}
@@ -264,7 +262,7 @@ func Date(formats ...string) ValidationRule[string] {
 			}
 		}
 
-		return errs.NewValidationError("date", "невалидная дата. Ожидаемые форматы: %v", formats)
+		return errs.NewValidationError("", "date", "невалидная дата. Ожидаемые форматы: %v", formats)
 	}
 }
 

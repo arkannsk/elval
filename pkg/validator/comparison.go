@@ -6,7 +6,7 @@ import "github.com/arkannsk/elval/pkg/errs"
 func Eq[T comparable](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value != expected {
-			return errs.NewValidationError("eq", "value must be equal %v", expected)
+			return errs.NewValidationError("", "eq", "value must be equal to %v", expected)
 		}
 		return nil
 	}
@@ -16,7 +16,7 @@ func Eq[T comparable](expected T) ValidationRule[T] {
 func Neq[T comparable](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value == expected {
-			return errs.NewValidationError("neq", "value != %v", expected)
+			return errs.NewValidationError("", "neq", "value must not be equal to %v", expected)
 		}
 		return nil
 	}
@@ -26,7 +26,7 @@ func Neq[T comparable](expected T) ValidationRule[T] {
 func Lt[T Number](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value >= expected {
-			return errs.NewValidationError("lt", "value must be < %v", expected)
+			return errs.NewValidationError("", "lt", "value must be less than %v", expected)
 		}
 		return nil
 	}
@@ -36,7 +36,7 @@ func Lt[T Number](expected T) ValidationRule[T] {
 func Lte[T Number](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value > expected {
-			return errs.NewValidationError("lte", "value must be <= %v", expected)
+			return errs.NewValidationError("", "lte", "value must be less than or equal to %v", expected)
 		}
 		return nil
 	}
@@ -46,7 +46,7 @@ func Lte[T Number](expected T) ValidationRule[T] {
 func Gt[T Number](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value <= expected {
-			return errs.NewValidationError("gt", "value must be > %v", expected)
+			return errs.NewValidationError("", "gt", "value must be greater than %v", expected)
 		}
 		return nil
 	}
@@ -56,7 +56,7 @@ func Gt[T Number](expected T) ValidationRule[T] {
 func Gte[T Number](expected T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value < expected {
-			return errs.NewValidationError("gte", "value must be >= %v", expected)
+			return errs.NewValidationError("", "gte", "value must be greater than or equal to %v", expected)
 		}
 		return nil
 	}

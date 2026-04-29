@@ -64,40 +64,36 @@ func (sv *SliceValidator[T]) Each(validator *FieldValidator[T]) *SliceValidator[
 // Validate проверяет слайс
 func (sv *SliceValidator[T]) Validate(value []T) *errs.ValidationError {
 	if sv.required && len(value) == 0 {
-		return errs.NewValidationError("", "field %s: slice cant be nil", sv.fieldName)
+		return errs.NewValidationError("", "required", "field %s: slice cant be nil", sv.fieldName)
 	}
 
 	// Проверка на пустоту
 	if sv.notZero && (len(value) == 0) {
-		return errs.NewValidationError("", "field %s: slice cant be empty", sv.fieldName)
+		return errs.NewValidationError("", "notzero", "field %s: slice cant be empty", sv.fieldName)
 	}
 
 	size := len(value)
 
 	// Проверка точного размера
 	if sv.exactSize >= 0 && size != sv.exactSize {
-		return errs.NewValidationError("",
-			"field %s: expect size %d, received %d", sv.fieldName, sv.exactSize, size)
+		return errs.NewValidationError("", "exact_size", "field %s: expect size %d, received %d", sv.fieldName, sv.exactSize, size)
 	}
 
 	// Проверка минимального размера
 	if sv.minSize >= 0 && size < sv.minSize {
-		return errs.NewValidationError("",
-			"field %s: min len %d, received %d", sv.fieldName, sv.minSize, size)
+		return errs.NewValidationError("", "min_size", "field %s: min len %d, received %d", sv.fieldName, sv.minSize, size)
 	}
 
 	// Проверка максимального размера
 	if sv.maxSize >= 0 && size > sv.maxSize {
-		return errs.NewValidationError("",
-			"field %s: max len %d, received %d", sv.fieldName, sv.maxSize, size)
+		return errs.NewValidationError("", "max_size", "field %s: max len %d, received %d", sv.fieldName, sv.maxSize, size)
 	}
 
 	// Валидация каждого элемента
 	if sv.elementValidator != nil {
 		for i, elem := range value {
 			if err := sv.elementValidator.Validate(elem); err != nil {
-				return errs.NewValidationError("",
-					"field %s[%d]: %s", sv.fieldName, i, err.Error())
+				return errs.NewValidationError("", "element_validation", "field %s[%d]: %s", sv.fieldName, i, err.Error())
 			}
 		}
 	}

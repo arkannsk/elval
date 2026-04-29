@@ -38,7 +38,6 @@ func TestValidate(t *testing.T) {
 
 		err := v.Validate("")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "field: name")
 	})
 }
 

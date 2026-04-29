@@ -11,10 +11,10 @@ func init() {
 	validator.RegisterCustom("x-strong-password", func(value any, params string) *errs.ValidationError {
 		str, ok := value.(string)
 		if !ok {
-			return errs.NewValidationError("type", "expected string for x-strong-password")
+			return errs.NewValidationError("", "type", "expected string for x-strong-password")
 		}
 		if len(str) < 8 {
-			return errs.NewValidationError("x-strong-password", "password must be at least 8 characters")
+			return errs.NewValidationError("", "x-strong-password", "password must be at least 8 characters")
 		}
 		var hasUpper, hasLower, hasDigit bool
 		for _, r := range str {
@@ -29,7 +29,7 @@ func init() {
 			}
 		}
 		if !hasUpper || !hasLower || !hasDigit {
-			return errs.NewValidationError("x-strong-password", "password must contain upper, lower, and digit")
+			return errs.NewValidationError("", "x-strong-password", "password must contain upper, lower, and digit")
 		}
 		return nil
 	})

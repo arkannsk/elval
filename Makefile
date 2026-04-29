@@ -44,3 +44,4 @@ clean:
 
 docs:
 	godocdown ./pkg/generator/utils > pkg/generator/utils/README.md
+	godocdown ./ > ./elval.README.md

@@ -7,7 +7,7 @@ func Required[T any]() ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		var zero T
 		if any(value) == any(zero) {
-			return errs.ErrRequired
+			return errs.NewValidationError("", "required", "field is required")
 		}
 		return nil
 	}
@@ -18,11 +18,6 @@ func Optional[T any]() ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		return nil
 	}
-}
-
-// Custom создает кастомное правило
-func Custom[T any](fn func(T) *errs.ValidationError) ValidationRule[T] {
-	return fn
 }
 
 // SkipIfZero пропускает валидацию если значение zero
@@ -45,7 +40,7 @@ func Enum[T comparable](allowed ...T) ValidationRule[T] {
 
 	return func(value T) *errs.ValidationError {
 		if _, ok := allowedMap[value]; !ok {
-			return errs.NewValidationError("enum", "значение должно быть одним из: %v", allowed)
+			return errs.NewValidationError("", "enum", "значение должно быть одним из: %v", allowed)
 		}
 		return nil
 	}
