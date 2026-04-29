@@ -53,20 +53,51 @@ func CollectOpenAPIImports(structs []Struct) map[string]string {
 		"oa": "github.com/arkannsk/elval/pkg/openapi",
 	}
 
+	hasParsingErrors := false
+
 	for _, s := range structs {
 		for _, field := range s.Fields {
-			// Проверяем, есть ли у поля аннотация @oa:in
 			if field.OaIn != "" {
 				// Добавляем net/http для Parse(r *http.Request)
 				required["net/http"] = "net/http"
 
-				// Проверяем тип поля для strconv и time
+				// Проверяем тип поля для strconv/time и потенциальных ошибок
+				if needsParsingError(field.Type) {
+					hasParsingErrors = true
+				}
+
 				checkTypeForHTTPImports(field.Type, required)
 			}
 		}
 	}
 
+	// Добавляем errs только если есть поля, требующие парсинга с проверкой ошибок
+	if hasParsingErrors {
+		required["errs"] = "github.com/arkannsk/elval/pkg/errs"
+	}
+
 	return required
+}
+
+// needsParsingError проверяет, требует ли тип парсинга, который может вернуть ошибку
+func needsParsingError(ft FieldType) bool {
+	baseName := ft.Name
+	if ft.IsSlice {
+		baseName = ft.GenericBase
+	} else if ft.IsPointer {
+		baseName = ft.GenericBase
+	}
+
+	switch baseName {
+	case "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64",
+		"bool",
+		"time.Time", "time.Duration":
+		return true
+	default:
+		return false
+	}
 }
 
 // checkTypeForHTTPImports проверяет тип поля и добавляет strconv/time если нужно

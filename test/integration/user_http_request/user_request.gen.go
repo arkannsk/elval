@@ -29,8 +29,6 @@ func (v *GetUserRequest) Validate() error {
 		return err
 	}
 
-	// Валидация слайса Fields
-	// Обязательный слайс
 	if false && len(v.Fields) == 0 {
 		return &errs.ValidationError{
 			Field:   "Fields",

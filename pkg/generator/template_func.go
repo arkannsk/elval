@@ -189,6 +189,7 @@ var templateFucMap = template.FuncMap{
 		}
 	},
 	"GenerateDecoratorCode": GenerateDecoratorCode,
+	"GenerateParseCode":     GenerateParseCode,
 }
 
 func trimQuotes(s string) string {
