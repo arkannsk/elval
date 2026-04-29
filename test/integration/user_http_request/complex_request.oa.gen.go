@@ -345,7 +345,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		// Parameter: id (path)
 		// Parsing primitive: string
 		v.UserID = r.PathValue("id")
-
 	}
 	{
 
@@ -356,7 +355,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 			return errs.NewParseRequestError("Version", r.PathValue("version"), "invalid integer")
 		}
 		v.Version = int(parsedInt)
-
 	}
 	{
 
@@ -368,7 +366,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 				return errs.NewParseRequestError("Page", vals[0], "invalid integer")
 			}
 			v.Page = int(parsedInt)
-
 		}
 	}
 	{
@@ -381,7 +378,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 				return errs.NewParseRequestError("Limit", vals[0], "invalid integer")
 			}
 			v.Limit = int(parsedInt)
-
 		}
 	}
 	{
@@ -397,14 +393,12 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 			result = append(result, int(val))
 		}
 		v.IDs = result
-
 	}
 	{
 
 		// Parameter: tags (query)
 		// Parsing slice: string[]
 		v.Tags = r.URL.Query()["tags"]
-
 	}
 	{
 
@@ -416,7 +410,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 				return errs.NewParseRequestError("Active", vals[0], "invalid bool")
 			}
 			v.Active = parsedBool
-
 		}
 	}
 	{
@@ -429,7 +422,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 				return errs.NewParseRequestError("CreatedAfter", vals[0], "invalid time format (RFC3339)")
 			}
 			v.CreatedAfter = parsedTime
-
 		}
 	}
 	{
@@ -442,7 +434,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 				return errs.NewParseRequestError("Score", vals[0], "invalid float")
 			}
 			v.Score = parsedFloat
-
 		}
 	}
 	{
@@ -450,7 +441,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		// Parameter: X-Request-ID (header)
 		// Parsing primitive: string
 		v.RequestID = r.Header.Get("X-Request-ID")
-
 	}
 	{
 
@@ -461,7 +451,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 			return errs.NewParseRequestError("TenantID", r.Header.Get("X-Tenant-ID"), "invalid integer")
 		}
 		v.TenantID = parsedInt
-
 	}
 	{
 
@@ -472,7 +461,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 			return errs.NewParseRequestError("RateLimit", r.Header.Get("X-Rate-Limit"), "invalid uint")
 		}
 		v.RateLimit = uint32(parsedUint)
-
 	}
 	return nil
 }

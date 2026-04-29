@@ -135,7 +135,6 @@ func (v *Order) Validate() error {
 		return err
 	}
 
-	// Валидация слайса Items
 	if len(v.Items) > 0 {
 		if len(v.Items) < 1 {
 			return &errs.ValidationError{

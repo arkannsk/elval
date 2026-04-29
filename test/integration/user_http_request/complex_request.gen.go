@@ -7,7 +7,6 @@ import (
 	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
-	"time"
 )
 
 var (

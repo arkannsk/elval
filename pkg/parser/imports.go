@@ -1,10 +1,13 @@
 package parser
 
-import "strings"
+import (
+	"strings"
+)
 
 // CollectValidationImports собирает импорты, необходимые для валидации/декорирования
 func CollectValidationImports(structs []Struct) map[string]string {
 	required := make(map[string]string)
+	// Базовые импорты всегда нужны для структуры ValidationError и Validator
 	required["errs"] = "github.com/arkannsk/elval/pkg/errs"
 	required["validator"] = "github.com/arkannsk/elval/pkg/validator"
 	required["context"] = "context"
@@ -13,9 +16,15 @@ func CollectValidationImports(structs []Struct) map[string]string {
 
 	for _, s := range structs {
 		for _, field := range s.Fields {
-			checkTypeForImports(field.Type, required, &needsElval)
+			// Проверяем, есть ли у поля директивы валидации
+			hasDirectives := len(field.Directives) > 0
 
-			// Директивы → импорты
+			// Если есть директивы, проверяем тип для импортов
+			if hasDirectives {
+				checkTypeForImports(field.Type, required, &needsElval)
+			}
+
+			// Директивы → импорты (uuid и т.д.)
 			for _, dir := range field.Directives {
 				if dir.Type == "uuid" {
 					required["uuid"] = "github.com/google/uuid"
@@ -30,7 +39,7 @@ func CollectValidationImports(structs []Struct) map[string]string {
 				case "env-get", "env_default":
 					required["os"] = "os"
 				case "time-now":
-					required["time"] = "time"
+					required["time"] = "time" // 👈 Добавляем time для декоратора
 				case "httpctx-get":
 					required["net/http"] = "net/http"
 				case "trim", "lower", "upper":
