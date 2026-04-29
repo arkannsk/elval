@@ -11,44 +11,11 @@ import (
 func (v *GetUserRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]*oa.Schema, 4),
-		Required:   make([]string, 0, 4),
+		Properties: make(map[string]*oa.Schema, 1),
+		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
-	{
-		prop := &oa.Schema{}
 
-		prop.Type = "string"
-
-		schema.Required = append(schema.Required, "id")
-		prop.Pattern = `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
-		prop.Format = "uuid"
-
-		prop.Format = "uuid"
-
-		schema.Properties["id"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "array"
-		prop.Items = &oa.Schema{}
-
-		prop.Items.Type = "string"
-
-		prop.Description = "Comma-separated list of fields to include"
-
-		schema.Properties["fields"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "string"
-
-		prop.Description = "Unique request identifier for tracing"
-
-		schema.Properties["requestid"] = prop
-	}
 	{
 		prop := &oa.Schema{}
 

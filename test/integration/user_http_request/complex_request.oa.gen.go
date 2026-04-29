@@ -14,128 +14,11 @@ import (
 func (v *ComplexRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]*oa.Schema, 14),
-		Required:   make([]string, 0, 14),
+		Properties: make(map[string]*oa.Schema, 2),
+		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-	{
-		prop := &oa.Schema{}
 
-		prop.Type = "string"
-
-		schema.Required = append(schema.Required, "userid")
-
-		prop.Format = "uuid"
-
-		schema.Properties["userid"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "integer"
-
-		schema.Required = append(schema.Required, "version")
-
-		schema.Properties["version"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "integer"
-
-		schema.Required = append(schema.Required, "page")
-
-		schema.Properties["page"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "integer"
-
-		prop.Minimum = oa.Ptr[float64](1)
-
-		schema.Properties["limit"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "array"
-		prop.Items = &oa.Schema{}
-
-		prop.Items.Type = "integer"
-
-		schema.Required = append(schema.Required, "ids")
-
-		prop.Description = "List of user IDs to fetch"
-
-		schema.Properties["ids"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "array"
-		prop.Items = &oa.Schema{}
-
-		prop.Items.Type = "string"
-
-		prop.Description = "Filter by tags"
-
-		schema.Properties["tags"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "boolean"
-
-		prop.Description = "Include only active users"
-
-		schema.Properties["active"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "string"
-		prop.Format = "date-time"
-
-		prop.Description = "Filter by creation time"
-		prop.Format = "date-time"
-
-		schema.Properties["createdafter"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "number"
-
-		prop.Description = "Filter by minimum score"
-
-		schema.Properties["score"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "string"
-
-		prop.Description = "Unique request ID for tracing"
-
-		schema.Properties["requestid"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Type = "integer"
-
-		prop.Description = "Tenant identifier"
-
-		schema.Properties["tenantid"] = prop
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.Description = "Custom rate limit override"
-
-		schema.Properties["ratelimit"] = prop
-	}
 	{
 		prop := &oa.Schema{}
 
@@ -145,6 +28,7 @@ func (v *ComplexRequest) OaSchema() *oa.Schema {
 
 		schema.Properties["role"] = prop
 	}
+
 	{
 		prop := &oa.Schema{}
 

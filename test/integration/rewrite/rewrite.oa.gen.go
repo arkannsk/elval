@@ -14,6 +14,7 @@ func (v *UploadRequest) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 		prop.Type = "string"
@@ -23,6 +24,7 @@ func (v *UploadRequest) OaSchema() *oa.Schema {
 
 		schema.Properties["payload"] = prop
 	}
+
 	{
 		prop := &oa.Schema{}
 

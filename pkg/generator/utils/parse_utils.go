@@ -1,8 +1,19 @@
-package generator
+package utils
 
 import "fmt"
 
-// GenerateParseCode генерирует код Go для парсинга HTTP параметров в нужный тип, пока удобнее чем в шаблонах
+// GenerateParseCode generates Go code for parsing an HTTP parameter into a specific Go type.
+// It handles primitives (int, float, bool, time.Time) and slices of these types.
+//
+// Parameters:
+//   - fieldName: The name of the struct field to assign the parsed value to.
+//   - goType: The base Go type (e.g., "int", "string", "time.Time").
+//   - sourceExpr: The expression to get the raw string value (e.g., 'r.URL.Query()["page"][0]').
+//   - isSlice: If true, generates code for parsing a slice; otherwise, parses a single value.
+//
+// The function returns a string containing the complete Go code block, including error handling
+// using errs.NewParseRequestError. For slices, it iterates over the source values.
+// For primitives, it performs conversion and assigns the result to v.fieldName.
 func GenerateParseCode(fieldName string, goType string, sourceExpr string, isSlice bool) string {
 	if isSlice {
 		return generateSliceParseCode(fieldName, goType, sourceExpr)

@@ -14,12 +14,14 @@ func (v *CreateLocationRequest) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 
 		schema.Properties["feature"] = prop
 	}
+
 	{
 		prop := &oa.Schema{}
 
@@ -42,6 +44,7 @@ func (v *ListLocationsResponse) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 

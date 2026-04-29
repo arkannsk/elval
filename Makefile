@@ -41,3 +41,6 @@ bench-mem:
 clean:
 	@rm -rf bin
 	@find ./ -name "*.debug.go" -delete
+
+docs:
+	godocdown ./pkg/generator/utils > pkg/generator/utils/README.md
