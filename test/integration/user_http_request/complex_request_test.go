@@ -2,7 +2,6 @@ package user_http_request
 
 import (
 	"errors"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -13,34 +12,23 @@ import (
 )
 
 func TestComplexRequest_ParseRequest_FullSuccessWithRouter(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedReq *ComplexRequest
+	// Создаём запрос напрямую
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?page=1&limit=10&ids=1&ids=2&ids=3&tags=a&tags=b&active=true&created_after=2023-01-01T00:00:00Z&score=9.5", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		capturedReq = &ComplexRequest{}
-		err := capturedReq.ParseRequest(r)
-		if err != nil {
-			t.Logf("Parse error: %v", err) // Логируем ошибку для отладки
-		}
-	})
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
-
-	// ВАЖНО: Для слайсов используем многократные параметры ids=1&ids=2&ids=3
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?page=1&limit=10&ids=1&ids=2&ids=3&tags=a&tags=b&active=true&created_after=2023-01-01T00:00:00Z&score=9.5"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
+	// Добавляем заголовки
 	req.Header.Set("X-Request-ID", "req-123")
 	req.Header.Set("X-Tenant-ID", "100")
 	req.Header.Set("X-Rate-Limit", "50")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
+	// Имитируем path параметры (как если бы их заполнил роутер)
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	require.NotNil(t, capturedReq)
+	// Вызываем ParseRequest напрямую
+	capturedReq := &ComplexRequest{}
+	err := capturedReq.ParseRequest(req)
+
+	require.NoError(t, err)
 
 	// Path params
 	assert.Equal(t, "123e4567-e89b-12d3-a456-426614174000", capturedReq.UserID)
@@ -64,30 +52,17 @@ func TestComplexRequest_ParseRequest_FullSuccessWithRouter(t *testing.T) {
 }
 
 func TestComplexRequest_ParseRequest_MissingOptionalParams(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedReq *ComplexRequest
-
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		capturedReq = &ComplexRequest{}
-		err := capturedReq.ParseRequest(r)
-		if err != nil {
-			t.Logf("Parse error: %v", err)
-		}
-	})
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
-
 	// Запрос только с обязательными path параметрами
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1"
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1", nil)
 
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	// Имитируем path параметры
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
+
+	capturedReq := &ComplexRequest{}
+	err := capturedReq.ParseRequest(req)
+
 	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	require.NotNil(t, capturedReq)
 
 	assert.Equal(t, "123e4567-e89b-12d3-a456-426614174000", capturedReq.UserID)
 	assert.Equal(t, 1, capturedReq.Version)
@@ -105,178 +80,113 @@ func TestComplexRequest_ParseRequest_MissingOptionalParams(t *testing.T) {
 }
 
 func TestComplexRequest_ParseRequest_InvalidPathInt(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/not_a_number", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	// Имитируем path параметры с невалидным значением
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "not_a_number")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/not_a_number"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok, "Ожидается ошибка типа ParseRequestError")
 	assert.Equal(t, "Version", pErr.Field)
 	assert.Contains(t, pErr.Message, "invalid integer")
 }
 
 func TestComplexRequest_ParseRequest_InvalidQueryInt(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?page=abc", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?page=abc"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "Page", pErr.Field)
 	assert.Contains(t, pErr.Message, "invalid integer")
 }
 
-// TestComplexRequest_ParseRequest_InvalidQueryFloat
-// Проверяет ошибку при невалидном Query параметре (float)
 func TestComplexRequest_ParseRequest_InvalidQueryFloat(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?score=not_float", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?score=not_float"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "Score", pErr.Field)
 	assert.Contains(t, pErr.Value, "not_float")
 }
 
 func TestComplexRequest_ParseRequest_InvalidQueryBool(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?active=maybe", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?active=maybe"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "Active", pErr.Field)
 }
 
 func TestComplexRequest_ParseRequest_InvalidQueryTime(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?created_after=not_time", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?created_after=not_time"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "CreatedAfter", pErr.Field)
 	assert.Contains(t, pErr.Message, "invalid time format")
 }
 
 func TestComplexRequest_ParseRequest_InvalidSliceInt(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1?ids=1&ids=abc&ids=3", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1?ids=1&ids=abc&ids=3"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
-	client := &http.Client{}
-	_, _ = client.Do(req)
-
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "IDs", pErr.Field)
-	assert.Equal(t, "abc", pErr.Value) // Значение, которое вызвало ошибку
+	assert.Equal(t, "abc", pErr.Value)
 }
 
 func TestComplexRequest_ParseRequest_InvalidHeaderInt(t *testing.T) {
-	mux := http.NewServeMux()
-	var capturedErr error
+	req := httptest.NewRequest("GET", "/users/123e4567-e89b-12d3-a456-426614174000/1", nil)
 
-	mux.HandleFunc("/users/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
-		v := &ComplexRequest{}
-		capturedErr = v.ParseRequest(r)
-	})
-
-	server := httptest.NewServer(mux)
-	defer server.Close()
-
-	testURL := server.URL + "/users/123e4567-e89b-12d3-a456-426614174000/1"
-
-	req, _ := http.NewRequest(http.MethodGet, testURL, nil)
+	req.SetPathValue("id", "123e4567-e89b-12d3-a456-426614174000")
+	req.SetPathValue("version", "1")
 	req.Header.Set("X-Tenant-ID", "not_int")
 
-	client := &http.Client{}
-	_, _ = client.Do(req)
+	v := &ComplexRequest{}
+	err := v.ParseRequest(req)
 
-	require.Error(t, capturedErr)
-	pErr, ok := errors.AsType[*errs.ParseRequestError](capturedErr)
+	require.Error(t, err)
+	pErr, ok := errors.AsType[*errs.ParseRequestError](err)
 	require.True(t, ok)
 	assert.Equal(t, "TenantID", pErr.Field)
 }
