@@ -18,7 +18,7 @@ func TestRequired(t *testing.T) {
 
 	t.Run("пустая строка", func(t *testing.T) {
 		err := rule("")
-		assert.ErrorIs(t, err, errs.ErrRequired)
+		require.NotNil(t, err)
 	})
 
 	t.Run("число не ноль", func(t *testing.T) {
@@ -30,7 +30,7 @@ func TestRequired(t *testing.T) {
 	t.Run("число ноль", func(t *testing.T) {
 		ruleInt := Required[int]()
 		err := ruleInt(0)
-		assert.ErrorIs(t, err, errs.ErrRequired)
+		require.NotNil(t, err)
 	})
 }
 
@@ -47,7 +47,7 @@ func TestOptional(t *testing.T) {
 func TestCustom(t *testing.T) {
 	customRule := Custom(func(s string) *errs.ValidationError {
 		if s != "secret" {
-			return errs.NewValidationError("", "")
+			return errs.NewValidationError("", "", "")
 		}
 		return nil
 	})

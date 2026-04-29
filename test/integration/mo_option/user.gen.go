@@ -64,7 +64,7 @@ func (v *User) Decorate(ctx context.Context) error {
 func (v *User) Validate() error {
 	var err *errs.ValidationError
 	if !elval.Unwrap[string](v.Name).IsPresent() {
-		return &errs.ValidationError{Field: "Name", Rule: "required", Message: errs.ErrRequired.Message}
+		return &errs.ValidationError{Field: "Name", Rule: "required", Message: "not present"}
 	}
 	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -73,7 +73,7 @@ func (v *User) Validate() error {
 		}
 	}
 	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return &errs.ValidationError{Field: "Email", Rule: "required", Message: errs.ErrRequired.Message}
+		return &errs.ValidationError{Field: "Email", Rule: "required", Message: "not present"}
 	}
 	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -97,7 +97,7 @@ func (v *User) Validate() error {
 		}
 	}
 	if !elval.Unwrap[string](v.Tag).IsPresent() {
-		return &errs.ValidationError{Field: "Tag", Rule: "required", Message: errs.ErrRequired.Message}
+		return &errs.ValidationError{Field: "Tag", Rule: "required", Message: "not present"}
 	}
 	if wrapper := elval.Unwrap[string](v.Tag); wrapper.IsPresent() {
 		val, _ := wrapper.Value()

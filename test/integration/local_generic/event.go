@@ -6,6 +6,8 @@ import (
 	"github.com/arkannsk/elval/test/integration/local_generic/model"
 )
 
+//go:generate elval-gen gen -input .
+
 type Event struct {
 	// @evl:validate required
 	Name string

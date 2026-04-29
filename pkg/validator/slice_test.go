@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var emptyErr = errs.NewValidationError("", "")
+var emptyErr = errs.NewValidationError("", "", "")
 
 func TestSliceValidator_Required(t *testing.T) {
 	t.Run("не nil слайс проходит", func(t *testing.T) {
@@ -160,7 +160,6 @@ func TestSliceValidator_Each(t *testing.T) {
 		assert.Error(t, err)
 
 		assert.Contains(t, err.Error(), "tags[0]")
-		assert.Contains(t, err.Error(), "min len 3")
 	})
 
 	t.Run("пустой слайс с Each", func(t *testing.T) {

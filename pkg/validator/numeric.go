@@ -1,70 +1,86 @@
 package validator
 
-import "github.com/arkannsk/elval/pkg/errs"
+import (
+	"github.com/arkannsk/elval/pkg/errs"
+)
 
-// Number ограничение на числовые типы
+// Number интерфейс для числовых типов
 type Number interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~float32 | ~float64
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
 }
 
-// Min минимальное значение
+// RequiredNum возвращает правило обязательности для числовых типов.
+func RequiredNum[T Number]() ValidationRule[T] {
+	var zero T
+	return func(value T) *errs.ValidationError {
+		if value == zero {
+			return errs.NewValidationError("", "required", "field is required")
+		}
+		return nil
+	}
+}
+
+// Min возвращает правило минимального значения для числа.
 func Min[T Number](min T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value < min {
-			return errs.NewValidationError("min", "value must be > %v", min)
+			return errs.NewValidationError("", "min", "value must be >= %v", min)
 		}
 		return nil
 	}
 }
 
-// Max максимальное значение
+// Max возвращает правило максимального значения для числа.
 func Max[T Number](max T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
 		if value > max {
-			return errs.NewValidationError("max", "значение должно быть не более %v", max)
+			return errs.NewValidationError("", "max", "value must be <= %v", max)
 		}
 		return nil
 	}
 }
 
-// MinMax диапазон значений
+// MinMax возвращает правило диапазона значений для числа.
 func MinMax[T Number](min, max T) ValidationRule[T] {
 	return func(value T) *errs.ValidationError {
-		if value < min || value > max {
-			return errs.NewValidationError("min_max", "значение должно быть между %v и %v", min, max)
+		if value < min {
+			return errs.NewValidationError("", "min", "value must be >= %v", min)
+		}
+		if value > max {
+			return errs.NewValidationError("", "max", "value must be <= %v", max)
 		}
 		return nil
 	}
 }
 
-// Positive положительное число
-func Positive[T Number]() ValidationRule[T] {
-	return func(value T) *errs.ValidationError {
-		var zero T
-		if value <= zero {
-			return errs.NewValidationError("positive", "значение должно быть положительным")
-		}
-		return nil
-	}
-}
-
-// Negative отрицательное число
-func Negative[T Number]() ValidationRule[T] {
-	return func(value T) *errs.ValidationError {
-		var zero T
-		if value >= zero {
-			return errs.NewValidationError("negative", "значение должно быть отрицательным")
-		}
-		return nil
-	}
-}
-
-// NotZero не нулевое значение
+// NotZero возвращает правило, запрещающее нулевое значение.
 func NotZero[T Number]() ValidationRule[T] {
+	var zero T
 	return func(value T) *errs.ValidationError {
-		var zero T
 		if value == zero {
-			return errs.NewValidationError("not_zero", "значение не может быть нулевым")
+			return errs.NewValidationError("", "notzero", "value must not be zero")
+		}
+		return nil
+	}
+}
+
+// Positive возвращает правило положительного значения.
+func Positive[T Number]() ValidationRule[T] {
+	var zero T
+	return func(value T) *errs.ValidationError {
+		if value <= zero {
+			return errs.NewValidationError("", "positive", "value must be positive")
+		}
+		return nil
+	}
+}
+
+// Negative возвращает правило отрицательного значения.
+func Negative[T Number]() ValidationRule[T] {
+	var zero T
+	return func(value T) *errs.ValidationError {
+		if value >= zero {
+			return errs.NewValidationError("", "negative", "value must be negative")
 		}
 		return nil
 	}

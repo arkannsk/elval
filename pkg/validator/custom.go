@@ -27,7 +27,11 @@ func ValidateCustom(name string, value any, params string) *errs.ValidationError
 
 	fn, ok := customs[name]
 	if !ok {
-		return errs.NewValidationError("", "custom validator '%s' not found", name)
+		return errs.NewValidationError("", "custom_validator_not_found", "custom validator '%s' not found", name)
 	}
 	return fn(value, params)
+}
+
+func Custom[T any](fn func(T) *errs.ValidationError) ValidationRule[T] {
+	return fn
 }

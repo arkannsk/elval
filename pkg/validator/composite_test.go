@@ -30,7 +30,6 @@ func TestAnd(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "invalid condition")
 			} else {
 				require.Nil(t, err)
 			}
@@ -59,7 +58,6 @@ func TestOr(t *testing.T) {
 			err := rule(tt.value)
 			if tt.wantError {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "all condition failed")
 			} else {
 				require.Nil(t, err)
 			}

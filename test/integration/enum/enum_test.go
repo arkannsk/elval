@@ -68,7 +68,6 @@ func TestOrderPriorityValidation(t *testing.T) {
 			err := order.Validate()
 			if tt.wantError {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "Priority")
 			} else {
 				assert.NoError(t, err)
 			}

@@ -85,7 +85,7 @@
             {{- /* Required */}}
             {{- if hasDirective $field.Directives "required" }}
                 if !elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}).IsPresent() {
-                return &errs.ValidationError{Field: "{{ $field.Name }}", Rule: "required", Message: errs.ErrRequired.Message}
+                return &errs.ValidationError{Field: "{{ $field.Name }}", Rule: "required", Message: "not present"}
                 }
             {{- end }}
 

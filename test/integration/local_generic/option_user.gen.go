@@ -5,6 +5,7 @@ package local_generic
 
 import (
 	"context"
+	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -31,37 +32,6 @@ var (
 	}()
 )
 
-func (v *UserProfile) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *UserProfile) Validate() error {
-	var err *errs.ValidationError
-	if !v.Email.IsPresent() {
-		return &errs.ValidationError{Field: "Email", Rule: "required", Message: errs.ErrRequired.Message}
-	}
-	if val, ok := v.Email.Value(); ok {
-		if err = UserProfile_EmailValidator.Validate(val); err != nil {
-			return err
-		}
-	}
-	if val, ok := v.Age.Value(); ok {
-		if err = UserProfile_AgeValidator.Validate(val); err != nil {
-			return err
-		}
-	}
-	if !v.Metadata.IsPresent() {
-		return &errs.ValidationError{Field: "Metadata", Rule: "required", Message: errs.ErrRequired.Message}
-	}
-	if val, ok := v.Metadata.Value(); ok {
-		if err = UserProfile_MetadataValidator.Validate(val); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 var (
 	UserMeta_DisplayNameValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("DisplayName")
@@ -70,8 +40,42 @@ var (
 	}()
 )
 
+func (v *UserProfile) Decorate(ctx context.Context) error {
+
+	return nil
+}
+
 func (v *UserMeta) Decorate(ctx context.Context) error {
 
+	return nil
+}
+
+func (v *UserProfile) Validate() error {
+	var err *errs.ValidationError
+	if !elval.Unwrap[string](v.Email).IsPresent() {
+		return &errs.ValidationError{Field: "Email", Rule: "required", Message: "not present"}
+	}
+	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = UserProfile_EmailValidator.Validate(val); err != nil {
+			return err
+		}
+	}
+	if wrapper := elval.Unwrap[int](v.Age); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = UserProfile_AgeValidator.Validate(val); err != nil {
+			return err
+		}
+	}
+	if !elval.Unwrap[UserMeta](v.Metadata).IsPresent() {
+		return &errs.ValidationError{Field: "Metadata", Rule: "required", Message: "not present"}
+	}
+	if wrapper := elval.Unwrap[UserMeta](v.Metadata); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
+		if err = UserProfile_MetadataValidator.Validate(val); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

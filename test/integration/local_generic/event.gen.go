@@ -5,6 +5,7 @@ package local_generic
 
 import (
 	"context"
+	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 	"time"
@@ -43,18 +44,20 @@ func (v *Event) Validate() error {
 	if err = Event_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
-	if !v.StartDate.IsPresent() {
-		return &errs.ValidationError{Field: "StartDate", Rule: "required", Message: errs.ErrRequired.Message}
+	if !elval.Unwrap[time.Time](v.StartDate).IsPresent() {
+		return &errs.ValidationError{Field: "StartDate", Rule: "required", Message: "not present"}
 	}
-	if val, ok := v.StartDate.Value(); ok {
+	if wrapper := elval.Unwrap[time.Time](v.StartDate); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = Event_StartDateValidator.Validate(val); err != nil {
 			return err
 		}
 	}
-	if !v.EndDate.IsPresent() {
-		return &errs.ValidationError{Field: "EndDate", Rule: "required", Message: errs.ErrRequired.Message}
+	if !elval.Unwrap[time.Time](v.EndDate).IsPresent() {
+		return &errs.ValidationError{Field: "EndDate", Rule: "required", Message: "not present"}
 	}
-	if val, ok := v.EndDate.Value(); ok {
+	if wrapper := elval.Unwrap[time.Time](v.EndDate); wrapper.IsPresent() {
+		val, _ := wrapper.Value()
 		if err = Event_EndDateValidator.Validate(val); err != nil {
 			return err
 		}
