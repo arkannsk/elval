@@ -1,5 +1,4 @@
 {{ define "slice_validate" }}
-    // Валидация слайса {{ .Name }}
     {{- $hasRequired := false }}
     {{- $hasOptional := false }}
     {{- $hasNotZero := false }}
@@ -55,7 +54,6 @@
         }
         }
     {{- else }}
-        // Обязательный слайс
         if {{ $hasRequired }} && len(v.{{ .Name }}) == 0 {
         return &errs.ValidationError{
         Field: "{{ .Name }}",

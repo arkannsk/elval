@@ -1,122 +1,66 @@
 {{ define "http/parser" }}
-    // Parse извлекает параметры из HTTP запроса
-    func (v *{{ .Name }}) Parse(r *http.Request) error {
+    func (v *{{ .Name }}) ParseRequest(r *http.Request) error {
     {{- range $field := .Fields }}
         {{- if ne $field.OaIn "" }}
-
+            {
             {{/* Определяем имя параметра */}}
             {{- $paramName := $field.Name }}
             {{- if ne $field.OaParamName "" }}
                 {{- $paramName = $field.OaParamName }}
             {{- end }}
 
-            {{/*
-           Определяем Go-тип для логики парсинга.
-        */}}
-            {{- $goTypeName := "" -}}
+            {{/* Определяем базовый Go-тип */}}
+            {{- $baseType := $field.Type.Name -}}
             {{- if $field.Type.IsSlice -}}
-                {{- $goTypeName = $field.Type.GenericBase -}}
+                {{- $baseType = $field.Type.GenericBase -}}
             {{- else if $field.Type.IsPointer -}}
-                {{- $goTypeName = $field.Type.GenericBase -}}
-            {{- else -}}
-                {{- $goTypeName = $field.Type.Name -}}
+                {{- $baseType = $field.Type.GenericBase -}}
             {{- end }}
 
-            // Parameter: {{ $paramName }} ({{ $field.OaIn }})
+            {{/* Генерируем код получения значения из запроса */}}
+            {{- $sourceExpr := "" -}}
 
             {{- if eq $field.OaIn "path" }}
-                val := r.PathValue({{ printf "%q" $paramName }})
-                v.{{ $field.Name }} = {{ template "parse_code_string" (dict "type" $goTypeName "val" "val") }}
+                {{- $sourceExpr = printf "r.PathValue(%q)" $paramName -}}
             {{- else if eq $field.OaIn "query" }}
-                if vals := r.URL.Query()[{{ printf "%q" $paramName }}]; len(vals) > 0 {
                 {{- if $field.Type.IsSlice }}
-                    v.{{ $field.Name }} = vals
+                    {{- $sourceExpr = printf "r.URL.Query()[%q]" $paramName -}}
                 {{- else }}
-                    v.{{ $field.Name }} = {{ template "parse_code_string" (dict "type" $goTypeName "val" "vals[0]") }}
+                    {{- /* Для Query Scalars используем безопасный доступ через временную переменную в блоке ниже */}}
+                    {{- $sourceExpr = printf "vals[0]" $paramName -}}
                 {{- end }}
-                }
             {{- else if eq $field.OaIn "header" }}
-                if val := r.Header.Get({{ printf "%q" $paramName }}); val != "" {
-                v.{{ $field.Name }} = {{ template "parse_code_string" (dict "type" $goTypeName "val" "val") }}
-                }
+                {{- $sourceExpr = printf "r.Header.Get(%q)" $paramName -}}
             {{- end }}
+            // Parameter: {{ $paramName }} ({{ $field.OaIn }})
+            {{- if $field.Type.IsSlice }}
+                // Parsing slice: {{ $baseType }}[]
+                {{ GenerateParseCode $field.Name $baseType $sourceExpr true }}
+            {{- else }}
+                // Parsing primitive: {{ $baseType }}
 
+                {{- if and (eq $field.OaIn "query") (not $field.Type.IsSlice) }}
+                    {{- /* Особая обработка для Query Scalars: проверяем наличие */}}
+                    if vals := r.URL.Query()[{{ printf "%q" $paramName }}]; len(vals) > 0 {
+                    {{ GenerateParseCode $field.Name $baseType "vals[0]" false }}
+                    }
+                {{- else if or (eq $field.OaIn "path") (eq $field.OaIn "header") }}
+                    {{- /* Для Path и Header проверяем, что значение не пустое, прежде чем парсить типы, требующие конвертации */}}
+                    {{- if IsNumericOrBoolOrTime $baseType }}
+                        if val := {{ $sourceExpr }}; val != "" {
+                        {{ GenerateParseCode $field.Name $baseType "val" false }}
+                        }
+                    {{- else }}
+                        {{- /* Для string просто присваиваем */}}
+                        {{ GenerateParseCode $field.Name $baseType $sourceExpr false }}
+                    {{- end }}
+                {{- else }}
+                    {{ GenerateParseCode $field.Name $baseType $sourceExpr false }}
+                {{- end }}
+            {{- end }}
+            }
         {{- end }}
     {{- end }}
     return nil
     }
-{{ end }}
-
-{{/*
-   Вспомогательный шаблон для генерации кода парсинга строки в нужный тип.
-   Использует dict для передачи контекста, так как нельзя передать аргументы напрямую в template.
-*/}}
-{{ define "parse_code_string" }}
-    {{- $type := .type -}}
-    {{- $val := .val -}}
-
-    {{- if eq $type "string" -}}
-        {{ $val }}
-    {{- else if or (eq $type "int") (eq $type "int8") (eq $type "int16") (eq $type "int32") (eq $type "int64") -}}
-        parsedInt, err := strconv.ParseInt({{ $val }}, 10, 64)
-        if err != nil {
-        return fmt.Errorf("invalid integer for parameter: %w", err)
-        }
-        int64(parsedInt) // Приведение к типу поля будет сделано при присваивании, но здесь возвращаем int64
-        {{- /* Примечание: Это упрощение. Для строгой типизации лучше возвращать конкретный тип,
-		   но в Go шаблонах сложно сгенерировать точное приведение без знания целевого типа поля.
-		   Однако, v.Field = parsedInt сработает, если поле int64. Если поле int, нужна явная конвертация. */}}
-        {{- if eq $type "int" -}}
-            int(parsedInt)
-        {{- else if eq $type "int8" -}}
-            int8(parsedInt)
-        {{- else if eq $type "int16" -}}
-            int16(parsedInt)
-        {{- else if eq $type "int32" -}}
-            int32(parsedInt)
-        {{- else -}}
-            parsedInt
-        {{- end -}}
-    {{- else if or (eq $type "uint") (eq $type "uint8") (eq $type "uint16") (eq $type "uint32") (eq $type "uint64") -}}
-        parsedUint, err := strconv.ParseUint({{ $val }}, 10, 64)
-        if err != nil {
-        return fmt.Errorf("invalid uint for parameter: %w", err)
-        }
-        {{- if eq $type "uint" -}}
-            uint(parsedUint)
-        {{- else if eq $type "uint8" -}}
-            uint8(parsedUint)
-        {{- else if eq $type "uint16" -}}
-            uint16(parsedUint)
-        {{- else if eq $type "uint32" -}}
-            uint32(parsedUint)
-        {{- else -}}
-            parsedUint
-        {{- end -}}
-    {{- else if or (eq $type "float32") (eq $type "float64") -}}
-        parsedFloat, err := strconv.ParseFloat({{ $val }}, 64)
-        if err != nil {
-        return fmt.Errorf("invalid float for parameter: %w", err)
-        }
-        {{- if eq $type "float32" -}}
-            float32(parsedFloat)
-        {{- else -}}
-            parsedFloat
-        {{- end -}}
-    {{- else if eq $type "bool" -}}
-        parsedBool, err := strconv.ParseBool({{ $val }})
-        if err != nil {
-        return fmt.Errorf("invalid bool for parameter: %w", err)
-        }
-        parsedBool
-    {{- else if eq $type "time.Time" -}}
-        parsedTime, err := time.Parse(time.RFC3339, {{ $val }})
-        if err != nil {
-        return fmt.Errorf("invalid time for parameter: %w", err)
-        }
-        parsedTime
-    {{- else -}}
-        // TODO: Implement parsing for type {{ $type }}
-        {{ $val }}
-    {{- end -}}
 {{ end }}

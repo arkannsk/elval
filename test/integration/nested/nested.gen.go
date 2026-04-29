@@ -134,8 +134,6 @@ func (v *Company) Validate() error {
 		return err
 	}
 
-	// Валидация слайса Addresses
-	// Обязательный слайс
 	if true && len(v.Addresses) == 0 {
 		return &errs.ValidationError{
 			Field:   "Addresses",
@@ -161,7 +159,6 @@ func (v *Company) Validate() error {
 		}
 	}
 
-	// Валидация слайса Users
 	if len(v.Users) > 0 {
 		// Валидация элементов слайса структур
 		for _, item := range v.Users {

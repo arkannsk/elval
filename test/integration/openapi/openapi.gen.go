@@ -149,8 +149,6 @@ func (v *Order) Validate() error {
 		return err
 	}
 
-	// Валидация слайса Items
-	// Обязательный слайс
 	if true && len(v.Items) == 0 {
 		return &errs.ValidationError{
 			Field:   "Items",

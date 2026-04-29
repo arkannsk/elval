@@ -189,6 +189,8 @@ var templateFucMap = template.FuncMap{
 		}
 	},
 	"GenerateDecoratorCode": GenerateDecoratorCode,
+	"GenerateParseCode":     GenerateParseCode,
+	"IsNumericOrBoolOrTime": IsNumericOrBoolOrTime,
 }
 
 func trimQuotes(s string) string {
@@ -200,4 +202,17 @@ func trimQuotes(s string) string {
 		}
 	}
 	return s
+}
+
+func IsNumericOrBoolOrTime(goType string) bool {
+	switch goType {
+	case "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64",
+		"bool",
+		"time.Time", "time.Duration":
+		return true
+	default:
+		return false
+	}
 }

@@ -75,8 +75,6 @@ func (v *Person) Validate() error {
 		return err
 	}
 
-	// Валидация слайса Tags
-	// Обязательный слайс
 	if true && len(v.Tags) == 0 {
 		return &errs.ValidationError{
 			Field:   "Tags",
@@ -99,7 +97,6 @@ func (v *Person) Validate() error {
 		}
 	}
 
-	// Валидация слайса Scores
 	if len(v.Scores) > 0 {
 	} else if true {
 		return &errs.ValidationError{

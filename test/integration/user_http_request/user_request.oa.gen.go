@@ -126,21 +126,24 @@ func (v *GetUserRequest) getFieldSchema(fieldName string) *oa.Schema {
 	}
 }
 
-// Parse извлекает параметры из HTTP запроса
-func (v *GetUserRequest) Parse(r *http.Request) error {
+func (v *GetUserRequest) ParseRequest(r *http.Request) error {
+	{
 
-	// Parameter: id (path)
-	val := r.PathValue("id")
-	v.ID = val
-
-	// Parameter: fields (query)
-	if vals := r.URL.Query()["fields"]; len(vals) > 0 {
-		v.Fields = vals
+		// Parameter: id (path)
+		// Parsing primitive: string
+		v.ID = r.PathValue("id")
 	}
+	{
 
-	// Parameter: X-Request-ID (header)
-	if val := r.Header.Get("X-Request-ID"); val != "" {
-		v.RequestID = val
+		// Parameter: fields (query)
+		// Parsing slice: string[]
+		v.Fields = r.URL.Query()["fields"]
+	}
+	{
+
+		// Parameter: X-Request-ID (header)
+		// Parsing primitive: string
+		v.RequestID = r.Header.Get("X-Request-ID")
 	}
 	return nil
 }
