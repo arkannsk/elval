@@ -1,5 +1,4 @@
 {{ define "http/parser" }}
-    // Parse извлекает параметры из HTTP запроса
     func (v *{{ .Name }}) ParseRequest(r *http.Request) error {
     {{- range $field := .Fields }}
         {{- if ne $field.OaIn "" }}
@@ -27,15 +26,12 @@
                 {{- if $field.Type.IsSlice }}
                     {{- $sourceExpr = printf "r.URL.Query()[%q]" $paramName -}}
                 {{- else }}
-                    {{- /* Для скаляров из Query берем первый элемент, если он есть */}}
-                    {{- $sourceExpr = printf "r.URL.Query()[%q][0]" $paramName -}}
-                    {{- /* Примечание: Это вызовет панику, если параметра нет.
-                       Нам нужно обернуть вызов парсинга в проверку наличия параметра. */}}
+                    {{- /* Для Query Scalars используем безопасный доступ через временную переменную в блоке ниже */}}
+                    {{- $sourceExpr = printf "vals[0]" $paramName -}}
                 {{- end }}
             {{- else if eq $field.OaIn "header" }}
                 {{- $sourceExpr = printf "r.Header.Get(%q)" $paramName -}}
             {{- end }}
-
             // Parameter: {{ $paramName }} ({{ $field.OaIn }})
             {{- if $field.Type.IsSlice }}
                 // Parsing slice: {{ $baseType }}[]
@@ -48,6 +44,16 @@
                     if vals := r.URL.Query()[{{ printf "%q" $paramName }}]; len(vals) > 0 {
                     {{ GenerateParseCode $field.Name $baseType "vals[0]" false }}
                     }
+                {{- else if or (eq $field.OaIn "path") (eq $field.OaIn "header") }}
+                    {{- /* Для Path и Header проверяем, что значение не пустое, прежде чем парсить типы, требующие конвертации */}}
+                    {{- if IsNumericOrBoolOrTime $baseType }}
+                        if val := {{ $sourceExpr }}; val != "" {
+                        {{ GenerateParseCode $field.Name $baseType "val" false }}
+                        }
+                    {{- else }}
+                        {{- /* Для string просто присваиваем */}}
+                        {{ GenerateParseCode $field.Name $baseType $sourceExpr false }}
+                    {{- end }}
                 {{- else }}
                     {{ GenerateParseCode $field.Name $baseType $sourceExpr false }}
                 {{- end }}

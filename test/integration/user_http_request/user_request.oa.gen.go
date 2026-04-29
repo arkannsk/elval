@@ -126,7 +126,6 @@ func (v *GetUserRequest) getFieldSchema(fieldName string) *oa.Schema {
 	}
 }
 
-// Parse извлекает параметры из HTTP запроса
 func (v *GetUserRequest) ParseRequest(r *http.Request) error {
 	{
 

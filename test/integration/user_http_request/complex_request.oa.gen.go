@@ -338,7 +338,6 @@ func (v *ComplexRequest) getFieldSchema(fieldName string) *oa.Schema {
 	}
 }
 
-// Parse извлекает параметры из HTTP запроса
 func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 	{
 
@@ -350,11 +349,13 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 
 		// Parameter: version (path)
 		// Parsing primitive: int
-		parsedInt, err := strconv.ParseInt(r.PathValue("version"), 10, 64)
-		if err != nil {
-			return errs.NewParseRequestError("Version", r.PathValue("version"), "invalid integer")
+		if val := r.PathValue("version"); val != "" {
+			parsedInt, err := strconv.ParseInt(val, 10, 64)
+			if err != nil {
+				return errs.NewParseRequestError("Version", val, "invalid integer")
+			}
+			v.Version = int(parsedInt)
 		}
-		v.Version = int(parsedInt)
 	}
 	{
 
@@ -446,21 +447,25 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 
 		// Parameter: X-Tenant-ID (header)
 		// Parsing primitive: int64
-		parsedInt, err := strconv.ParseInt(r.Header.Get("X-Tenant-ID"), 10, 64)
-		if err != nil {
-			return errs.NewParseRequestError("TenantID", r.Header.Get("X-Tenant-ID"), "invalid integer")
+		if val := r.Header.Get("X-Tenant-ID"); val != "" {
+			parsedInt, err := strconv.ParseInt(val, 10, 64)
+			if err != nil {
+				return errs.NewParseRequestError("TenantID", val, "invalid integer")
+			}
+			v.TenantID = parsedInt
 		}
-		v.TenantID = parsedInt
 	}
 	{
 
 		// Parameter: X-Rate-Limit (header)
 		// Parsing primitive: uint32
-		parsedUint, err := strconv.ParseUint(r.Header.Get("X-Rate-Limit"), 10, 64)
-		if err != nil {
-			return errs.NewParseRequestError("RateLimit", r.Header.Get("X-Rate-Limit"), "invalid uint")
+		if val := r.Header.Get("X-Rate-Limit"); val != "" {
+			parsedUint, err := strconv.ParseUint(val, 10, 64)
+			if err != nil {
+				return errs.NewParseRequestError("RateLimit", val, "invalid uint")
+			}
+			v.RateLimit = uint32(parsedUint)
 		}
-		v.RateLimit = uint32(parsedUint)
 	}
 	return nil
 }
