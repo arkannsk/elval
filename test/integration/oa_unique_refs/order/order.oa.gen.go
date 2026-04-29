@@ -14,6 +14,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 
@@ -23,6 +24,7 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["id"] = prop
 	}
+
 	{
 		prop := &oa.Schema{}
 
@@ -32,6 +34,7 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["total"] = prop
 	}
+
 	{
 		prop := &oa.Schema{}
 

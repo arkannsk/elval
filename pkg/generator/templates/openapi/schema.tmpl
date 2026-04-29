@@ -2,8 +2,8 @@
     func (v *{{ .Name }}) OaSchema() *oa.Schema {
     schema := &oa.Schema{
     Type:       "object",
-    Properties: make(map[string]*oa.Schema, {{ len .Fields }}),
-    Required:   make([]string, 0, {{ len .Fields }}),
+    Properties: make(map[string]*oa.Schema, {{ CountBodyFields .Fields }}),
+    Required:   make([]string, 0, {{ CountBodyFields .Fields }}),
     Ref:        v.GlobalRef(),
     }
 
@@ -12,44 +12,49 @@
     {{- end }}
 
     {{- range $field := .Fields }}
-        {
-        prop := &oa.Schema{}
-
-        {{- /* (@oa:rewrite.type) */}}
-        {{- if $field.OaRewriteType }}
-            prop.Type = {{ oaString $field.OaRewriteType }}
-            {{- if eq $field.OaRewriteType "array" }}
-            prop.Items = &oa.Schema{}
+        {{/*
+           Пропускаем поля, которые являются HTTP параметрами (path/query/header).
+           Они должны быть только в OaParams(), а не в схеме тела.
+        */}}
+        {{- if eq $field.OaIn "" }}
+            {
+            prop := &oa.Schema{}
+            {{- /* (@oa:rewrite.type) */}}
+            {{- if $field.OaRewriteType }}
+                prop.Type = {{ oaString $field.OaRewriteType }}
+                {{- if eq $field.OaRewriteType "array" }}
+                    prop.Items = &oa.Schema{}
+                {{- end }}
             {{- end }}
-        {{- end }}
 
-        {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
-        {{- if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
-            {{- if $field.OaRewriteRef }}
-                prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
+            {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
+            {{- if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
+                {{- if $field.OaRewriteRef }}
+                    prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
+                {{- else }}
+                    prop.Ref = "#/components/schemas/{{ globalRefFor $field.Type.Name $field.Type.PackagePath $field.Type.Module $.PackagePath $.Module }}"
+                {{- end }}
+
+                {{- /* ПРИОРИТЕТ 3: Слайсы и массивы — делегируем в специализированный шаблон slice */}}
+            {{- else if $field.Type.IsSlice }}
+                {{- $ctx := dict "Field" $field "PkgPath" $.PackagePath "Module" $.Module }}
+                {{ template "openapi/field/slice" $ctx }}
+
+                {{- /* ПРИОРИТЕТ 4: Всё остальное (примитивы, указатели на примитивы, map и т.д.) */}}
             {{- else }}
-                prop.Ref = "#/components/schemas/{{ globalRefFor $field.Type.Name $field.Type.PackagePath $field.Type.Module $.PackagePath $.Module }}"
+                {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
+                {{ template "openapi/field/type" $ctx }}
             {{- end }}
 
-            {{- /* ПРИОРИТЕТ 3: Слайсы и массивы — делегируем в специализированный шаблон slice */}}
-        {{- else if $field.Type.IsSlice }}
-            {{- $ctx := dict "Field" $field "PkgPath" $.PackagePath "Module" $.Module }}
-            {{ template "openapi/field/slice" $ctx }}
-
-            {{- /* ПРИОРИТЕТ 4: Всё остальное (примитивы, указатели на примитивы, map и т.д.) */}}
-        {{- else }}
+            {{- /* Валидаторы, аннотации, описание */}}
+            {{ template "openapi/field/validators" $field }}
             {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
-            {{ template "openapi/field/type" $ctx }}
+            {{ template "openapi/field/annotations" $ctx }}
+            {{ template "openapi/field/description" $field }}
+
+            schema.Properties[{{ $field.Name | toLower | printf "%q" }}] = prop
+            }
         {{- end }}
-
-        {{- /* Валидаторы, аннотации, описание */}}
-        {{ template "openapi/field/validators" $field }}
-        {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
-        {{ template "openapi/field/annotations" $ctx }}
-        {{ template "openapi/field/description" $field }}
-
-        schema.Properties[{{ $field.Name | toLower | printf "%q" }}] = prop
-        }
     {{- end }}
 
     {{- /* Discriminator вызывается ЗДЕСЬ, вне цикла, с контекстом структуры (.) */}}

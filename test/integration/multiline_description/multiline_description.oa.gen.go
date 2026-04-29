@@ -14,6 +14,7 @@ func (v *User) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 
@@ -39,6 +40,7 @@ func (v *IgnoreField) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
+
 	{
 		prop := &oa.Schema{}
 

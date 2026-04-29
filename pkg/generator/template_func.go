@@ -188,9 +188,13 @@ var templateFucMap = template.FuncMap{
 			return ""
 		}
 	},
-	"GenerateDecoratorCode": GenerateDecoratorCode,
-	"GenerateParseCode":     GenerateParseCode,
-	"IsNumericOrBoolOrTime": IsNumericOrBoolOrTime,
+	"GenerateDecoratorCode":   GenerateDecoratorCode,
+	"GenerateParseCode":       GenerateParseCode,
+	"IsNumericOrBoolOrTime":   IsNumericOrBoolOrTime,
+	"ToOpenAPIType":           ToOpenAPIType,
+	"GetFieldAnnotationValue": GetFieldAnnotationValue,
+	"IsFieldRequired":         IsFieldRequired,
+	"CountBodyFields":         CountBodyFields,
 }
 
 func trimQuotes(s string) string {
@@ -215,4 +219,54 @@ func IsNumericOrBoolOrTime(goType string) bool {
 	default:
 		return false
 	}
+}
+
+func ToOpenAPIType(goType string) string {
+	switch goType {
+	case "string":
+		return "string"
+	case "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64":
+		return "integer"
+	case "float32", "float64":
+		return "number"
+	case "bool":
+		return "boolean"
+	case "time.Time":
+		return "string" // В OpenAPI время обычно string с format date-time
+	default:
+		if strings.HasPrefix(goType, "[") || strings.HasPrefix(goType, "*") {
+			return "array"
+		}
+		return "object"
+	}
+}
+
+func GetFieldAnnotationValue(field parser.Field, annotationType string) string {
+	for _, an := range field.OaAnnotations {
+		if an.Type == annotationType {
+			return an.Value
+		}
+	}
+	return ""
+}
+
+func IsFieldRequired(field parser.Field) bool {
+	for _, dir := range field.Directives {
+		if dir.Type == "required" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func CountBodyFields(fields []parser.Field) int {
+	count := 0
+	for _, f := range fields {
+		if f.OaIn == "" {
+			count++
+		}
+	}
+	return count
 }
