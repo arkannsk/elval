@@ -76,6 +76,7 @@ type Field struct {
 
 	OaIn        string // "path", "query", "header", "cookie" или "" (body)
 	OaParamName string // Имя параметра в URL/Query/Header (если отличается от имени поля)
+	OaFormat    string
 }
 
 // Struct представляет структуру с полями для валидации

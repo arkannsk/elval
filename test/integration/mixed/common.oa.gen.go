@@ -14,7 +14,6 @@ func (v *NoAnnotations) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -22,7 +21,6 @@ func (v *NoAnnotations) OaSchema() *oa.Schema {
 
 		schema.Properties["id"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -45,7 +43,6 @@ func (v *Helper) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 

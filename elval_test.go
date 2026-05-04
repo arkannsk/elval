@@ -61,7 +61,7 @@ func TestValidate_NumericRules(t *testing.T) {
 func TestValidate_TimeRules(t *testing.T) {
 	now := time.Now()
 	past := now.Add(-time.Hour)
-	future := now.Add(time.Hour)
+	future := now.Add(time.Hour * 24)
 
 	t.Run("After", func(t *testing.T) {
 		layout := "2006-01-02"

@@ -14,17 +14,14 @@ func (v *UploadRequest) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Type = "string"
-		prop.Ref = "#/components/schemas/json.RawMessage"
 
 		prop.Description = "JSON payload as a base64 encoded string"
 
 		schema.Properties["payload"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

@@ -14,7 +14,6 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -22,13 +21,11 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 
 		schema.Properties["email"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
 		schema.Properties["age"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -51,7 +48,6 @@ func (v *UserMeta) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 

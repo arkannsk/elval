@@ -14,7 +14,6 @@ func (v *PointDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -22,7 +21,6 @@ func (v *PointDocs) OaSchema() *oa.Schema {
 
 		schema.Properties["type"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -52,7 +50,6 @@ func (v *PolygonDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -60,7 +57,6 @@ func (v *PolygonDocs) OaSchema() *oa.Schema {
 
 		schema.Properties["type"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -91,7 +87,6 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -104,7 +99,6 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 
 		schema.Properties["geometry"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

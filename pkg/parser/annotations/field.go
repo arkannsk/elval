@@ -9,6 +9,7 @@ type FieldAnnotationResult struct {
 	IsIgnored   bool
 	OaIn        string         // "path", "query", "header", "cookie"
 	OaParamName string         // Имя параметра, если отличается от имени поля
+	OaFormat    string         // "binary" или "byte" (из @oa:file / @oa:stream)
 	Remaining   []OaAnnotation // Остальные аннотации (description, format, enum и т.д.)
 }
 
@@ -26,6 +27,8 @@ func ProcessFieldAnnotations(annotations []OaAnnotation) FieldAnnotationResult {
 			result.RewriteType = RewriteTypeToOa(ann.Value)
 		case "ignore":
 			result.IsIgnored = true
+		case "file", "stream":
+			result.OaFormat = "binary"
 		case "in":
 			parts := strings.Fields(ann.Value)
 			if len(parts) >= 1 {

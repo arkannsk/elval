@@ -14,7 +14,6 @@ func (v *User) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -26,7 +25,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -37,7 +35,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["email"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -63,7 +60,6 @@ func (v *Product) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -73,7 +69,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["status"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -85,7 +80,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["quantity"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -111,7 +105,6 @@ func (v *Order) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -121,7 +114,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["id"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -132,7 +124,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["userid"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -142,7 +133,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["total"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -171,7 +161,6 @@ func (v *Config) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -179,7 +168,6 @@ func (v *Config) OaSchema() *oa.Schema {
 
 		schema.Properties["host"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

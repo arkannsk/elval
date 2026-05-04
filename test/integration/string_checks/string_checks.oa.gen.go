@@ -14,7 +14,6 @@ func (v *Document) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Document) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -34,7 +32,6 @@ func (v *Document) OaSchema() *oa.Schema {
 
 		schema.Properties["url"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -44,7 +41,6 @@ func (v *Document) OaSchema() *oa.Schema {
 
 		schema.Properties["content"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -67,7 +63,6 @@ func (v *File) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -77,7 +72,6 @@ func (v *File) OaSchema() *oa.Schema {
 
 		schema.Properties["path"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

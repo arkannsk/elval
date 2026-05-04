@@ -1,12 +1,10 @@
 package openapi
 
-// Discriminator описывает полиморфную диспетчеризацию
 type Discriminator struct {
 	PropertyName string            `json:"propertyName"`
 	Mapping      map[string]string `json:"mapping,omitempty"`
 }
 
-// Schema представляет объект схемы OpenAPI 3.0/3.1
 type Schema struct {
 	Type        string `json:"type,omitempty"`
 	Format      string `json:"format,omitempty"`
@@ -14,14 +12,11 @@ type Schema struct {
 	Description string `json:"description,omitempty"`
 	Example     any    `json:"example,omitempty"`
 
-	// Для объектов
-	Properties map[string]*Schema `json:"properties,omitempty"` // 👈 ИЗМЕНЕНО: *Schema
+	Properties map[string]*Schema `json:"properties,omitempty"`
 	Required   []string           `json:"required,omitempty"`
 
-	// Для массивов
-	Items *Schema `json:"items,omitempty"` // 👈 Уже было правильно
+	Items *Schema `json:"items,omitempty"`
 
-	// Перечисления и ограничения
 	Enum             []any    `json:"enum,omitempty"`
 	Minimum          *float64 `json:"minimum,omitempty"`
 	Maximum          *float64 `json:"maximum,omitempty"`
@@ -31,20 +26,20 @@ type Schema struct {
 	MaxLength        *int64   `json:"maxLength,omitempty"`
 	Pattern          string   `json:"pattern,omitempty"`
 
-	// Полиморфизм
 	Discriminator *Discriminator `json:"discriminator,omitempty"`
 	OneOf         []*Schema      `json:"oneOf,omitempty"`
 	AllOf         []*Schema      `json:"allOf,omitempty"`
 	AnyOf         []*Schema      `json:"anyOf,omitempty"`
 
-	// Ссылка на компонент
 	Ref string `json:"$ref,omitempty"`
 
-	// Дополнительные флаги
 	Nullable  bool `json:"nullable,omitempty"`
 	ReadOnly  bool `json:"readOnly,omitempty"`
 	WriteOnly bool `json:"writeOnly,omitempty"`
 	Default   any  `json:"default,omitempty"`
+
+	ContentEncoding  string `json:"contentEncoding,omitempty"`  // OAS 3.1+
+	ContentMediaType string `json:"contentMediaType,omitempty"` // OAS 3.1+
 }
 
 // NewSchema создает новую схему с инициализированными коллекциями
