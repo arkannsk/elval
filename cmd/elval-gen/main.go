@@ -80,6 +80,8 @@ func generateCmd() {
 
 	genFlags.Parse(os.Args[2:])
 
+	outputDir = inputDir
+
 	colors := errs.DefaultColors()
 	if noColor {
 		colors = errs.Color{}
