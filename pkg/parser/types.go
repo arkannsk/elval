@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	ann "github.com/arkannsk/elval/pkg/parser/annotations"
 )
 
@@ -153,32 +154,28 @@ func (s *Struct) ShouldGenerateOpenAPI(generateOpenAPIFlag bool) bool {
 
 // ParseResult результат парсинга файла
 type ParseResult struct {
-	Package string   // имя пакета
-	Structs []Struct // найденные структуры
-	Errors  []error  // ошибки парсинга
+	Package     string
+	Structs     []Struct
+	Errors      []error // Critical Generation Errors
+	Diagnostics []errs.Diagnostic
 
 	Imports map[string]string
 }
 
-// ValidateDirectives валидирует все директивы в результате парсинга
-func (r *ParseResult) ValidateDirectives() []DirectiveError {
-	var errors []DirectiveError
-	for _, s := range r.Structs {
-		for _, field := range s.Fields {
-			for _, dir := range field.Directives {
-				if err := ValidateDirective(dir, field.Type); err != nil {
-					errors = append(errors, DirectiveError{
-						File:      s.File,
-						Line:      field.Line,
-						Struct:    s.Name,
-						Field:     field.Name,
-						Directive: dir.Type,
-						Message:   err.Error(),
-						Severity:  SeverityError, // по умолчанию error
-					})
-				}
-			}
+func (r *ParseResult) HasErrors() bool {
+	for _, d := range r.Diagnostics {
+		if d.Severity == errs.SeverityError {
+			return true
 		}
 	}
-	return errors
+	return false
+}
+
+func (r *ParseResult) HasWarnings() bool {
+	for _, d := range r.Diagnostics {
+		if d.Severity == errs.SeverityWarning {
+			return true
+		}
+	}
+	return false
 }

@@ -14,16 +14,19 @@ var (
 	UserSettings_ThemeValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Theme")
 		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.Enum[Theme](light, dark, custom))
 		return v
 	}()
 
 	UserSettings_PrimaryColorValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("PrimaryColor")
+		v.AddRule(validator.MatchRegexp("^#[0-9A-Fa-f]{6}$"))
 		return v
 	}()
 
 	UserSettings_NotificationEmailValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("NotificationEmail")
+		v.AddRule(validator.Email())
 		original := v
 		v = validator.New[string]("NotificationEmail")
 		v.AddRule(validator.SkipIfZero(original.Validate))
