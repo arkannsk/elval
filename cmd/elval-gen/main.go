@@ -60,12 +60,11 @@ Examples:
   elval-gen lint -i ./user -v`)
 }
 
-// cmd/elval-gen/main.go
-
 func generateCmd() {
 	var inputDir string
 	var outputDir string
 	var verbose bool
+	var exclude string
 	var generateOpenAPI bool
 	var warningsAsErrors bool
 	var noColor bool
@@ -73,18 +72,13 @@ func generateCmd() {
 	genFlags := flag.NewFlagSet("generate", flag.ExitOnError)
 	genFlags.StringVar(&inputDir, "input", ".", "input directory")
 	genFlags.StringVar(&inputDir, "i", ".", "alias for -input")
-	genFlags.StringVar(&outputDir, "output", "", "output directory (default: input dir)")
-	genFlags.StringVar(&outputDir, "o", "", "alias for -output")
+	genFlags.StringVar(&exclude, "exclude", "", "comma-separated patterns to exclude (e.g. vendor,testdata)")
 	genFlags.BoolVar(&verbose, "v", false, "verbose output")
 	genFlags.BoolVar(&generateOpenAPI, "openapi", false, "generate OpenAPI schemas")
 	genFlags.BoolVar(&warningsAsErrors, "Werror", false, "treat warnings as errors")
 	genFlags.BoolVar(&noColor, "no-color", false, "disable colored output")
 
 	genFlags.Parse(os.Args[2:])
-
-	if outputDir == "" {
-		outputDir = inputDir
-	}
 
 	colors := errs.DefaultColors()
 	if noColor {
@@ -104,17 +98,20 @@ func generateCmd() {
 		log.Fatal(err)
 	}
 
-	// ─────────────────────────────────────────────────────
-	// 🔁 Рекурсивный поиск .go файлов вместо filepath.Glob
-	// ─────────────────────────────────────────────────────
 	var files []string
 	err = filepath.WalkDir(inputDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		// Пропускаем директории
 		if d.IsDir() {
-			// Опционально: пропускать vendor, .git, testdata и т.д.
+			if exclude != "" {
+				patterns := strings.Split(exclude, ",")
+				for _, pattern := range patterns {
+					if strings.Contains(path, strings.TrimSpace(pattern)) {
+						return filepath.SkipDir
+					}
+				}
+			}
 			name := d.Name()
 			if name == "vendor" || name == ".git" || name == "node_modules" {
 				return filepath.SkipDir

@@ -26,6 +26,5 @@ type LogEntry struct {
 	EventTime string
 
 	// @evl:validate optional
-	// @evl:validate date:Kitchen
 	KitchenTime string
 }
