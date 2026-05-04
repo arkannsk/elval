@@ -46,6 +46,6 @@ var templateFucMap = template.FuncMap{
 	"GetFieldAnnotationValue": utils.GetFieldAnnotationValue,
 	"IsFieldRequired":         utils.IsFieldRequired,
 	"CountBodyFields":         utils.CountBodyFields,
-	"joinUnquoted":            utils.JoinUnquoted,
-	"joinQuoted":              utils.JoinQuoted,
+	"openapiIsFile":           utils.IsFileOrStreamType,
+	"openapiFileSchema":       utils.FileSchema,
 }

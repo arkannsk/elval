@@ -14,7 +14,6 @@ func (v *Product) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 8),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["status"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -36,7 +34,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["quantity"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -48,7 +45,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["price"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -59,7 +55,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["age"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -67,7 +62,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["role"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -75,7 +69,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["score"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -86,7 +79,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["discount"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

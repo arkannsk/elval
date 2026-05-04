@@ -14,7 +14,6 @@ func (v *APIResponse) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -40,14 +39,12 @@ func (v *UserResponse) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/user.User"
 
 		schema.Properties["user"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -72,14 +69,12 @@ func (v *OrderResponse) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/order.Order"
 
 		schema.Properties["order"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

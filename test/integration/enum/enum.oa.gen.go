@@ -14,7 +14,6 @@ func (v *Order) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -25,7 +24,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["status"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -36,7 +34,6 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		schema.Properties["priority"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -61,7 +58,6 @@ func (v *User) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -72,7 +68,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["role"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

@@ -18,7 +18,6 @@ func (v *ComplexRequest) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -28,7 +27,6 @@ func (v *ComplexRequest) OaSchema() *oa.Schema {
 
 		schema.Properties["role"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

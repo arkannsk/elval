@@ -14,7 +14,6 @@ func (v *Pet) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Pet) OaSchema() *oa.Schema {
 
 		schema.Properties["type"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -55,14 +53,12 @@ func (v *Cat) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -87,14 +83,12 @@ func (v *Dog) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/Pet"
 
 		schema.Properties["pet"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

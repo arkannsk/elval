@@ -14,7 +14,6 @@ func (v *Address) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Address) OaSchema() *oa.Schema {
 
 		schema.Properties["warehouse"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -34,7 +32,6 @@ func (v *Address) OaSchema() *oa.Schema {
 
 		schema.Properties["zone"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

@@ -14,7 +14,6 @@ func (v *Address) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -25,7 +24,6 @@ func (v *Address) OaSchema() *oa.Schema {
 
 		schema.Properties["city"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -36,7 +34,6 @@ func (v *Address) OaSchema() *oa.Schema {
 
 		schema.Properties["street"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -61,7 +58,6 @@ func (v *User) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -72,7 +68,6 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -83,14 +78,12 @@ func (v *User) OaSchema() *oa.Schema {
 
 		schema.Properties["email"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/Address"
 
 		schema.Properties["address"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 		prop.Ref = "#/components/schemas/*Address"
@@ -112,7 +105,6 @@ func (v *Company) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -122,7 +114,6 @@ func (v *Company) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -135,7 +126,6 @@ func (v *Company) OaSchema() *oa.Schema {
 
 		schema.Properties["addresses"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

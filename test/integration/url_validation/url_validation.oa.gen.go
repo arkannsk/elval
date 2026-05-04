@@ -14,7 +14,6 @@ func (v *Link) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Link) OaSchema() *oa.Schema {
 
 		schema.Properties["website"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -32,7 +30,6 @@ func (v *Link) OaSchema() *oa.Schema {
 
 		schema.Properties["blog"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -57,7 +54,6 @@ func (v *Profile) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -82,7 +78,6 @@ func (v *Config) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -92,7 +87,6 @@ func (v *Config) OaSchema() *oa.Schema {
 
 		schema.Properties["anyurl"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -102,7 +96,6 @@ func (v *Config) OaSchema() *oa.Schema {
 
 		schema.Properties["weburl"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -112,7 +105,6 @@ func (v *Config) OaSchema() *oa.Schema {
 
 		schema.Properties["databaseurl"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

@@ -14,7 +14,6 @@ func (v *Review) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Review) OaSchema() *oa.Schema {
 
 		schema.Properties["comment"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -45,7 +43,6 @@ func (v *Product) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -55,7 +52,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

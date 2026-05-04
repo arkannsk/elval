@@ -14,7 +14,6 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -23,7 +22,6 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 
 		schema.Properties["theme"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -31,7 +29,6 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 
 		schema.Properties["primarycolor"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

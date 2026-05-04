@@ -14,7 +14,6 @@ func (v *Event) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Event) OaSchema() *oa.Schema {
 
 		schema.Properties["name"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -32,7 +30,6 @@ func (v *Event) OaSchema() *oa.Schema {
 
 		schema.Properties["startdate"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

@@ -14,7 +14,6 @@ func (v *Event) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Event) OaSchema() *oa.Schema {
 
 		schema.Properties["createdat"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -34,7 +32,6 @@ func (v *Event) OaSchema() *oa.Schema {
 
 		schema.Properties["updatedat"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -42,7 +39,6 @@ func (v *Event) OaSchema() *oa.Schema {
 
 		schema.Properties["dateonly"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -67,7 +63,6 @@ func (v *LogEntry) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -77,7 +72,6 @@ func (v *LogEntry) OaSchema() *oa.Schema {
 
 		schema.Properties["eventtime"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 

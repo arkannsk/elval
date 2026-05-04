@@ -12,41 +12,34 @@
     {{- end }}
 
     {{- range $field := .Fields }}
-        {{/*
-           Пропускаем поля, которые являются HTTP параметрами (path/query/header).
-           Они должны быть только в OaParams(), а не в схеме тела.
-        */}}
         {{- if eq $field.OaIn "" }}
             {
             prop := &oa.Schema{}
-            {{- /* (@oa:rewrite.type) */}}
             {{- if $field.OaRewriteType }}
                 prop.Type = {{ oaString $field.OaRewriteType }}
                 {{- if eq $field.OaRewriteType "array" }}
                     prop.Items = &oa.Schema{}
                 {{- end }}
-            {{- end }}
-
-            {{- /* ПРИОРИТЕТ 2: Структуры (не слайсы) */}}
-            {{- if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
+            {{- else if openapiIsFile $field.Type }}
+                prop.Type = "string"
+                {{- if hasPrefix $field.Type.Name "[]byte" }}
+                    prop.Format = "byte"
+                {{- else }}
+                    prop.Format = "binary"
+                {{- end }}
+            {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
                 {{- if $field.OaRewriteRef }}
                     prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
                 {{- else }}
                     prop.Ref = "#/components/schemas/{{ globalRefFor $field.Type.Name $field.Type.PackagePath $field.Type.Module $.PackagePath $.Module }}"
                 {{- end }}
-
-                {{- /* ПРИОРИТЕТ 3: Слайсы и массивы — делегируем в специализированный шаблон slice */}}
-            {{- else if $field.Type.IsSlice }}
+            {{- else if and $field.Type.IsSlice (not (hasPrefix $field.Type.Name "[]byte")) }}
                 {{- $ctx := dict "Field" $field "PkgPath" $.PackagePath "Module" $.Module }}
                 {{ template "openapi/field/slice" $ctx }}
-
-                {{- /* ПРИОРИТЕТ 4: Всё остальное (примитивы, указатели на примитивы, map и т.д.) */}}
             {{- else }}
                 {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
                 {{ template "openapi/field/type" $ctx }}
             {{- end }}
-
-            {{- /* Валидаторы, аннотации, описание */}}
             {{ template "openapi/field/validators" $field }}
             {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
             {{ template "openapi/field/annotations" $ctx }}

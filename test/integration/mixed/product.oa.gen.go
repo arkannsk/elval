@@ -14,7 +14,6 @@ func (v *Product) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -24,7 +23,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["status"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
@@ -36,7 +34,6 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		schema.Properties["quantity"] = prop
 	}
-
 	{
 		prop := &oa.Schema{}
 
