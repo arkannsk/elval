@@ -320,3 +320,15 @@ func CountBodyFields(fields []parser.Field) int {
 	}
 	return count
 }
+
+func JoinQuoted(params []string) string {
+	quoted := make([]string, len(params))
+	for i, p := range params {
+		quoted[i] = fmt.Sprintf("%q", p)
+	}
+	return strings.Join(quoted, ", ")
+}
+
+func JoinUnquoted(params []string) string {
+	return strings.Join(params, ", ")
+}

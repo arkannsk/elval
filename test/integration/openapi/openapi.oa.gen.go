@@ -87,7 +87,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "status")
-		prop.Enum = []interface{}{"active", "inactive", "archived"}
+		prop.Enum = []any{"active", "inactive", "archived"}
 
 		prop.Description = "Product status"
 

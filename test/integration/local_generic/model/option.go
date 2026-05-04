@@ -1,5 +1,6 @@
 package model
 
+// @oa:ignore
 type Option[T any] struct {
 	value T
 	ok    bool

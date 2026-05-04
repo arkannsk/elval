@@ -135,7 +135,7 @@ func checkTypeAllowedForSingleType(info FieldInfo, allowed []string, dirType Typ
 		msg += fmt.Sprintf(" (alias for %s)", info.BaseType)
 	}
 
-	return []errs.Diagnostic{err(loc, string(dirType), info.StructName, info.FieldName, msg)}
+	return []errs.Diagnostic{warn(loc, string(dirType), info.StructName, info.FieldName, msg, "")}
 }
 
 func parseIntParam(param string) (int, error) {

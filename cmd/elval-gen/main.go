@@ -60,6 +60,8 @@ Examples:
   elval-gen lint -i ./user -v`)
 }
 
+// cmd/elval-gen/main.go
+
 func generateCmd() {
 	var inputDir string
 	var outputDir string
@@ -84,7 +86,6 @@ func generateCmd() {
 		outputDir = inputDir
 	}
 
-	// Настройка цветов для вывода
 	colors := errs.DefaultColors()
 	if noColor {
 		colors = errs.Color{}
@@ -95,9 +96,6 @@ func generateCmd() {
 		if generateOpenAPI {
 			fmt.Printf("OpenAPI schemas enabled\n")
 		}
-		if warningsAsErrors {
-			fmt.Printf("Warnings will be treated as errors (-Werror)\n")
-		}
 	}
 
 	p := parser.NewParser(verbose)
@@ -106,9 +104,38 @@ func generateCmd() {
 		log.Fatal(err)
 	}
 
-	files, err := filepath.Glob(filepath.Join(inputDir, "*.go"))
+	// ─────────────────────────────────────────────────────
+	// 🔁 Рекурсивный поиск .go файлов вместо filepath.Glob
+	// ─────────────────────────────────────────────────────
+	var files []string
+	err = filepath.WalkDir(inputDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		// Пропускаем директории
+		if d.IsDir() {
+			// Опционально: пропускать vendor, .git, testdata и т.д.
+			name := d.Name()
+			if name == "vendor" || name == ".git" || name == "node_modules" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		// Берём только .go файлы, исключая сгенерированные
+		if strings.HasSuffix(path, ".go") &&
+			!strings.HasSuffix(path, "_test.go") &&
+			!strings.HasSuffix(path, ".gen.go") &&
+			!strings.HasSuffix(path, ".oa.gen.go") {
+			files = append(files, path)
+		}
+		return nil
+	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if verbose {
+		fmt.Printf("Found %d Go files to process\n", len(files))
 	}
 
 	generated := 0
@@ -117,12 +144,10 @@ func generateCmd() {
 	totalWarnings := 0
 
 	for _, file := range files {
-		if strings.HasSuffix(file, ".gen.go") || strings.HasSuffix(file, ".oa.gen.go") {
-			continue
-		}
-
 		if verbose {
-			fmt.Printf("  Processing: %s\n", filepath.Base(file))
+			// Показываем относительный путь для читаемости
+			rel, _ := filepath.Rel(inputDir, file)
+			fmt.Printf("  Processing: %s\n", rel)
 		}
 
 		result, err := p.ParseFile(file)
@@ -131,14 +156,13 @@ func generateCmd() {
 			continue
 		}
 
+		// Обработка диагностик
 		fileHasErrors := false
 		fileHasWarnings := false
 
 		for _, d := range result.Diagnostics {
-			// Выводим с форматированием
 			fmt.Fprintln(os.Stderr, errs.FormatDiagnostic(d, colors))
 
-			// Считаем статистику
 			switch d.Severity {
 			case errs.SeverityError:
 				totalErrors++
@@ -149,12 +173,10 @@ func generateCmd() {
 			}
 		}
 
-		// Режим -Werror: ворнинги считаются ошибками
 		if warningsAsErrors && fileHasWarnings {
 			fileHasErrors = true
 		}
 
-		// Если есть ошибки — пропускаем генерацию для этого файла
 		if fileHasErrors {
 			if verbose {
 				fmt.Printf("    Skipped due to validation errors\n")
@@ -171,34 +193,39 @@ func generateCmd() {
 			continue
 		}
 
-		if err := gen.Generate(result, file); err != nil {
-			log.Printf("Generation error for %s: %v", file, err)
+		relPath, err := filepath.Rel(inputDir, file)
+		if err != nil {
+			relPath = filepath.Base(file) // fallback
+		}
+
+		outputFile := filepath.Join(outputDir, relPath)
+
+		outputDirForFile := filepath.Dir(outputFile)
+		if err := os.MkdirAll(outputDirForFile, 0755); err != nil {
+			log.Printf("Failed to create output directory %s: %v", outputDirForFile, err)
 			continue
 		}
 
-		generated++
-		if verbose {
-			fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".gen.go")
-			if generateOpenAPI {
-				fmt.Printf("    Generated %s\n", strings.TrimSuffix(filepath.Base(file), ".go")+".oa.gen.go")
-			}
+		if err := gen.Generate(result, outputFile); err != nil {
+			log.Printf("Generation error for %s: %v", file, err)
+			continue
 		}
 	}
 
+	// Финальная статистика
 	if verbose || totalErrors > 0 || totalWarnings > 0 {
 		fmt.Fprintf(os.Stderr, "\n")
 		if totalErrors > 0 {
-			fmt.Fprintf(os.Stderr, "%s %d error(s)%s\n", colors.Error, totalErrors, colors.Reset)
+			fmt.Fprintf(os.Stderr, "%s%d error(s)%s\n", colors.Error, totalErrors, colors.Reset)
 		}
 		if totalWarnings > 0 {
-			fmt.Fprintf(os.Stderr, "%s %d warning(s)%s\n", colors.Warning, totalWarnings, colors.Reset)
+			fmt.Fprintf(os.Stderr, "%s%d warning(s)%s\n", colors.Warning, totalWarnings, colors.Reset)
 		}
 		if verbose {
 			fmt.Fprintf(os.Stderr, "\nFiles: generated %d, skipped %d\n", generated, skipped)
 		}
 	}
 
-	// Выход с кодом ошибки, если были проблемы
 	if totalErrors > 0 || (warningsAsErrors && totalWarnings > 0) {
 		os.Exit(1)
 	}

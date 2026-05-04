@@ -77,7 +77,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "role")
-		prop.Enum = []interface{}{"admin", "user", "moderator"}
+		prop.Enum = []any{"admin", "user", "moderator"}
 
 		prop.Description = "User role in the system"
 

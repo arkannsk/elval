@@ -54,7 +54,7 @@
                 prop.Pattern = {{ $pattern | printf "%q" }}
             {{- end }}
         {{- else if eq $directive.Type "enum" }}
-            prop.Enum = []interface{}{ {{- range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }} }
+            prop.Enum = []any{ {{- range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }} }
         {{- end }}
     {{- end }}
 {{ end }}

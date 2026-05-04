@@ -14,7 +14,7 @@ type MixedValidationErrors struct {
 	// @evl:validate phone
 	Phone string `json:"phone"`
 
-	// ERROR: type mismatch (pattern on int)
+	// WARNING: type mismatch (pattern on int)
 	// @evl:validate pattern:email
 	Score int `json:"score"`
 

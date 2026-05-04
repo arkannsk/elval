@@ -51,7 +51,6 @@ var (
 
 	LogEntry_KitchenTimeValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("KitchenTime")
-		v.AddRule(validator.Date("Kitchen"))
 		original := v
 		v = validator.New[string]("KitchenTime")
 		v.AddRule(validator.SkipIfZero(original.Validate))

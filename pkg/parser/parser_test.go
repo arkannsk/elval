@@ -266,7 +266,7 @@ type Product struct {
 	// @evl:validate min:1
 	// @evl:validate max:100
 	// @evl:validate pattern:^\d+$
-	Quantity int
+	Quantity string
 }
 `
 

@@ -14,7 +14,7 @@ var (
 	UserSettings_ThemeValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Theme")
 		v.AddRule(validator.Required[string]())
-		v.AddRule(validator.Enum[Theme](light, dark, custom))
+		v.AddRule(validator.Enum[string]("light", "dark", "custom"))
 		return v
 	}()
 

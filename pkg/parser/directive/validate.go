@@ -45,7 +45,7 @@ func Validate(ft FieldInfo, dir ann.Directive, loc errs.Location) []errs.Diagnos
 // HasErrors checks if any diagnostic has SeverityError.
 func HasErrors(diags []errs.Diagnostic) bool {
 	for _, d := range diags {
-		if d.Severity == errs.SeverityError {
+		if d.Severity == errs.SeverityError || d.Severity == errs.SeverityWarning {
 			return true
 		}
 	}
