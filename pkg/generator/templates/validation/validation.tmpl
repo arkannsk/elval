@@ -1,9 +1,3 @@
-{{/* ==========================================
-   validation/validation.tmpl
-   Универсальный шаблон валидации с elval.Unwrap[T]
-   ========================================== */}}
-
-{{- /* Подключаем заголовок с импортами */}}
 {{ template "common/header" (dict
 "Package" .Package
 "Structs" .Structs
@@ -13,9 +7,6 @@
 "GenerateOpenAPI" false
 ) }}
 
-{{- /* ==========================================
-   БЛОК 1: Генерация валидаторов
-   ========================================== */}}
 {{ range $struct := .Structs }}
     var (
     {{- range $field := $struct.Fields }}
@@ -33,9 +24,6 @@
     )
 {{ end }}
 
-{{- /* ==========================================
-   БЛОК 2: Метод Decorate
-   ========================================== */}}
 {{ range $struct := .Structs }}
     func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
     {{- range $field := $struct.Fields }}
@@ -45,9 +33,6 @@
     }
 {{ end }}
 
-{{- /* ==========================================
-   БЛОК 3: Метод Validate — УНИВЕРСАЛЬНАЯ ЛОГИКА
-   ========================================== */}}
 {{ range $struct := .Structs }}
     func (v *{{ $struct.Name }}) Validate() error {
     var err *errs.ValidationError

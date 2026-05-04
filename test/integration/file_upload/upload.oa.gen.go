@@ -10,8 +10,8 @@ import (
 func (v *UploadRequest) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
 		Type:       "object",
-		Properties: make(map[string]*oa.Schema, 3),
-		Required:   make([]string, 0, 3),
+		Properties: make(map[string]*oa.Schema, 5),
+		Required:   make([]string, 0, 5),
 		Ref:        v.GlobalRef(),
 	}
 	{
@@ -40,6 +40,24 @@ func (v *UploadRequest) OaSchema() *oa.Schema {
 		prop.Description = "Base64 encoded"
 
 		schema.Properties["data"] = prop
+	}
+	{
+		prop := &oa.Schema{}
+		prop.Type = "string"
+		prop.Format = "binary"
+
+		prop.Description = "Custom avatar reader"
+
+		schema.Properties["custom"] = prop
+	}
+	{
+		prop := &oa.Schema{}
+		prop.Type = "string"
+		prop.Format = "binary"
+
+		prop.Description = "Custom avatar reader"
+
+		schema.Properties["stream"] = prop
 	}
 
 	return schema

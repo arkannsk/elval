@@ -212,6 +212,7 @@ func (p *Parser) parseFieldsSecondPass(
 					IsIgnored:     false,
 					OaIn:          fAnot.OaIn,
 					OaParamName:   fAnot.OaParamName,
+					OaFormat:      fAnot.OaFormat,
 				})
 			}
 

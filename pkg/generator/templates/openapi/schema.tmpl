@@ -15,11 +15,19 @@
         {{- if eq $field.OaIn "" }}
             {
             prop := &oa.Schema{}
-            {{- if $field.OaRewriteType }}
+            {{- if eq $field.OaFormat "binary" }}
+                prop.Type = "string"
+                prop.Format = "binary"
+            {{- else if eq $field.OaFormat "byte" }}
+                prop.Type = "string"
+                prop.Format = "byte"
+                {{- /* (@oa:rewrite.type) */}}
+            {{- else if $field.OaRewriteType }}
                 prop.Type = {{ oaString $field.OaRewriteType }}
                 {{- if eq $field.OaRewriteType "array" }}
                     prop.Items = &oa.Schema{}
                 {{- end }}
+                {{- /* stream autodetect */}}
             {{- else if openapiIsFile $field.Type }}
                 prop.Type = "string"
                 {{- if hasPrefix $field.Type.Name "[]byte" }}
@@ -27,6 +35,7 @@
                 {{- else }}
                     prop.Format = "binary"
                 {{- end }}
+                {{- /* Остальная логика (структуры, слайсы, примитивы) */}}
             {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
                 {{- if $field.OaRewriteRef }}
                     prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
@@ -49,8 +58,6 @@
             }
         {{- end }}
     {{- end }}
-
-    {{- /* Discriminator вызывается ЗДЕСЬ, вне цикла, с контекстом структуры (.) */}}
     {{ template "openapi/discriminator" . }}
 
     return schema
