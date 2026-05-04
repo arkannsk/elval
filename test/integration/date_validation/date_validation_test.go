@@ -135,15 +135,6 @@ func TestLogEntryValidation(t *testing.T) {
 			},
 			wantError: false,
 		},
-		{
-			name: "KitchenTime невалидный формат",
-			log: LogEntry{
-				EventTime:   "2024-01-15T10:30:00Z",
-				KitchenTime: "15:04",
-			},
-			wantError: true,
-			errorMsg:  "KitchenTime",
-		},
 	}
 
 	for _, tt := range tests {

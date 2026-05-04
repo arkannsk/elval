@@ -7,6 +7,10 @@ import (
 	"go/token"
 	"log"
 	"path/filepath"
+
+	"github.com/arkannsk/elval/pkg/errs"
+	ann "github.com/arkannsk/elval/pkg/parser/annotations"
+	"github.com/arkannsk/elval/pkg/parser/directive"
 )
 
 // Parser парсит Go-файлы и извлекает аннотации валидации
@@ -88,7 +92,6 @@ func (p *Parser) parseStructsFirstPass(node *ast.File, filename string, modInfo 
 			name := typeSpec.Name.Name
 
 			if _, isStruct := typeSpec.Type.(*ast.StructType); isStruct {
-				// Парсим аннотации один раз и сохраняем в структуру для повторного использования
 				structOaAnnotations := p.annotationParser.ParseStructOaAnnotations(genDecl, typeSpec)
 
 				isIgnored := false
@@ -161,23 +164,29 @@ func (p *Parser) parseFieldsSecondPass(
 
 			for _, field := range structType.Fields.List {
 				fieldName := getFieldName(field)
-
-				fieldType := p.typeParser.ParseExpr(field.Type, allStructs)
-
-				if p.verbose {
-					log.Printf(`PARSED: fieldName: %s, exprType: %T, val: %s → IsGeneric=%v, 
-						Base=%q, Args=%+v, IsSlice=%v`,
-						fieldName, field.Type, exprToString(field.Type), fieldType.IsGeneric,
-						fieldType.GenericBase, fieldType.GenericArgs, fieldType.IsSlice)
+				if fieldName == "" {
+					continue
 				}
 
+				fieldType := p.typeParser.ParseExpr(field.Type, allStructs)
 				directives := p.annotationParser.ParseFieldDirectives(field)
 
-				for _, dir := range directives {
-					if err := ValidateDirective(dir, fieldType); err != nil {
-						result.Errors = append(result.Errors, fmt.Errorf("%s:%d: поле %s: %w",
-							filename, p.fset.Position(field.Pos()).Line, fieldName, err))
+				fieldInfo := toDirectiveFieldInfo(fieldType, fieldName)
+				loc := errs.Location{
+					File:   filename,
+					Line:   p.fset.Position(field.Pos()).Line,
+					Column: p.fset.Position(field.Pos()).Column,
+				}
+
+				var validDirectives []ann.Directive
+				for _, dir := range directives { // use only valid directives
+					diags := directive.Validate(fieldInfo, dir, loc)
+					result.Diagnostics = append(result.Diagnostics, diags...)
+					if directive.HasErrors(diags) {
+						continue
 					}
+
+					validDirectives = append(validDirectives, dir)
 				}
 
 				rawOaAnnotations := p.annotationParser.ParseFieldOaAnnotations(field)
@@ -193,9 +202,9 @@ func (p *Parser) parseFieldsSecondPass(
 				s.Fields = append(s.Fields, Field{
 					Name:          fieldName,
 					Type:          fieldType,
-					Directives:    directives,
+					Directives:    validDirectives, // ⬅️ ТОЛЬКО валидные директивы
 					Decorators:    p.parseFieldDecorators(field),
-					Line:          p.fset.Position(field.Pos()).Line,
+					Line:          loc.Line,
 					OaAnnotations: fAnot.Remaining,
 					IsEmbedded:    len(field.Names) == 0,
 					OaRewriteRef:  fAnot.RewriteRef,
@@ -223,4 +232,26 @@ func (p *Parser) parseFieldsSecondPass(
 			result.Structs = append(result.Structs, *s)
 		}
 	}
+}
+
+func toDirectiveFieldInfo(v FieldType, fieldName string) directive.FieldInfo {
+	return directive.FieldInfo{
+		TypeName:    v.Name,
+		BaseType:    v.BaseType,
+		IsSlice:     v.IsSlice,
+		IsPointer:   v.IsPointer,
+		IsGeneric:   v.IsGeneric,
+		GenericArgs: fromFieldTypesToDirectiveInfo(v.GenericArgs, fieldName),
+		IsStruct:    v.IsStruct,
+		StructName:  v.Name,
+		FieldName:   fieldName,
+	}
+}
+
+func fromFieldTypesToDirectiveInfo(v []FieldType, fieldName string) []directive.FieldInfo {
+	result := make([]directive.FieldInfo, 0, len(v))
+	for _, f := range v {
+		result = append(result, toDirectiveFieldInfo(f, fieldName))
+	}
+	return result
 }

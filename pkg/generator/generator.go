@@ -70,9 +70,9 @@ func NewGenerator(outputDir string, generateOpenAPI, verbose bool) (*Generator, 
 }
 
 func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string) error {
-	baseName := strings.TrimSuffix(filepath.Base(sourceFile), ".go")
+	basePath := strings.TrimSuffix(sourceFile, ".go")
 
-	// Отбираем структуры для валидации (есть директивы)
+	// Отбираем структуры для валидации
 	structsForValidation := make([]parser.Struct, 0)
 	for _, s := range parseResult.Structs {
 		if s.HasDirectives() {
@@ -92,7 +92,7 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 		log.Printf("DEBUG: Generating validation for %s, Package=%q", sourceFile, parseResult.Package)
 	}
 
-	// 1. Генерируем файл валидации
+	// 1. Генерация файла валидации
 	if len(structsForValidation) > 0 {
 		data := struct {
 			Package            string
@@ -103,7 +103,7 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 		}{
 			Package:            parseResult.Package,
 			Structs:            structsForValidation,
-			SourceFile:         filepath.Base(sourceFile),
+			SourceFile:         filepath.Base(sourceFile), // имя файла для шаблона
 			GenerateValidation: true,
 			Imports:            parser.CollectValidationImports(parseResult.Structs),
 		}
@@ -119,18 +119,23 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 
 		formatted, err := format.Source([]byte(buf.String()))
 		if err != nil {
-			debugFile := strings.TrimSuffix(sourceFile, ".go") + ".debug.go"
+			debugFile := basePath + ".debug.go"
 			_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
-			return fmt.Errorf("ошибка форматирования: %w", err)
+			return fmt.Errorf("ошибка форматирования: %w (debug: %s)", err, debugFile)
 		}
 
-		outputPath := filepath.Join(g.outputDir, baseName+".gen.go")
+		outputPath := basePath + ".gen.go"
+
+		if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+
 		if err := os.WriteFile(outputPath, formatted, 0644); err != nil {
 			return err
 		}
 	}
 
-	// 2. Генерируем OpenAPI файл
+	// 2. Генерация OpenAPI файла
 	if g.generateOpenAPI && len(structsForOpenAPI) > 0 {
 		data := struct {
 			Package         string
@@ -153,12 +158,19 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 
 		formatted, err := format.Source([]byte(buf.String()))
 		if err != nil {
-			debugFile := strings.TrimSuffix(sourceFile, ".go") + ".openapi.debug.go"
+			debugFile := basePath + ".openapi.debug.go"
 			_ = os.WriteFile(debugFile, []byte(buf.String()), 0644)
-			return fmt.Errorf("ошибка форматирования OpenAPI: %w", err)
+			return fmt.Errorf("ошибка форматирования OpenAPI: %w (debug: %s)", err, debugFile)
 		}
 
-		outputPath := filepath.Join(g.outputDir, baseName+".oa.gen.go")
+		// 🆕 outputPath для OpenAPI
+		outputPath := basePath + ".oa.gen.go"
+
+		// 🆕 Создаём директорию перед записью
+		if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+
 		if err := os.WriteFile(outputPath, formatted, 0644); err != nil {
 			return err
 		}

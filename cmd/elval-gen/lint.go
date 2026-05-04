@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/arkannsk/elval/pkg/errs"
 	"github.com/arkannsk/elval/pkg/parser"
 )
 
@@ -94,17 +95,19 @@ func lintCmd() {
 			log.Printf("parser result errors: %v", result.Errors)
 		}
 
-		// 1. Валидация директив (@evl:...)
-		directiveErrors := result.ValidateDirectives()
-		for _, err := range directiveErrors {
-			if err.Severity == parser.SeverityError {
+		for _, d := range result.Diagnostics {
+			if d.Component != "validator" && d.Component != "openapi" {
+				continue
+			}
+
+			if d.Severity == errs.SeverityError {
 				errorCount++
 				hasErrors = true
-				fmt.Println(err.Error())
+				fmt.Println(d.String()) // или errs.FormatDiagnostic(d, colors) для цветов
 			} else {
 				warningCount++
 				if verbose {
-					fmt.Println(err.Error())
+					fmt.Println(d.String())
 				}
 				if warningsAsErrors {
 					hasErrors = true
@@ -115,6 +118,8 @@ func lintCmd() {
 		// 2. Валидация OpenAPI аннотаций (@oa:...)
 		oaErrors := validateOpenAPIAnnotations(result, allStructsMap, filePath)
 		for _, err := range oaErrors {
+			// Конвертируем старый DirectiveError → errs.Diagnostic для единообразия
+			// Или оставьте как есть, если не хотите менять сигнатуру validateOpenAPIAnnotations
 			if err.Severity == parser.SeverityError {
 				errorCount++
 				hasErrors = true

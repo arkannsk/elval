@@ -1,7 +1,7 @@
 .PHONY: build generate clean test install gen gen-test bench bench-all
 
 BINARY=bin/elval-gen
-test_invalid_spec_dirs=test/lint/invalid,pkg/parser/testdata/invalid
+test_invalid_spec_dirs=test/lint/invalid,pkg/parser/testdata/invalid,test/integration/invalid_directives
 
 lint:
 	golangci-lint run ./...
@@ -20,7 +20,7 @@ gen: install
 	go generate ./...
 
 gen-spec:
-	go run ./cmd/elval-gen gen -i ./..
+	go run ./cmd/elval-gen gen -i ./test -openapi -exclude $(test_invalid_spec_dirs)
 
 # unit tests. R=1 for race flag, C=1 for cover
 test: gen-spec
