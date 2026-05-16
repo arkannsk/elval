@@ -94,19 +94,16 @@ func (v *GetUserRequest) getFieldSchema(fieldName string) *oa.Schema {
 
 func (v *GetUserRequest) ParseRequest(r *http.Request) error {
 	{
-
 		// Parameter: id (path)
 		// Parsing primitive: string
 		v.ID = r.PathValue("id")
 	}
 	{
-
 		// Parameter: fields (query)
 		// Parsing slice: string[]
 		v.Fields = r.URL.Query()["fields"]
 	}
 	{
-
 		// Parameter: X-Request-ID (header)
 		// Parsing primitive: string
 		v.RequestID = r.Header.Get("X-Request-ID")

@@ -1,0 +1,21 @@
+{{- define "slice_validator_func" }}
+    func() *validator.SliceValidator[{{ .TypeName }}] {
+    v := validator.NewSliceValidator[{{ .TypeName }}]({{ printf "%q" .FieldName }})
+    {{- range .Directives }}
+        {{- if eq .Type "required" }}
+            v.Required()
+        {{- else if eq .Type "optional" }}
+            v.SkipIfEmpty()
+        {{- else if eq .Type "not-zero" }}
+            v.NotZero()
+        {{- else if eq .Type "min" }}
+            v.Min({{ index .Params 0 }})
+        {{- else if eq .Type "max" }}
+            v.Max({{ index .Params 0 }})
+        {{- else if eq .Type "len" }}
+            v.Len({{ index .Params 0 }})
+        {{- end }}
+    {{- end }}
+    return v
+    }()
+{{- end }}

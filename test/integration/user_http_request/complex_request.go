@@ -8,21 +8,26 @@ type ComplexRequest struct {
 
 	// @oa:in path id
 	// @oa:format uuid
-	// @evl:validate required pattern:uuid
+	// @evl:validate required
+	// @evl:validate pattern:uuid
 	UserID string
 
 	// @oa:in path version
-	// @evl:validate required min:1 max:3
+	// @evl:validate required
+	// @evl:validate min:1
+	// @evl:validate max:3
 	Version int
 
 	// --- Query Parameters ---
 
 	// @oa:in query page
-	// @evl:validate required min:1
+	// @evl:validate required
+	// @evl:validate min:1
 	Page int
 
 	// @oa:in query limit
-	// @evl:validate min:1 max:100
+	// @evl:validate min:1
+	// @evl:validate max:100
 	Limit int
 
 	// @oa:in query ids

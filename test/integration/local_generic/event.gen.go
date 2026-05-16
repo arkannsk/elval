@@ -4,7 +4,6 @@
 package local_generic
 
 import (
-	"context"
 	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
@@ -12,12 +11,6 @@ import (
 )
 
 var (
-	Event_NameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Name")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-
 	Event_StartDateValidator = func() *validator.FieldValidator[time.Time] {
 		v := validator.New[time.Time]("StartDate")
 		v.AddRule(validator.Required[time.Time]())
@@ -34,18 +27,13 @@ var (
 	}()
 )
 
-func (v *Event) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *Event) Validate() error {
 	var err *errs.ValidationError
-	if err = Event_NameValidator.Validate(v.Name); err != nil {
-		return err
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
 	}
 	if !elval.Unwrap[time.Time](v.StartDate).IsPresent() {
-		return &errs.ValidationError{Field: "StartDate", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("StartDate", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[time.Time](v.StartDate); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -54,7 +42,7 @@ func (v *Event) Validate() error {
 		}
 	}
 	if !elval.Unwrap[time.Time](v.EndDate).IsPresent() {
-		return &errs.ValidationError{Field: "EndDate", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("EndDate", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[time.Time](v.EndDate); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -62,5 +50,5 @@ func (v *Event) Validate() error {
 			return err
 		}
 	}
-	return nil
+	return err
 }

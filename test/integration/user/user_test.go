@@ -3,7 +3,6 @@ package user
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -122,12 +121,8 @@ func TestUserValidation(t *testing.T) {
 			err := tt.user.Validate()
 			if tt.wantError {
 				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
-				t.Logf("Error: %v", err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

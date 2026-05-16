@@ -4,7 +4,6 @@
 package local_generic
 
 import (
-	"context"
 	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
@@ -14,11 +13,15 @@ var (
 	Review_CommentValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Comment")
 		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.MinLen(3))
+		v.AddRule(validator.MaxLen(500))
 		return v
 	}()
 
 	Review_RatingValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Rating")
+		v.AddRule(validator.Min[int](1))
+		v.AddRule(validator.Max[int](5))
 		original := v
 		v = validator.New[int]("Rating")
 		v.AddRule(validator.SkipIfZero(original.Validate))
@@ -26,34 +29,13 @@ var (
 	}()
 )
 
-var (
-	Product_NameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Name")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-
-	Product_ReviewsValidator = func() *validator.FieldValidator[Review] {
-		v := validator.New[Review]("Reviews")
-		original := v
-		v = validator.New[Review]("Reviews")
-		v.AddRule(validator.SkipIfZero(original.Validate))
-		return v
-	}()
-)
-
-func (v *Review) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Product) Decorate(ctx context.Context) error {
-
-	return nil
-}
+var ()
 
 func (v *Review) Validate() error {
 	var err *errs.ValidationError
+	if v.Comment == "" {
+		return errs.NewValidationError("Comment", "required", "field is required")
+	}
 	if err = Review_CommentValidator.Validate(v.Comment); err != nil {
 		return err
 	}
@@ -63,21 +45,21 @@ func (v *Review) Validate() error {
 			return err
 		}
 	}
-	return nil
+	return err
 }
 
 func (v *Product) Validate() error {
 	var err *errs.ValidationError
-	if err = Product_NameValidator.Validate(v.Name); err != nil {
-		return err
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
 	}
 	for _, item := range v.Reviews {
 		if wrapper := elval.Unwrap[Review](item); wrapper.IsPresent() {
 			val, _ := wrapper.Value()
-			if err = Product_ReviewsValidator.Validate(val); err != nil {
-				return err
+			if err := val.Validate(); err != nil {
+				return errs.NewValidationError("Reviews", "element", "err: %v", err)
 			}
 		}
 	}
-	return nil
+	return err
 }

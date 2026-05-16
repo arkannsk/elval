@@ -4,7 +4,6 @@
 package multi
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -57,12 +56,6 @@ var (
 )
 
 var (
-	Order_IDValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("ID")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-
 	Order_UserIDValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("UserID")
 		v.AddRule(validator.Required[int]())
@@ -78,27 +71,26 @@ var (
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()
+
+	Order_ItemsValidator = func() *validator.SliceValidator[string] {
+		v := validator.NewSliceValidator[string]("Items")
+		v.SkipIfEmpty()
+		v.Min(1)
+		v.Max(100)
+		return v
+	}()
 )
-
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Product) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Order) Decorate(ctx context.Context) error {
-
-	return nil
-}
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
 	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
+	}
+	if v.Email == "" {
+		return errs.NewValidationError("Email", "required", "field is required")
 	}
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
@@ -106,13 +98,19 @@ func (v *User) Validate() error {
 	if err = User_AgeValidator.Validate(v.Age); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *Product) Validate() error {
 	var err *errs.ValidationError
+	if v.Status == "" {
+		return errs.NewValidationError("Status", "required", "field is required")
+	}
 	if err = Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
+	}
+	if v.Quantity == 0 {
+		return errs.NewValidationError("Quantity", "required", "field is required")
 	}
 	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
@@ -120,13 +118,16 @@ func (v *Product) Validate() error {
 	if err = Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *Order) Validate() error {
 	var err *errs.ValidationError
-	if err = Order_IDValidator.Validate(v.ID); err != nil {
-		return err
+	if v.ID == "" {
+		return errs.NewValidationError("ID", "required", "field is required")
+	}
+	if v.UserID == 0 {
+		return errs.NewValidationError("UserID", "required", "field is required")
 	}
 	if err = Order_UserIDValidator.Validate(v.UserID); err != nil {
 		return err
@@ -134,29 +135,8 @@ func (v *Order) Validate() error {
 	if err = Order_TotalValidator.Validate(v.Total); err != nil {
 		return err
 	}
-
-	if len(v.Items) > 0 {
-		if len(v.Items) < 1 {
-			return &errs.ValidationError{
-				Field:   "Items",
-				Rule:    "min",
-				Message: "поле Items должно содержать минимум 1 элементов",
-			}
-		}
-		if len(v.Items) > 100 {
-			return &errs.ValidationError{
-				Field:   "Items",
-				Rule:    "max",
-				Message: "поле Items должно содержать максимум 100 элементов",
-			}
-		}
-	} else if false {
-		return &errs.ValidationError{
-			Field:   "Items",
-			Rule:    "not-zero",
-			Message: "поле Items не может быть пустым",
-		}
+	if err = Order_ItemsValidator.Validate(v.Items); err != nil {
+		return err
 	}
-
-	return nil
+	return err
 }

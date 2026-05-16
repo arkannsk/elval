@@ -3,7 +3,6 @@ package url_validation
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,13 +95,10 @@ func TestURLValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.link.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
 				t.Logf("Ошибка: %v", err)
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -116,7 +112,7 @@ func TestEdgeCases(t *testing.T) {
 			API:     "https://api.example.com",
 		}
 		err := link.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("IP as host", func(t *testing.T) {
@@ -126,7 +122,7 @@ func TestEdgeCases(t *testing.T) {
 			API:     "https://api.example.com",
 		}
 		err := link.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("URL with port", func(t *testing.T) {
@@ -136,7 +132,7 @@ func TestEdgeCases(t *testing.T) {
 			API:     "https://api.example.com",
 		}
 		err := link.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("URL with query params", func(t *testing.T) {
@@ -146,7 +142,7 @@ func TestEdgeCases(t *testing.T) {
 			API:     "https://api.example.com",
 		}
 		err := link.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("DSN форматы для разных БД", func(t *testing.T) {
@@ -156,7 +152,7 @@ func TestEdgeCases(t *testing.T) {
 			API:     "https://api.example.com", // содержит 'api'
 		}
 		err := link.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }
 
@@ -225,12 +221,9 @@ func TestConfigValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.config.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

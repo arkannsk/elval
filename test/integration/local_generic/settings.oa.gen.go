@@ -24,6 +24,7 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "string"
 
 		prop.Pattern = "^#[0-9A-Fa-f]{6}$"
 
@@ -31,6 +32,7 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "string"
 
 		prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 

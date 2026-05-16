@@ -4,7 +4,6 @@
 package main
 
 import (
-	"context"
 	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
@@ -56,15 +55,10 @@ var (
 	}()
 )
 
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *User) Validate() error {
 	var err *errs.ValidationError
 	if !elval.Unwrap[string](v.Name).IsPresent() {
-		return &errs.ValidationError{Field: "Name", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("Name", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -73,7 +67,7 @@ func (v *User) Validate() error {
 		}
 	}
 	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return &errs.ValidationError{Field: "Email", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("Email", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -92,12 +86,9 @@ func (v *User) Validate() error {
 		if err = User_PasswordValidator.Validate(val); err != nil {
 			return err
 		}
-		if cErr := validator.ValidateCustom("x-strong-password", val, ""); cErr != nil {
-			return cErr
-		}
 	}
 	if !elval.Unwrap[string](v.Tag).IsPresent() {
-		return &errs.ValidationError{Field: "Tag", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("Tag", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[string](v.Tag); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -105,5 +96,5 @@ func (v *User) Validate() error {
 			return err
 		}
 	}
-	return nil
+	return err
 }

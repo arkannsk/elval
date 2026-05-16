@@ -4,7 +4,6 @@
 package date_validation
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -48,30 +47,18 @@ var (
 		v.AddRule(validator.Date("2006-01-02T15:04:05Z07:00", "RFC3339"))
 		return v
 	}()
-
-	LogEntry_KitchenTimeValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("KitchenTime")
-		original := v
-		v = validator.New[string]("KitchenTime")
-		v.AddRule(validator.SkipIfZero(original.Validate))
-		return v
-	}()
 )
-
-func (v *Event) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *LogEntry) Decorate(ctx context.Context) error {
-
-	return nil
-}
 
 func (v *Event) Validate() error {
 	var err *errs.ValidationError
+	if v.CreatedAt == "" {
+		return errs.NewValidationError("CreatedAt", "required", "field is required")
+	}
 	if err = Event_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
+	}
+	if v.UpdatedAt == "" {
+		return errs.NewValidationError("UpdatedAt", "required", "field is required")
 	}
 	if err = Event_UpdatedAtValidator.Validate(v.UpdatedAt); err != nil {
 		return err
@@ -79,19 +66,22 @@ func (v *Event) Validate() error {
 	if err = Event_DateOnlyValidator.Validate(v.DateOnly); err != nil {
 		return err
 	}
+	if v.Timestamp == "" {
+		return errs.NewValidationError("Timestamp", "required", "field is required")
+	}
 	if err = Event_TimestampValidator.Validate(v.Timestamp); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *LogEntry) Validate() error {
 	var err *errs.ValidationError
+	if v.EventTime == "" {
+		return errs.NewValidationError("EventTime", "required", "field is required")
+	}
 	if err = LogEntry_EventTimeValidator.Validate(v.EventTime); err != nil {
 		return err
 	}
-	if err = LogEntry_KitchenTimeValidator.Validate(v.KitchenTime); err != nil {
-		return err
-	}
-	return nil
+	return err
 }

@@ -7,14 +7,20 @@ import (
 // CollectValidationImports собирает импорты, необходимые для валидации/декорирования
 func CollectValidationImports(structs []Struct) map[string]string {
 	required := make(map[string]string)
-	// Базовые импорты всегда нужны для структуры ValidationError и Validator
-	required["errs"] = "github.com/arkannsk/elval/pkg/errs"
 	required["validator"] = "github.com/arkannsk/elval/pkg/validator"
-	required["context"] = "context"
 
-	needsElval := false
+	var (
+		needsElval, hasCustomValidator, needsErrs, hasDecor bool
+	)
 
 	for _, s := range structs {
+		if s.HasCustomValidator {
+			hasCustomValidator = true
+		}
+		if s.HasDecorators() {
+			hasDecor = true
+		}
+
 		for _, field := range s.Fields {
 			// Проверяем, есть ли у поля директивы валидации
 			hasDirectives := len(field.Directives) > 0
@@ -22,6 +28,15 @@ func CollectValidationImports(structs []Struct) map[string]string {
 			// Если есть директивы, проверяем тип для импортов
 			if hasDirectives {
 				checkTypeForImports(field.Type, required, &needsElval)
+				hasRealRules := false
+				for _, d := range field.Directives {
+					if d.Type != "required" && d.Type != "optional" {
+						hasRealRules = true
+					}
+				}
+				if hasRealRules {
+					needsErrs = true
+				}
 			}
 
 			// Директивы → импорты (uuid и т.д.)
@@ -39,7 +54,7 @@ func CollectValidationImports(structs []Struct) map[string]string {
 				case "env-get", "env_default":
 					required["os"] = "os"
 				case "time-now":
-					required["time"] = "time" // 👈 Добавляем time для декоратора
+					required["time"] = "time"
 				case "httpctx-get":
 					required["net/http"] = "net/http"
 				case "trim", "lower", "upper":
@@ -51,6 +66,12 @@ func CollectValidationImports(structs []Struct) map[string]string {
 
 	if needsElval {
 		required["elval"] = "github.com/arkannsk/elval"
+	}
+	if hasCustomValidator || needsErrs {
+		required["errs"] = "github.com/arkannsk/elval/pkg/errs"
+	}
+	if hasDecor {
+		required["context"] = "context"
 	}
 
 	return required
@@ -69,6 +90,9 @@ func CollectOpenAPIImports(structs []Struct) map[string]string {
 			if field.OaIn != "" {
 				// Добавляем net/http для Parse(r *http.Request)
 				required["net/http"] = "net/http"
+				if field.Type.Name == "bool" {
+					required["strconv"] = "strconv"
+				}
 
 				// Проверяем тип поля для strconv/time и потенциальных ошибок
 				if needsParsingError(field.Type) {

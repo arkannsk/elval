@@ -4,7 +4,6 @@
 package enum
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -50,20 +49,16 @@ var (
 	}()
 )
 
-func (v *Order) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *Order) Validate() error {
 	var err *errs.ValidationError
+	if v.Status == "" {
+		return errs.NewValidationError("Status", "required", "field is required")
+	}
 	if err = Order_StatusValidator.Validate(v.Status); err != nil {
 		return err
+	}
+	if v.Priority == 0 {
+		return errs.NewValidationError("Priority", "required", "field is required")
 	}
 	if err = Order_PriorityValidator.Validate(v.Priority); err != nil {
 		return err
@@ -71,16 +66,22 @@ func (v *Order) Validate() error {
 	if err = Order_SizeValidator.Validate(v.Size); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
+	if v.Role == "" {
+		return errs.NewValidationError("Role", "required", "field is required")
+	}
 	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
+	}
+	if v.Level == 0 {
+		return errs.NewValidationError("Level", "required", "field is required")
 	}
 	if err = User_LevelValidator.Validate(v.Level); err != nil {
 		return err
 	}
-	return nil
+	return err
 }

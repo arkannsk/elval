@@ -21,6 +21,7 @@ gen: install
 
 gen-spec:
 	go run ./cmd/elval-gen gen -i ./test -openapi -exclude $(test_invalid_spec_dirs)
+	go run ./cmd/elval-gen gen -i ./examples -openapi
 
 # unit tests. R=1 for race flag, C=1 for cover
 test: gen-spec
@@ -40,6 +41,7 @@ bench-mem:
 
 clean:
 	@rm -rf bin
+	@find ./ -name "*.gen.go" -delete
 	@find ./ -name "*.debug.go" -delete
 
 docs:

@@ -52,3 +52,10 @@ func FileSchema(ft parser.FieldType, description string) map[string]any {
 	}
 	return schema
 }
+
+func UnwrapGenericType(ft parser.FieldType) parser.FieldType {
+	for ft.IsGeneric && len(ft.GenericArgs) > 0 {
+		ft = ft.GenericArgs[0]
+	}
+	return ft
+}

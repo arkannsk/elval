@@ -16,18 +16,24 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "email")
+		prop.Pattern = "^[a-z0-9._%+-]+"
 
 		schema.Properties["email"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "integer"
+
+		prop.Minimum = oa.Ptr[float64](18)
 
 		schema.Properties["age"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Ref = "#/components/schemas/UserMeta"
 
 		schema.Required = append(schema.Required, "metadata")
 

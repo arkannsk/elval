@@ -222,7 +222,6 @@ func EndsWith(suffix string) ValidationRule[string] {
 
 // Date проверяет что строка является валидной датой в одном из форматов
 func Date(formats ...string) ValidationRule[string] {
-	// Предопределённые форматы
 	predefined := map[string]string{
 		"RFC3339":     time.RFC3339,
 		"RFC3339Nano": time.RFC3339Nano,

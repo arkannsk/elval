@@ -4,7 +4,6 @@
 package valid
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -41,6 +40,11 @@ var (
 		return v
 	}()
 
+	ValidUser_TagsValidator = func() *validator.SliceValidator[string] {
+		v := validator.NewSliceValidator[string]("Tags")
+		v.NotZero()
+		return v
+	}()
 	ValidUser_PriceValidator = func() *validator.FieldValidator[float64] {
 		v := validator.New[float64]("Price")
 		v.AddRule(validator.Min[float64](0.01))
@@ -49,15 +53,16 @@ var (
 	}()
 )
 
-func (v *ValidUser) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *ValidUser) Validate() error {
 	var err *errs.ValidationError
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
 	if err = ValidUser_NameValidator.Validate(v.Name); err != nil {
 		return err
+	}
+	if v.Email == "" {
+		return errs.NewValidationError("Email", "required", "field is required")
 	}
 	if err = ValidUser_EmailValidator.Validate(v.Email); err != nil {
 		return err
@@ -68,17 +73,11 @@ func (v *ValidUser) Validate() error {
 	if err = ValidUser_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
-
-	if false && len(v.Tags) == 0 {
-		return &errs.ValidationError{
-			Field:   "Tags",
-			Rule:    "required",
-			Message: "поле Tags обязательно",
-		}
+	if err = ValidUser_TagsValidator.Validate(v.Tags); err != nil {
+		return err
 	}
-
 	if err = ValidUser_PriceValidator.Validate(v.Price); err != nil {
 		return err
 	}
-	return nil
+	return err
 }

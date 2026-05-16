@@ -7,129 +7,286 @@
 "GenerateOpenAPI" false
 ) }}
 
+{{- /* ── Блок генерации валидаторов (var ...) ── */}}
 {{ range $struct := .Structs }}
-    var (
+    {{- /* Проверяем, есть ли валидаторы для структуры */}}
+    {{- $hasAnyValidator := false }}
     {{- range $field := $struct.Fields }}
-        {{- /* ── ДЖЕНЕРИКИ: валидатор для внутреннего типа ── */}}
-        {{- if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
-            {{- $inner := firstArg $field.Type.GenericArgs }}
-            {{- $valCtx := dict "Name" $field.Name "Type" $inner "Directives" $field.Directives }}
-            {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $valCtx }}
-
-            {{- /* ── ОБЫЧНЫЕ ПОЛЯ: генерируем валидатор, если есть директивы ── */}}
-        {{- else if and (not $field.Type.IsSlice) $field.Directives }}
-            {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
+        {{- if gt (len $field.Directives) 0 }}
+            {{- $hasAnyValidator = true }}
         {{- end }}
     {{- end }}
-    )
-{{ end }}
 
-{{ range $struct := .Structs }}
-    func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
-    {{- range $field := $struct.Fields }}
-        {{ template "decorators" $field }}
+    {{- if $hasAnyValidator }}
+        var (
+        {{- range $field := $struct.Fields }}
+
+            {{- /* ── Слайсы дженериков: []Option[T] ── */}}
+            {{- if and $field.Type.IsSlice $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+                {{- if gt (len $field.Directives) 0 }}
+                    {{- $inner := firstArg $field.Type.GenericArgs }}
+
+                    {{- /* Проверка: есть ли реальные правила для слайса */}}
+                    {{- $hasSliceRules := false }}
+                    {{- range $field.Directives }}
+                        {{- if and (ne .Type "required") (ne .Type "optional") }}
+                            {{- $hasSliceRules = true }}
+                        {{- end }}
+                    {{- end }}
+
+                    {{- if $hasSliceRules }}
+                        {{- $ctx := dict
+                        "FieldName" $field.Name
+                        "TypeName" $inner.Name
+                        "Directives" $field.Directives
+                        }}
+                        {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "slice_validator_func" $ctx }}
+                    {{- end }}
+                {{- end }}
+
+                {{- /* ── Обычные слайсы: []T ── */}}
+            {{- else if $field.Type.IsSlice }}
+                {{- if gt (len $field.Directives) 0 }}
+                    {{- $elemType := $field.Type.GenericBase }}
+                    {{- if eq $elemType "" }}
+                        {{- $elemType = "string" }}
+                        {{- if $field.Type.GenericArgs }}
+                            {{- $elem := index $field.Type.GenericArgs 0 }}
+                            {{- $elemType = $elem.Name }}
+                            {{- if $elem.IsPointer }}{{ $elemType = print "*" $elemType }}{{ end }}
+                        {{- end }}
+                    {{- end }}
+                    {{- $ctx := dict
+                    "FieldName" $field.Name
+                    "TypeName" $elemType
+                    "Directives" $field.Directives
+                    }}
+                    {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "slice_validator_func" $ctx }}
+                {{- end }}
+
+                {{- /* ── Одиночные дженерики: Option[T] ── */}}
+            {{- else if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+                {{- $inner := firstArg $field.Type.GenericArgs }}
+                {{- $hasRealRules := false }}
+                {{- range $field.Directives }}
+                    {{- if and (ne .Type "required") (ne .Type "optional") }}
+                        {{- $hasRealRules = true }}
+                    {{- end }}
+                {{- end }}
+                {{- if $hasRealRules }}
+                    {{- $valCtx := dict "Name" $field.Name "Type" $inner "Directives" $field.Directives }}
+                    {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $valCtx }}
+                {{- end }}
+
+                {{- /* ── Обычные поля (не слайсы): генерируем валидатор, если есть реальные правила ── */}}
+            {{- else if not $field.Type.IsSlice }}
+                {{- $hasRealRules := false }}
+                {{- range $field.Directives }}
+                    {{- if and (ne .Type "required") (ne .Type "optional") }}
+                        {{- $hasRealRules = true }}
+                    {{- end }}
+                {{- end }}
+                {{- if $hasRealRules }}
+                    {{ $struct.Name }}_{{ $field.Name }}Validator = {{ template "validator_func" $field }}
+                {{- end }}
+            {{- end }}
+        {{- end }}
+        )
     {{- end }}
-    return nil
-    }
 {{ end }}
 
+{{- /* ── Метод Decorate ── */}}
+{{ range $struct := .Structs }}
+    {{- if $struct.HasDecorators }}
+        func (v *{{ $struct.Name }}) Decorate(ctx context.Context) error {
+        {{- range $field := $struct.Fields }}
+            {{ template "decorators" $field }}
+        {{- end }}
+        return nil
+        }
+    {{- end }}
+{{ end }}
+
+{{- /* ── Метод Validate ── */}}
 {{ range $struct := .Structs }}
     func (v *{{ $struct.Name }}) Validate() error {
     var err *errs.ValidationError
     {{- range $field := $struct.Fields }}
 
-        {{- /* ── СЛАЙС ДЖЕНЕРИКОВ: []Option[T] ── */}}
+        {{- /* 🆕 ── Слайсы дженериков: []Option[T] ── */}}
         {{- if and $field.Type.IsSlice $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
             {{- $inner := firstArg $field.Type.GenericArgs }}
-            for _, item := range v.{{ $field.Name }} {
-            if wrapper := elval.Unwrap[{{ $inner.Name }}](item); wrapper.IsPresent() {
-            val, _ := wrapper.Value()
-            if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
-            return err
-            }
-            {{- /* Кастомные валидаторы для элементов слайса */}}
-            {{- range $field.Directives }}
-                {{- if isCustomDirective .Type }}
-                    {{- $param := "" }}{{- if gt (len .Params) 0 }}{{ $param = index .Params 0 }}{{ end }}
-                    if cErr := validator.ValidateCustom("{{ .Type }}", val, {{ printf "%q" $param }}); cErr != nil {
-                    return cErr
-                    }
-                {{- end }}
-            {{- end }}
-            }
-            }
 
-            {{- /* ── ОБЫЧНЫЙ СЛАЙС: []T ── */}}
-        {{- else if $field.Type.IsSlice }}
-            {{ template "slice_validate" $field }}
-
-            {{- /* ── ОДИНОЧНЫЙ ДЖЕНЕРИК: Option[T] ── */}}
-        {{- else if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
-            {{- $inner := firstArg $field.Type.GenericArgs }}
-
-            {{- /* Required */}}
+            {{- /* Required для слайса */}}
             {{- if hasDirective $field.Directives "required" }}
-                if !elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}).IsPresent() {
-                return &errs.ValidationError{Field: "{{ $field.Name }}", Rule: "required", Message: "not present"}
+                if len(v.{{ $field.Name }}) == 0 {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "slice cannot be empty")
                 }
             {{- end }}
 
-            {{- /* Извлечение + валидация */}}
-            if wrapper := elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}); wrapper.IsPresent() {
-            val, _ := wrapper.Value()
-            if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
-            return err
-            }
-            {{- /* Кастомные валидаторы */}}
+            {{- /* 🆕 Валидация элементов: генерируем всегда, если есть ЛЮБЫЕ директивы */}}
+            {{- /* Даже если только "optional", нужно итерировать и валидировать вложенные структуры */}}
+            {{- if gt (len $field.Directives) 0 }}
+                for _, item := range v.{{ $field.Name }} {
+                if wrapper := elval.Unwrap[{{ $inner.Name }}](item); wrapper.IsPresent() {
+                val, _ := wrapper.Value()
+                {{- if $inner.IsStruct }}
+                    {{- /* Элемент — структура: вызываем её Validate() */}}
+                    if err := val.Validate(); err != nil {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", err)
+                    }
+                {{- else }}
+                    {{- /* Элемент — примитив: проверяем, есть ли валидатор */}}
+                    {{- $hasElemValidator := false }}
+                    {{- range $field.Directives }}
+                        {{- if and (ne .Type "required") (ne .Type "optional") }}
+                            {{- $hasElemValidator = true }}
+                        {{- end }}
+                    {{- end }}
+                    {{- if $hasElemValidator }}
+                        if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+                        return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", err)
+                        }
+                    {{- end }}
+                {{- end }}
+                }
+                }
+            {{- end }}
+
+            {{- /* ── Обычные слайсы: []T ── */}}
+        {{- else if and $field.Type.IsSlice (not $field.Type.IsGeneric) }}
+            {{- if gt (len $field.Directives) 0 }}
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+                return err
+                }
+            {{- end }}
+
+            {{- /* ── Одиночные дженерики: Option[T] ── */}}
+        {{- else if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
+            {{- $inner := firstArg $field.Type.GenericArgs }}
+            {{- if hasDirective $field.Directives "required" }}
+                if !elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}).IsPresent() {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "not present")
+                }
+            {{- end }}
+            {{- $hasRealRules := false }}
             {{- range $field.Directives }}
-                {{- if isCustomDirective .Type }}
-                    {{- $param := "" }}{{- if gt (len .Params) 0 }}{{ $param = index .Params 0 }}{{ end }}
-                    if cErr := validator.ValidateCustom("{{ .Type }}", val, {{ printf "%q" $param }}); cErr != nil {
-                    return cErr
+                {{- if and (ne .Type "required") (ne .Type "optional") }}
+                    {{- $hasRealRules = true }}
+                {{- end }}
+            {{- end }}
+            {{- if $hasRealRules }}
+                if wrapper := elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}); wrapper.IsPresent() {
+                val, _ := wrapper.Value()
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+                return err
+                }
+                }
+            {{- end }}
+
+            {{- /* ── Указатели на примитивы ── */}}
+        {{- else if and $field.Type.IsPointer (not $field.Type.IsStruct) }}
+            {{- if hasDirective $field.Directives "required" }}
+                if v.{{ $field.Name }} == nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
+                }
+            {{- end }}
+            {{- $hasRealRules := false }}
+            {{- range $field.Directives }}
+                {{- if and (ne .Type "required") (ne .Type "optional") }}
+                    {{- $hasRealRules = true }}
+                {{- end }}
+            {{- end }}
+            {{- if $hasRealRules }}
+                if v.{{ $field.Name }} != nil {
+                val := *v.{{ $field.Name }}
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+                return err
+                }
+                }
+            {{- end }}
+
+            {{- /* ── Указатели на структуры ── */}}
+        {{- else if and $field.Type.IsPointer $field.Type.IsStruct }}
+            {{- if hasDirective $field.Directives "required" }}
+                if v.{{ $field.Name }} == nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
+                }
+            {{- end }}
+            {{- $hasRealRules := false }}
+            {{- range $field.Directives }}
+                {{- if and (ne .Type "required") (ne .Type "optional") }}
+                    {{- $hasRealRules = true }}
+                {{- end }}
+            {{- end }}
+            {{- if $hasRealRules }}
+                if v.{{ $field.Name }} != nil {
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(*v.{{ $field.Name }}); err != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", err.Error())
+                }
+                }
+            {{- end }}
+
+            {{- /* ── Обычные структуры ── */}}
+        {{- else if $field.Type.IsStruct }}
+            if err = v.{{ $field.Name }}.Validate(); err != nil {
+            return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", err)
+            }
+
+            {{- /* Дополнительные правила на самом поле, если есть */}}
+            {{- $hasRealRules := false }}
+            {{- range $field.Directives }}
+                {{- if and (ne .Type "required") (ne .Type "optional") }}
+                    {{- $hasRealRules = true }}
+                {{- end }}
+            {{- end }}
+            {{- if $hasRealRules }}
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", err)
+                }
+            {{- end }}
+            {{- /* ── Примитивы: генерируем required inline ── */}}
+        {{- else }}
+            {{- /* Required для примитивов: всегда генерируем проверку */}}
+            {{- if hasDirective $field.Directives "required" }}
+                {{- $base := baseType $field.Type }}
+                {{- if eq $base "string" }}
+                    if v.{{ $field.Name }} == "" {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
+                    }
+                {{- else if eq $base "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" }}
+                    if v.{{ $field.Name }} == 0 {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
+                    }
+                {{- else if eq $base "bool" }}
+                    if v.{{ $field.Name }} == false {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
+                    }
+                {{- else if eq $base "float32" "float64" }}
+                    if v.{{ $field.Name }} == 0.0 {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
                     }
                 {{- end }}
             {{- end }}
-            }
 
-            {{- /* ── УКАЗАТЕЛЬ ── */}}
-        {{- else if $field.Type.IsPointer }}
-            {{ template "pointer_validate" (dict "Struct" $struct "Field" $field) }}
-
-            {{- /* ── ВЛОЖЕННАЯ СТРУКТУРА ── */}}
-        {{- else if $field.Type.IsStruct }}
-            {{ template "struct_validate" (dict "Struct" $struct "Field" $field) }}
-
-            {{- /* ── ПРИМИТИВ / АЛИАС ── */}}
-        {{- else }}  {{- /* 🔥 ИСПРАВЛЕНО: было {- else }} */}}
-        {{- if $field.Directives }}
-            {{- $fieldValue := printf "v.%s" $field.Name }}
-            {{- if and $field.Type.BaseType (ne $field.Type.BaseType "") }}
-                {{- $fieldValue = printf "(%s)(v.%s)" $field.Type.BaseType $field.Name }}
+            {{- /* Реальные правила: используем валидатор */}}
+            {{- $hasRealRules := false }}
+            {{- range $field.Directives }}
+                {{- if and (ne .Type "required") (ne .Type "optional") }}
+                    {{- $hasRealRules = true }}
+                {{- end }}
             {{- end }}
-            if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate({{ $fieldValue }}); err != nil {
-            return err
-            }
+            {{- if $hasRealRules }}
+                {{- $fieldValue := printf "v.%s" $field.Name }}
+                {{- if and $field.Type.BaseType (ne $field.Type.BaseType "") }}
+                    {{- $fieldValue = printf "(%s)(v.%s)" $field.Type.BaseType $field.Name }}
+                {{- end }}
+                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate({{ $fieldValue }}); err != nil {
+                return err
+                }
+            {{- end }}
         {{- end }}
-        {{- end }}
-
     {{- end }}
-    return nil
+    return err
     }
 {{ end }}
-
-{{- /* ==========================================
-   БЛОК 4: (ОПЦИОНАЛЬНО) Методы-экстракторы
-   Можно удалить, если используете elval.Unwrap
-   ========================================== */}}
-{{- /*
-{{- range $struct := .Structs }}
-    {{- range $field := $struct.Fields }}
-        {{- if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
-            {{- $inner := firstArg $field.Type.GenericArgs }}
-            func (v *{{ $struct.Name }}) _extract_{{ $field.Name }}() ({{ $inner.Name }}, bool) {
-                return v.{{ $field.Name }}.Value()
-            }
-        {{- end }}
-    {{- end }}
-{{- end }}
-*/}}

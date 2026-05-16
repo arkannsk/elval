@@ -221,7 +221,7 @@ func TestPersonValidation(t *testing.T) {
 				}
 				t.Logf("Ошибка: %v", err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -245,6 +245,6 @@ func TestPersonValidationEdgeCases(t *testing.T) {
 		}
 
 		err := person.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }

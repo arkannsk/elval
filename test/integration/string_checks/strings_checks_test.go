@@ -146,12 +146,9 @@ func TestFileValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.file.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

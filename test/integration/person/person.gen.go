@@ -4,7 +4,6 @@
 package person
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 	"time"
@@ -50,20 +49,38 @@ var (
 		v.AddRule(validator.Before("2006-01-02", "2024-12-31"))
 		return v
 	}()
+
+	Person_TagsValidator = func() *validator.SliceValidator[string] {
+		v := validator.NewSliceValidator[string]("Tags")
+		v.Required()
+		v.Min(1)
+		v.Max(10)
+		return v
+	}()
+	Person_ScoresValidator = func() *validator.SliceValidator[int] {
+		v := validator.NewSliceValidator[int]("Scores")
+		v.SkipIfEmpty()
+		v.NotZero()
+		return v
+	}()
 )
-
-func (v *Person) Decorate(ctx context.Context) error {
-
-	return nil
-}
 
 func (v *Person) Validate() error {
 	var err *errs.ValidationError
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
 	if err = Person_NameValidator.Validate(v.Name); err != nil {
 		return err
 	}
+	if v.Email == "" {
+		return errs.NewValidationError("Email", "required", "field is required")
+	}
 	if err = Person_EmailValidator.Validate(v.Email); err != nil {
 		return err
+	}
+	if v.Age == 0 {
+		return errs.NewValidationError("Age", "required", "field is required")
 	}
 	if err = Person_AgeValidator.Validate(v.Age); err != nil {
 		return err
@@ -74,37 +91,11 @@ func (v *Person) Validate() error {
 	if err = Person_BirthDateValidator.Validate(v.BirthDate); err != nil {
 		return err
 	}
-
-	if true && len(v.Tags) == 0 {
-		return &errs.ValidationError{
-			Field:   "Tags",
-			Rule:    "required",
-			Message: "поле Tags обязательно",
-		}
+	if err = Person_TagsValidator.Validate(v.Tags); err != nil {
+		return err
 	}
-	if len(v.Tags) < 1 {
-		return &errs.ValidationError{
-			Field:   "Tags",
-			Rule:    "min",
-			Message: "поле Tags должно содержать минимум 1 элементов",
-		}
+	if err = Person_ScoresValidator.Validate(v.Scores); err != nil {
+		return err
 	}
-	if len(v.Tags) > 10 {
-		return &errs.ValidationError{
-			Field:   "Tags",
-			Rule:    "max",
-			Message: "поле Tags должно содержать максимум 10 элементов",
-		}
-	}
-
-	if len(v.Scores) > 0 {
-	} else if true {
-		return &errs.ValidationError{
-			Field:   "Scores",
-			Rule:    "not-zero",
-			Message: "поле Scores не может быть пустым",
-		}
-	}
-
-	return nil
+	return err
 }

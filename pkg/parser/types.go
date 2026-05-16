@@ -81,14 +81,15 @@ type Field struct {
 
 // Struct представляет структуру с полями для валидации
 type Struct struct {
-	Name        string // имя структуры
-	Package     string
-	PackagePath string
-	Module      string  // путь модуля: "github.com/myorg/api"
-	Fields      []Field // поля с аннотациями
-	File        string  // путь к файлу
-	IsIgnored   bool
-	Description string
+	Name               string // имя структуры
+	Package            string
+	PackagePath        string
+	Module             string  // путь модуля: "github.com/myorg/api"
+	Fields             []Field // поля с аннотациями
+	File               string  // путь к файлу
+	IsIgnored          bool
+	Description        string
+	HasCustomValidator bool
 
 	RawOaAnnotations []ann.OaAnnotation
 
