@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/arkannsk/elval/pkg/errs"
 	ann "github.com/arkannsk/elval/pkg/parser/annotations"
@@ -92,11 +93,19 @@ func (p *Parser) parseStructsFirstPass(node *ast.File, filename string, modInfo 
 			name := typeSpec.Name.Name
 
 			if _, isStruct := typeSpec.Type.(*ast.StructType); isStruct {
+				if typeSpec.TypeParams != nil && len(typeSpec.TypeParams.List) > 0 {
+					if p.verbose {
+						log.Printf("DEBUG: Skipping generic type definition: %s (has %d type params)",
+							name, len(typeSpec.TypeParams.List))
+					}
+					continue
+				}
+
 				structOaAnnotations := p.annotationParser.ParseStructOaAnnotations(genDecl, typeSpec)
 
 				isIgnored := false
-				for _, ann := range structOaAnnotations {
-					if ann.Type == "ignore" {
+				for _, oaAnn := range structOaAnnotations {
+					if oaAnn.Type == "ignore" {
 						isIgnored = true
 						break
 					}
@@ -117,7 +126,7 @@ func (p *Parser) parseStructsFirstPass(node *ast.File, filename string, modInfo 
 					PackagePath:      modInfo.PackagePath,
 					Module:           modInfo.Module,
 					IsIgnored:        false,
-					RawOaAnnotations: structOaAnnotations, // Сохраняем сырые аннотации
+					RawOaAnnotations: structOaAnnotations,
 				}
 			} else {
 				switch base := typeSpec.Type.(type) {
@@ -178,7 +187,10 @@ func (p *Parser) parseFieldsSecondPass(
 					Column: p.fset.Position(field.Pos()).Column,
 				}
 
-				var validDirectives []ann.Directive
+				var (
+					validDirectives     []ann.Directive
+					hasCustomDirectives bool
+				)
 				for _, dir := range directives { // use only valid directives
 					diags := directive.Validate(fieldInfo, dir, loc)
 					result.Diagnostics = append(result.Diagnostics, diags...)
@@ -186,6 +198,9 @@ func (p *Parser) parseFieldsSecondPass(
 						continue
 					}
 
+					if strings.Contains(dir.Type, "x-") {
+						hasCustomDirectives = true
+					}
 					validDirectives = append(validDirectives, dir)
 				}
 
@@ -199,10 +214,11 @@ func (p *Parser) parseFieldsSecondPass(
 					continue
 				}
 
+				s.HasCustomValidator = hasCustomDirectives
 				s.Fields = append(s.Fields, Field{
 					Name:          fieldName,
 					Type:          fieldType,
-					Directives:    validDirectives, // ⬅️ ТОЛЬКО валидные директивы
+					Directives:    validDirectives,
 					Decorators:    p.parseFieldDecorators(field),
 					Line:          loc.Line,
 					OaAnnotations: fAnot.Remaining,

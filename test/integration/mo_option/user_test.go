@@ -48,7 +48,7 @@ func TestUser_Validate(t *testing.T) {
 			if tt.wantErr {
 				require.Error(t, err, "ожидалась ошибка валидации")
 			} else {
-				require.NoError(t, err, "ошибки быть не должно")
+				require.Nil(t, err, "ошибки быть не должно")
 			}
 		})
 	}
@@ -66,7 +66,7 @@ func TestMoOption_Integration(t *testing.T) {
 			Password: mo.Option[string]{},
 			Tag:      mo.Some("user"),
 		}
-		require.NoError(t, u.Validate(), "опциональное поле без значения не должно вызывать ошибку")
+		require.Nil(t, u.Validate(), "опциональное поле без значения не должно вызывать ошибку")
 	})
 
 	t.Run("Some triggers validation", func(t *testing.T) {

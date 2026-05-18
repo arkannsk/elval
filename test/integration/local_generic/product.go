@@ -5,9 +5,13 @@ import (
 )
 
 type Review struct {
-	// @evl:validate required, min:3, max:500
+	// @evl:validate required
+	// @evl:validate min:3
+	// @evl:validate max:500
 	Comment string
-	// @evl:validate optional, min:1, max:5
+	// @evl:validate optional
+	// @evl:validate min:1
+	// @evl:validate max:5
 	Rating model.Option[int]
 }
 
@@ -15,7 +19,7 @@ type Product struct {
 	// @evl:validate required
 	Name string
 
-	// @evl:validate optional, not-empty
+	// @evl:validate optional
 	// каждый присутствующий Review должен быть валидным
 	Reviews []model.Option[Review]
 }

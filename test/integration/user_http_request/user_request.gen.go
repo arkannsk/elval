@@ -4,7 +4,6 @@
 package user_http_request
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -18,24 +17,13 @@ var (
 	}()
 )
 
-func (v *GetUserRequest) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *GetUserRequest) Validate() error {
 	var err *errs.ValidationError
+	if v.ID == "" {
+		return errs.NewValidationError("ID", "required", "field is required")
+	}
 	if err = GetUserRequest_IDValidator.Validate(v.ID); err != nil {
 		return err
 	}
-
-	if false && len(v.Fields) == 0 {
-		return &errs.ValidationError{
-			Field:   "Fields",
-			Rule:    "required",
-			Message: "поле Fields обязательно",
-		}
-	}
-
-	return nil
+	return err
 }

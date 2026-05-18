@@ -146,18 +146,14 @@
         {{- /* Если есть enum, генерируем массив значений */}}
         {{- if ne $enumStr "" }}
             Enum: []any{
-            {{- $first := true -}}
-            {{- /* ВАЖНО: Используйте splitList, который должен быть добавлен в FuncMap генератора */}}
             {{- range $val := splitList $enumStr "," -}}
-                {{- if not $first }}, {{ end -}}
-                {{- $first = false -}}
                 {{- $cleanVal := trimQuotes $val -}}
                 {{- if eq $oaType "string" }}
-                    {{ printf "%q" $cleanVal }}
+                    {{ printf "%q" $cleanVal }},
                 {{- else if or (eq $oaType "integer") (eq $oaType "number") }}
-                    {{ $cleanVal }}
+                    {{ $cleanVal }},
                 {{- else }}
-                    {{ printf "%q" $cleanVal }}
+                    {{ printf "%q" $cleanVal }},
                 {{- end }}
             {{- end }}
             },

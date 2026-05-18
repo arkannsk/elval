@@ -4,7 +4,6 @@
 package nested
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -48,43 +47,32 @@ var (
 		v.AddRule(validator.Email())
 		return v
 	}()
-
-	User_BillingAddressValidator = func() *validator.FieldValidator[Address] {
-		v := validator.New[Address]("BillingAddress")
-		original := v
-		v = validator.New[Address]("BillingAddress")
-		v.AddRule(validator.SkipIfZero(original.Validate))
-		return v
-	}()
 )
 
 var (
-	Company_NameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("Name")
-		v.AddRule(validator.Required[string]())
+	Company_AddressesValidator = func() *validator.SliceValidator[Address] {
+		v := validator.NewSliceValidator[Address]("Addresses")
+		v.Required()
+		v.Min(1)
+		return v
+	}()
+	Company_UsersValidator = func() *validator.SliceValidator[User] {
+		v := validator.NewSliceValidator[User]("Users")
+		v.SkipIfEmpty()
 		return v
 	}()
 )
 
-func (v *Address) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Company) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *Address) Validate() error {
 	var err *errs.ValidationError
+	if v.City == "" {
+		return errs.NewValidationError("City", "required", "field is required")
+	}
 	if err = Address_CityValidator.Validate(v.City); err != nil {
 		return err
+	}
+	if v.Street == "" {
+		return errs.NewValidationError("Street", "required", "field is required")
 	}
 	if err = Address_StreetValidator.Validate(v.Street); err != nil {
 		return err
@@ -92,91 +80,57 @@ func (v *Address) Validate() error {
 	if err = Address_ZipCodeValidator.Validate(v.ZipCode); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
 	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
+	}
+	if v.Email == "" {
+		return errs.NewValidationError("Email", "required", "field is required")
 	}
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-
-	// Вложенная структура Address
-	if err := v.Address.Validate(); err != nil {
-		return &errs.ValidationError{
-			Field:   "Address",
-			Rule:    "nested",
-			Message: "поле Address: " + err.Error(),
+	if nestedErr := v.Address.Validate(); nestedErr != nil {
+		if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+			return errs.NewValidationError("Address", "nested", "err: %v", validationErr)
 		}
 	}
-
-	// Указатель BillingAddress
-	if v.BillingAddress != nil {
-		val := *v.BillingAddress
-		if err := User_BillingAddressValidator.Validate(val); err != nil {
-			return &errs.ValidationError{
-				Field:   "BillingAddress",
-				Rule:    "nested",
-				Message: "поле BillingAddress: " + err.Error(),
-			}
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (v *Company) Validate() error {
 	var err *errs.ValidationError
-	if err = Company_NameValidator.Validate(v.Name); err != nil {
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
+	if err = Company_AddressesValidator.Validate(v.Addresses); err != nil {
 		return err
 	}
-
-	if true && len(v.Addresses) == 0 {
-		return &errs.ValidationError{
-			Field:   "Addresses",
-			Rule:    "required",
-			Message: "поле Addresses обязательно",
-		}
-	}
-	if len(v.Addresses) < 1 {
-		return &errs.ValidationError{
-			Field:   "Addresses",
-			Rule:    "min",
-			Message: "поле Addresses должно содержать минимум 1 элементов",
-		}
-	}
-	// Валидация элементов слайса структур
 	for _, item := range v.Addresses {
-		if err := item.Validate(); err != nil {
-			return &errs.ValidationError{
-				Field:   "Addresses",
-				Rule:    "nested",
-				Message: "поле Addresses: " + err.Error(),
+		if nestedErr := item.Validate(); nestedErr != nil {
+			if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+				return errs.NewValidationError("Addresses", "element",
+					"err: %v", validationErr)
 			}
 		}
 	}
-
-	if len(v.Users) > 0 {
-		// Валидация элементов слайса структур
-		for _, item := range v.Users {
-			if err := item.Validate(); err != nil {
-				return &errs.ValidationError{
-					Field:   "Users",
-					Rule:    "nested",
-					Message: "поле Users: " + err.Error(),
-				}
+	if err = Company_UsersValidator.Validate(v.Users); err != nil {
+		return err
+	}
+	for _, item := range v.Users {
+		if nestedErr := item.Validate(); nestedErr != nil {
+			if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+				return errs.NewValidationError("Users", "element",
+					"err: %v", validationErr)
 			}
 		}
-	} else if false {
-		return &errs.ValidationError{
-			Field:   "Users",
-			Rule:    "not-zero",
-			Message: "поле Users не может быть пустым",
-		}
 	}
-
-	return nil
+	return err
 }

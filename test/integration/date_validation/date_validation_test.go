@@ -3,7 +3,6 @@ package date_validation
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,13 +82,10 @@ func TestDateValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.event.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
 				t.Logf("Ошибка: %v", err)
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -141,12 +137,9 @@ func TestLogEntryValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.log.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

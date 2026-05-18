@@ -19,7 +19,7 @@ func TestNestedStructValidation(t *testing.T) {
 			},
 		}
 		err := user.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("невалидный City в Address", func(t *testing.T) {
@@ -32,7 +32,7 @@ func TestNestedStructValidation(t *testing.T) {
 			},
 		}
 		err := user.Validate()
-		require.Error(t, err)
+		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Address")
 		assert.Contains(t, err.Error(), "City")
 	})
@@ -81,7 +81,7 @@ func TestSliceOfStructsValidation(t *testing.T) {
 			},
 		}
 		err := company.Validate()
-		require.Error(t, err)
+		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Addresses")
 	})
 }

@@ -37,8 +37,8 @@
                 prop.MinLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
                 prop.MaxLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
             {{- else if $.Type.IsSlice }}
-                prop.MinItems = oa.Ptr[int64]({{ index $directive.Params 0 }})
-                prop.MaxItems = oa.Ptr[int64]({{ index $directive.Params 0 }})
+                prop.MinLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
+                prop.MaxLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
             {{- end }}
         {{- else if eq $directive.Type "pattern" }}
             {{- $pattern := index $directive.Params 0 }}

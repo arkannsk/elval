@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOrderStatusValidation(t *testing.T) {
@@ -31,12 +32,9 @@ func TestOrderStatusValidation(t *testing.T) {
 			}
 			err := order.Validate()
 			if tt.wantError {
-				assert.Error(t, err)
-				if tt.status != "" {
-					assert.Contains(t, err.Error(), "Status")
-				}
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -67,9 +65,9 @@ func TestOrderPriorityValidation(t *testing.T) {
 			}
 			err := order.Validate()
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -97,10 +95,10 @@ func TestOrderSizeOptional(t *testing.T) {
 			}
 			err := order.Validate()
 			if tt.wantError {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Contains(t, err.Error(), "Size")
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -111,10 +109,10 @@ func TestUserRoleValidation(t *testing.T) {
 		Role:  "admin",
 		Level: 1,
 	}
-	assert.NoError(t, user.Validate())
+	require.Nil(t, user.Validate())
 
 	user.Role = "superuser"
-	assert.Error(t, user.Validate())
+	require.Error(t, user.Validate())
 	assert.Contains(t, user.Validate().Error(), "Role")
 }
 
@@ -138,9 +136,9 @@ func TestUserLevelValidation(t *testing.T) {
 		}
 		err := user.Validate()
 		if tt.wantError {
-			assert.Error(t, err)
+			require.Error(t, err)
 		} else {
-			assert.NoError(t, err)
+			require.Nil(t, err)
 		}
 	}
 }

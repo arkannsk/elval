@@ -48,4 +48,6 @@ var templateFucMap = template.FuncMap{
 	"CountBodyFields":         utils.CountBodyFields,
 	"openapiIsFile":           utils.IsFileOrStreamType,
 	"openapiFileSchema":       utils.FileSchema,
+	"unwrapGenericType":       utils.UnwrapGenericType,
+	"hasValidationDirectives": utils.HasValidationDirective,
 }

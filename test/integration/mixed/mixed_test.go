@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGeneration(t *testing.T) {
@@ -34,7 +35,7 @@ func TestUserValidation(t *testing.T) {
 	}
 
 	err := user.Validate()
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	// Невалидный пользователь
 	invalidUser := User{
@@ -44,7 +45,7 @@ func TestUserValidation(t *testing.T) {
 	}
 
 	err = invalidUser.Validate()
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestProductValidation(t *testing.T) {
@@ -56,7 +57,7 @@ func TestProductValidation(t *testing.T) {
 	}
 
 	err := product.Validate()
-	assert.NoError(t, err)
+	require.Nil(t, err)
 
 	// Невалидный продукт
 	invalidProduct := Product{

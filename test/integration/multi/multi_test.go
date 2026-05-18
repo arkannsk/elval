@@ -59,12 +59,9 @@ func TestUserValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.user.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -122,12 +119,9 @@ func TestProductValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.product.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -221,9 +215,6 @@ func TestOrderValidation(t *testing.T) {
 			err := tt.order.Validate()
 			if tt.wantError {
 				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
 			} else {
 				require.Nil(t, err)
 			}

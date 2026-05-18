@@ -1,4 +1,3 @@
-// test/lint/valid/valid.go
 package valid
 
 type ValidUser struct {

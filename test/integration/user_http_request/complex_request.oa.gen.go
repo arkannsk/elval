@@ -222,13 +222,11 @@ func (v *ComplexRequest) getFieldSchema(fieldName string) *oa.Schema {
 
 func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 	{
-
 		// Parameter: id (path)
 		// Parsing primitive: string
 		v.UserID = r.PathValue("id")
 	}
 	{
-
 		// Parameter: version (path)
 		// Parsing primitive: int
 		if val := r.PathValue("version"); val != "" {
@@ -240,9 +238,8 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: page (query)
-		// Parsing primitive: int
+		// Parsing primitive: ints
 		if vals := r.URL.Query()["page"]; len(vals) > 0 {
 			parsedInt, err := strconv.ParseInt(vals[0], 10, 64)
 			if err != nil {
@@ -252,9 +249,8 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: limit (query)
-		// Parsing primitive: int
+		// Parsing primitive: ints
 		if vals := r.URL.Query()["limit"]; len(vals) > 0 {
 			parsedInt, err := strconv.ParseInt(vals[0], 10, 64)
 			if err != nil {
@@ -264,7 +260,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: ids (query)
 		// Parsing slice: int[]
 		var result []int
@@ -278,15 +273,13 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		v.IDs = result
 	}
 	{
-
 		// Parameter: tags (query)
 		// Parsing slice: string[]
 		v.Tags = r.URL.Query()["tags"]
 	}
 	{
-
 		// Parameter: active (query)
-		// Parsing primitive: bool
+		// Parsing primitive: bools
 		if vals := r.URL.Query()["active"]; len(vals) > 0 {
 			parsedBool, err := strconv.ParseBool(vals[0])
 			if err != nil {
@@ -296,9 +289,8 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: created_after (query)
-		// Parsing primitive: time.Time
+		// Parsing primitive: time.Times
 		if vals := r.URL.Query()["created_after"]; len(vals) > 0 {
 			parsedTime, err := time.Parse(time.RFC3339, vals[0])
 			if err != nil {
@@ -308,9 +300,8 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: score (query)
-		// Parsing primitive: float64
+		// Parsing primitive: float64s
 		if vals := r.URL.Query()["score"]; len(vals) > 0 {
 			parsedFloat, err := strconv.ParseFloat(vals[0], 64)
 			if err != nil {
@@ -320,13 +311,11 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: X-Request-ID (header)
 		// Parsing primitive: string
 		v.RequestID = r.Header.Get("X-Request-ID")
 	}
 	{
-
 		// Parameter: X-Tenant-ID (header)
 		// Parsing primitive: int64
 		if val := r.Header.Get("X-Tenant-ID"); val != "" {
@@ -338,7 +327,6 @@ func (v *ComplexRequest) ParseRequest(r *http.Request) error {
 		}
 	}
 	{
-
 		// Parameter: X-Rate-Limit (header)
 		// Parsing primitive: uint32
 		if val := r.Header.Get("X-Rate-Limit"); val != "" {

@@ -25,6 +25,8 @@ func (v *Event) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "string"
+		prop.Format = "date-time"
 
 		schema.Required = append(schema.Required, "startdate")
 
@@ -32,6 +34,8 @@ func (v *Event) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "string"
+		prop.Format = "date-time"
 
 		schema.Required = append(schema.Required, "enddate")
 

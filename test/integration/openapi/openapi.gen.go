@@ -4,7 +4,6 @@
 package openapi
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 	"time"
@@ -76,12 +75,6 @@ var (
 )
 
 var (
-	Order_IDValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("ID")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-
 	Order_CreatedAtValidator = func() *validator.FieldValidator[time.Time] {
 		v := validator.New[time.Time]("CreatedAt")
 		v.AddRule(validator.Required[time.Time]())
@@ -89,27 +82,26 @@ var (
 		v.AddRule(validator.After("2006-01-02", "2020-01-01"))
 		return v
 	}()
+
+	Order_ItemsValidator = func() *validator.SliceValidator[string] {
+		v := validator.NewSliceValidator[string]("Items")
+		v.Required()
+		v.Min(1)
+		v.Max(100)
+		return v
+	}()
 )
-
-func (v *User) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Product) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *Order) Decorate(ctx context.Context) error {
-
-	return nil
-}
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
+	if v.Name == "" {
+		return errs.NewValidationError("Name", "required", "field is required")
+	}
 	if err = User_NameValidator.Validate(v.Name); err != nil {
 		return err
+	}
+	if v.Email == "" {
+		return errs.NewValidationError("Email", "required", "field is required")
 	}
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
@@ -120,13 +112,19 @@ func (v *User) Validate() error {
 	if err = User_PhoneValidator.Validate(v.Phone); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *Product) Validate() error {
 	var err *errs.ValidationError
+	if v.Status == "" {
+		return errs.NewValidationError("Status", "required", "field is required")
+	}
 	if err = Product_StatusValidator.Validate(v.Status); err != nil {
 		return err
+	}
+	if v.Price == 0.0 {
+		return errs.NewValidationError("Price", "required", "field is required")
 	}
 	if err = Product_PriceValidator.Validate(v.Price); err != nil {
 		return err
@@ -134,42 +132,25 @@ func (v *Product) Validate() error {
 	if err = Product_QuantityValidator.Validate(v.Quantity); err != nil {
 		return err
 	}
+	if v.Code == "" {
+		return errs.NewValidationError("Code", "required", "field is required")
+	}
 	if err = Product_CodeValidator.Validate(v.Code); err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 func (v *Order) Validate() error {
 	var err *errs.ValidationError
-	if err = Order_IDValidator.Validate(v.ID); err != nil {
-		return err
+	if v.ID == "" {
+		return errs.NewValidationError("ID", "required", "field is required")
 	}
 	if err = Order_CreatedAtValidator.Validate(v.CreatedAt); err != nil {
 		return err
 	}
-
-	if true && len(v.Items) == 0 {
-		return &errs.ValidationError{
-			Field:   "Items",
-			Rule:    "required",
-			Message: "поле Items обязательно",
-		}
+	if err = Order_ItemsValidator.Validate(v.Items); err != nil {
+		return err
 	}
-	if len(v.Items) < 1 {
-		return &errs.ValidationError{
-			Field:   "Items",
-			Rule:    "min",
-			Message: "поле Items должно содержать минимум 1 элементов",
-		}
-	}
-	if len(v.Items) > 100 {
-		return &errs.ValidationError{
-			Field:   "Items",
-			Rule:    "max",
-			Message: "поле Items должно содержать максимум 100 элементов",
-		}
-	}
-
-	return nil
+	return err
 }

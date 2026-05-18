@@ -4,7 +4,6 @@
 package local_generic
 
 import (
-	"context"
 	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
@@ -34,13 +33,11 @@ var (
 	}()
 )
 
-func (v *UserSettings) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *UserSettings) Validate() error {
 	var err *errs.ValidationError
+	if v.Theme == "" {
+		return errs.NewValidationError("Theme", "required", "field is required")
+	}
 	if err = UserSettings_ThemeValidator.Validate((string)(v.Theme)); err != nil {
 		return err
 	}
@@ -56,5 +53,5 @@ func (v *UserSettings) Validate() error {
 			return err
 		}
 	}
-	return nil
+	return err
 }

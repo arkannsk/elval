@@ -5,10 +5,12 @@ import (
 )
 
 type UserProfile struct {
-	// @evl:validate required, pattern:^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$
+	// @evl:validate required
+	// @evl:validate pattern:^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$
 	Email model.Option[string]
 
-	// @evl:validate optional, min:18
+	// @evl:validate optional
+	// @evl:validate min:18
 	Age model.Option[int]
 
 	// @evl:validate required
@@ -16,6 +18,6 @@ type UserProfile struct {
 }
 
 type UserMeta struct {
-	// @evl:validate required, max:50
+	// @evl:validate required
 	DisplayName string
 }

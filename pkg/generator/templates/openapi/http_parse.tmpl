@@ -3,34 +3,30 @@
     {{- range $field := .Fields }}
         {{- if ne $field.OaIn "" }}
             {
-            {{/* Определяем имя параметра */}}
             {{- $paramName := $field.Name }}
             {{- if ne $field.OaParamName "" }}
                 {{- $paramName = $field.OaParamName }}
             {{- end }}
-
-            {{/* Определяем базовый Go-тип */}}
             {{- $baseType := $field.Type.Name -}}
             {{- if $field.Type.IsSlice -}}
                 {{- $baseType = $field.Type.GenericBase -}}
             {{- else if $field.Type.IsPointer -}}
                 {{- $baseType = $field.Type.GenericBase -}}
             {{- end }}
-
-            {{/* Генерируем код получения значения из запроса */}}
             {{- $sourceExpr := "" -}}
-
             {{- if eq $field.OaIn "path" }}
                 {{- $sourceExpr = printf "r.PathValue(%q)" $paramName -}}
             {{- else if eq $field.OaIn "query" }}
                 {{- if $field.Type.IsSlice }}
                     {{- $sourceExpr = printf "r.URL.Query()[%q]" $paramName -}}
                 {{- else }}
-                    {{- /* Для Query Scalars используем безопасный доступ через временную переменную в блоке ниже */}}
                     {{- $sourceExpr = printf "vals[0]" $paramName -}}
                 {{- end }}
             {{- else if eq $field.OaIn "header" }}
                 {{- $sourceExpr = printf "r.Header.Get(%q)" $paramName -}}
+            {{- else if eq $field.OaIn "cookie" }}
+                cV, _ := {{- printf "r.Cookie(%q)" $paramName -}}
+                {{- $sourceExpr = "cV.Value" -}}
             {{- end }}
             // Parameter: {{ $paramName }} ({{ $field.OaIn }})
             {{- if $field.Type.IsSlice }}
@@ -38,9 +34,8 @@
                 {{ GenerateParseCode $field.Name $baseType $sourceExpr true }}
             {{- else }}
                 // Parsing primitive: {{ $baseType }}
-
                 {{- if and (eq $field.OaIn "query") (not $field.Type.IsSlice) }}
-                    {{- /* Особая обработка для Query Scalars: проверяем наличие */}}
+                    {{- /* Особая обработка для Query Scalars: проверяем наличие */}}s
                     if vals := r.URL.Query()[{{ printf "%q" $paramName }}]; len(vals) > 0 {
                     {{ GenerateParseCode $field.Name $baseType "vals[0]" false }}
                     }

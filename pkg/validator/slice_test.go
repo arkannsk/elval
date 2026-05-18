@@ -51,7 +51,7 @@ func TestSliceValidator_NotZero(t *testing.T) {
 		sv.NotZero()
 
 		err := sv.Validate([]string{})
-		assert.Error(t, err)
+		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "slice cant be empty")
 	})
 
@@ -61,7 +61,7 @@ func TestSliceValidator_NotZero(t *testing.T) {
 
 		var tags []string
 		err := sv.Validate(tags)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "slice cant be empty")
 	})
 }
@@ -80,7 +80,7 @@ func TestSliceValidator_Min(t *testing.T) {
 		sv.Min(3)
 
 		err := sv.Validate([]string{"a", "b"})
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "min len 3, received 2")
 	})
 
@@ -90,7 +90,7 @@ func TestSliceValidator_Min(t *testing.T) {
 
 		var tags []string
 		err := sv.Validate(tags)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -109,7 +109,7 @@ func TestSliceValidator_Max(t *testing.T) {
 		sv.Max(2)
 
 		err := sv.Validate([]string{"a", "b", "c"})
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "max len 2, received 3")
 	})
 }
@@ -128,7 +128,7 @@ func TestSliceValidator_Len(t *testing.T) {
 		sv.Len(3)
 
 		err := sv.Validate([]string{"a", "b"})
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "expect size 3, received 2")
 	})
 }

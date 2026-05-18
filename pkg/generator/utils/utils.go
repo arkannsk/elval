@@ -320,3 +320,17 @@ func CountBodyFields(fields []parser.Field) int {
 	}
 	return count
 }
+
+func HasValidationDirective(structName string, structs []parser.Struct) bool {
+	for _, s := range structs {
+		if s.Name == structName {
+			for _, field := range s.Fields {
+				if len(field.Directives) > 0 {
+					return true
+				}
+			}
+			return false
+		}
+	}
+	return false
+}

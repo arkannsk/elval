@@ -14,12 +14,6 @@ import (
 )
 
 var (
-	User_IDValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("ID")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-
 	User_RoleValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Role")
 		v.AddRule(validator.Required[string]())
@@ -53,11 +47,14 @@ func (v *User) Decorate(ctx context.Context) error {
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-	if err = User_IDValidator.Validate(v.ID); err != nil {
-		return err
+	if v.ID == "" {
+		return errs.NewValidationError("ID", "required", "field is required")
+	}
+	if v.Role == "" {
+		return errs.NewValidationError("Role", "required", "field is required")
 	}
 	if err = User_RoleValidator.Validate(v.Role); err != nil {
 		return err
 	}
-	return nil
+	return err
 }

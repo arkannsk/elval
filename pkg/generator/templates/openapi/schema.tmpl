@@ -35,7 +35,51 @@
                 {{- else }}
                     prop.Format = "binary"
                 {{- end }}
-                {{- /* Остальная логика (структуры, слайсы, примитивы) */}}
+            {{- else if and $field.Type.IsSlice $field.Type.IsGeneric }}
+                {{- $unwrapped := unwrapGenericType $field.Type }}
+                {{- $itemBase := baseType $unwrapped }}
+
+                prop.Type = "array"
+                prop.Items = &oa.Schema{}
+
+                {{- /* Определяем тип элемента массива */}}
+                {{- if eq $itemBase "string" }}
+                    prop.Items.Type = "string"
+                {{- else if eq $itemBase "int" "int8" "int16" "int32" "int64" }}
+                    prop.Items.Type = "integer"
+                {{- else if eq $itemBase "float32" "float64" }}
+                    prop.Items.Type = "number"
+                {{- else if eq $itemBase "bool" }}
+                    prop.Items.Type = "boolean"
+                {{- else if $unwrapped.IsStruct }}
+                    {{- if $field.OaRewriteRef }}
+                        prop.Items.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
+                    {{- else }}
+                        prop.Items.Ref = "#/components/schemas/{{ globalRefFor $unwrapped.Name $unwrapped.PackagePath $unwrapped.Module $.PackagePath $.Module }}"
+                    {{- end }}
+                {{- end }}
+
+                {{- /* Распаковка одиночных дженериков: Option[string] -> string */}}
+            {{- else if $field.Type.IsGeneric }}
+                {{- $unwrapped := unwrapGenericType $field.Type }}
+                {{- if eq $unwrapped.Name "string" }}
+                    prop.Type = "string"
+                {{- else if eq $unwrapped.Name "int" "int8" "int16" "int32" "int64" }}
+                    prop.Type = "integer"
+                {{- else if eq $unwrapped.Name "float32" "float64" }}
+                    prop.Type = "number"
+                {{- else if eq $unwrapped.Name "bool" }}
+                    prop.Type = "boolean"
+                {{- else if eq $unwrapped.Name "time.Time" }}
+                    prop.Type = "string"
+                    prop.Format = "date-time"
+                {{- else if $unwrapped.IsStruct }}
+                    {{- if $field.OaRewriteRef }}
+                        prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
+                    {{- else }}
+                        prop.Ref = "#/components/schemas/{{ globalRefFor $unwrapped.Name $unwrapped.PackagePath $unwrapped.Module $.PackagePath $.Module }}"
+                    {{- end }}
+                {{- end }}
             {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
                 {{- if $field.OaRewriteRef }}
                     prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"

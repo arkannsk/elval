@@ -4,7 +4,6 @@
 package local_generic
 
 import (
-	"context"
 	elval "github.com/arkannsk/elval"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
@@ -14,46 +13,26 @@ var (
 	UserProfile_EmailValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("Email")
 		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.MatchRegexp("^[a-z0-9._%+-]+"))
 		return v
 	}()
 
 	UserProfile_AgeValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Age")
+		v.AddRule(validator.Min[int](18))
 		original := v
 		v = validator.New[int]("Age")
 		v.AddRule(validator.SkipIfZero(original.Validate))
 		return v
 	}()
-
-	UserProfile_MetadataValidator = func() *validator.FieldValidator[UserMeta] {
-		v := validator.New[UserMeta]("Metadata")
-		v.AddRule(validator.Required[UserMeta]())
-		return v
-	}()
 )
 
-var (
-	UserMeta_DisplayNameValidator = func() *validator.FieldValidator[string] {
-		v := validator.New[string]("DisplayName")
-		v.AddRule(validator.Required[string]())
-		return v
-	}()
-)
-
-func (v *UserProfile) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
-func (v *UserMeta) Decorate(ctx context.Context) error {
-
-	return nil
-}
+var ()
 
 func (v *UserProfile) Validate() error {
 	var err *errs.ValidationError
 	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return &errs.ValidationError{Field: "Email", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("Email", "required", "not present")
 	}
 	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
 		val, _ := wrapper.Value()
@@ -68,21 +47,15 @@ func (v *UserProfile) Validate() error {
 		}
 	}
 	if !elval.Unwrap[UserMeta](v.Metadata).IsPresent() {
-		return &errs.ValidationError{Field: "Metadata", Rule: "required", Message: "not present"}
+		return errs.NewValidationError("Metadata", "required", "not present")
 	}
-	if wrapper := elval.Unwrap[UserMeta](v.Metadata); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserProfile_MetadataValidator.Validate(val); err != nil {
-			return err
-		}
-	}
-	return nil
+	return err
 }
 
 func (v *UserMeta) Validate() error {
 	var err *errs.ValidationError
-	if err = UserMeta_DisplayNameValidator.Validate(v.DisplayName); err != nil {
-		return err
+	if v.DisplayName == "" {
+		return errs.NewValidationError("DisplayName", "required", "field is required")
 	}
-	return nil
+	return err
 }

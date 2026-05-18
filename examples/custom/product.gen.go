@@ -4,7 +4,6 @@
 package main
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -45,15 +44,16 @@ var (
 	}()
 )
 
-func (v *Product) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *Product) Validate() error {
 	var err *errs.ValidationError
+	if v.Color == "" {
+		return errs.NewValidationError("Color", "required", "field is required")
+	}
 	if err = Product_ColorValidator.Validate(v.Color); err != nil {
 		return err
+	}
+	if v.Count == 0 {
+		return errs.NewValidationError("Count", "required", "field is required")
 	}
 	if err = Product_CountValidator.Validate(v.Count); err != nil {
 		return err
@@ -64,5 +64,5 @@ func (v *Product) Validate() error {
 	if err = Product_DescriptionValidator.Validate(v.Description); err != nil {
 		return err
 	}
-	return nil
+	return err
 }

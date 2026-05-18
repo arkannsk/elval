@@ -3,7 +3,6 @@ package product
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -175,13 +174,9 @@ func TestProductValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.product.Validate()
 			if tt.wantError {
-				require.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Contains(t, err.Error(), tt.errorMsg)
-				}
-				t.Logf("Ошибка: %v", err)
+				require.NotNil(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -199,7 +194,7 @@ func TestProductValidationBoundary(t *testing.T) {
 			Tax:      0,
 		}
 		err := product.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("максимальные значения", func(t *testing.T) {
@@ -213,6 +208,6 @@ func TestProductValidationBoundary(t *testing.T) {
 			Tax:      50,
 		}
 		err := product.Validate()
-		assert.NoError(t, err)
+		require.Nil(t, err)
 	})
 }

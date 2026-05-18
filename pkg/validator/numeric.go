@@ -54,7 +54,7 @@ func MinMax[T Number](min, max T) ValidationRule[T] {
 }
 
 // NotZero возвращает правило, запрещающее нулевое значение.
-func NotZero[T Number]() ValidationRule[T] {
+func NotZero[T comparable]() ValidationRule[T] {
 	var zero T
 	return func(value T) *errs.ValidationError {
 		if value == zero {

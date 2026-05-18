@@ -4,7 +4,6 @@
 package user_http_request
 
 import (
-	"context"
 	errs "github.com/arkannsk/elval/pkg/errs"
 	validator "github.com/arkannsk/elval/pkg/validator"
 )
@@ -13,40 +12,55 @@ var (
 	ComplexRequest_UserIDValidator = func() *validator.FieldValidator[string] {
 		v := validator.New[string]("UserID")
 		v.AddRule(validator.Required[string]())
+		v.AddRule(validator.UUID())
 		return v
 	}()
 
 	ComplexRequest_VersionValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Version")
 		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Min[int](1))
+		v.AddRule(validator.Max[int](3))
 		return v
 	}()
 
 	ComplexRequest_PageValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Page")
 		v.AddRule(validator.Required[int]())
+		v.AddRule(validator.Min[int](1))
 		return v
 	}()
 
 	ComplexRequest_LimitValidator = func() *validator.FieldValidator[int] {
 		v := validator.New[int]("Limit")
 		v.AddRule(validator.Min[int](1))
+		v.AddRule(validator.Max[int](100))
+		return v
+	}()
+
+	ComplexRequest_IDsValidator = func() *validator.SliceValidator[int] {
+		v := validator.NewSliceValidator[int]("IDs")
+		v.Required()
 		return v
 	}()
 )
 
-func (v *ComplexRequest) Decorate(ctx context.Context) error {
-
-	return nil
-}
-
 func (v *ComplexRequest) Validate() error {
 	var err *errs.ValidationError
+	if v.UserID == "" {
+		return errs.NewValidationError("UserID", "required", "field is required")
+	}
 	if err = ComplexRequest_UserIDValidator.Validate(v.UserID); err != nil {
 		return err
 	}
+	if v.Version == 0 {
+		return errs.NewValidationError("Version", "required", "field is required")
+	}
 	if err = ComplexRequest_VersionValidator.Validate(v.Version); err != nil {
 		return err
+	}
+	if v.Page == 0 {
+		return errs.NewValidationError("Page", "required", "field is required")
 	}
 	if err = ComplexRequest_PageValidator.Validate(v.Page); err != nil {
 		return err
@@ -54,22 +68,8 @@ func (v *ComplexRequest) Validate() error {
 	if err = ComplexRequest_LimitValidator.Validate(v.Limit); err != nil {
 		return err
 	}
-
-	if true && len(v.IDs) == 0 {
-		return &errs.ValidationError{
-			Field:   "IDs",
-			Rule:    "required",
-			Message: "поле IDs обязательно",
-		}
+	if err = ComplexRequest_IDsValidator.Validate(v.IDs); err != nil {
+		return err
 	}
-
-	if false && len(v.Tags) == 0 {
-		return &errs.ValidationError{
-			Field:   "Tags",
-			Rule:    "required",
-			Message: "поле Tags обязательно",
-		}
-	}
-
-	return nil
+	return err
 }
