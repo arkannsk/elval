@@ -81,7 +81,7 @@ func TestSliceOfStructsValidation(t *testing.T) {
 			},
 		}
 		err := company.Validate()
-		require.Error(t, err)
+		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Addresses")
 	})
 }

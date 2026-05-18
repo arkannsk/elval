@@ -131,9 +131,10 @@
                 if wrapper := elval.Unwrap[{{ $inner.Name }}](item); wrapper.IsPresent() {
                 val, _ := wrapper.Value()
                 {{- if $inner.IsStruct }}
-                    {{- /* Элемент — структура: вызываем её Validate() */}}
-                    if err := val.Validate(); err != nil {
-                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", err)
+                    if nestedErr := val.Validate(); nestedErr != nil {
+                    if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", validationErr)
+                    }
                     }
                 {{- else }}
                     {{- /* Элемент — примитив: проверяем, есть ли валидатор */}}
@@ -155,9 +156,39 @@
 
             {{- /* ── Обычные слайсы: []T ── */}}
         {{- else if and $field.Type.IsSlice (not $field.Type.IsGeneric) }}
+            {{- /* 1. Валидация самого слайса (размер, required) */}}
             {{- if gt (len $field.Directives) 0 }}
                 if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(v.{{ $field.Name }}); err != nil {
                 return err
+                }
+            {{- end }}
+
+            {{- /* 🆕 2. Если элемент — структура, валидируем каждый элемент */}}
+            {{- $elemType := $field.Type.GenericBase }}
+            {{- if eq $elemType "" }}
+                {{- if $field.Type.GenericArgs }}
+                    {{- $elem := index $field.Type.GenericArgs 0 }}
+                    {{- $elemType = $elem.Name }}
+                {{- end }}
+            {{- end }}
+
+            {{- /* Эвристика: если не примитив — считаем структурой */}}
+            {{- $isStructElem := and
+            (ne $elemType "string") (ne $elemType "int") (ne $elemType "int64")
+            (ne $elemType "float64") (ne $elemType "bool") (ne $elemType "uint")
+            (ne $elemType "float32") (ne $elemType "int32") (ne $elemType "int16")
+            (ne $elemType "int8") (ne $elemType "uint64") (ne $elemType "uint32")
+            (ne $elemType "uint16") (ne $elemType "uint8") (ne $elemType "byte")
+            }}
+
+            {{- if $isStructElem }}
+                for _, item := range v.{{ $field.Name }} {
+                if nestedErr := item.Validate(); nestedErr != nil {
+                if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "element",
+                "err: %v", validationErr)
+                }
+                }
                 }
             {{- end }}
 
@@ -213,6 +244,19 @@
                 return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "field is required")
                 }
             {{- end }}
+
+            {{- /* 🆕 Вызываем Validate() только если у структуры есть директивы */}}
+            {{- if hasValidationDirectives $field.Type.Name $.Structs }}
+                if v.{{ $field.Name }} != nil {
+                if nestedErr := v.{{ $field.Name }}.Validate(); nestedErr != nil {
+                if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", validationErr)
+                }
+                }
+                }
+            {{- end }}
+
+            {{- /* Дополнительные правила, если есть */}}
             {{- $hasRealRules := false }}
             {{- range $field.Directives }}
                 {{- if and (ne .Type "required") (ne .Type "optional") }}
@@ -221,17 +265,22 @@
             {{- end }}
             {{- if $hasRealRules }}
                 if v.{{ $field.Name }} != nil {
-                if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(*v.{{ $field.Name }}); err != nil {
-                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", err.Error())
+                if err := v.{{ $field.Name }}.Validate(); err != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", err)
                 }
                 }
             {{- end }}
 
             {{- /* ── Обычные структуры ── */}}
         {{- else if $field.Type.IsStruct }}
-            if err = v.{{ $field.Name }}.Validate(); err != nil {
-            return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", err)
-            }
+            {{- /* 🆕 Вызываем Validate() только если у структуры есть директивы */}}
+            {{- if hasValidationDirectives $field.Type.Name $.Structs }}
+                if nestedErr := v.{{ $field.Name }}.Validate(); nestedErr != nil {
+                if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+                return errs.NewValidationError({{ printf "%q" $field.Name }}, "nested", "err: %v", validationErr)
+                }
+                }
+            {{- end }}
 
             {{- /* Дополнительные правила на самом поле, если есть */}}
             {{- $hasRealRules := false }}

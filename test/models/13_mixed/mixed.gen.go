@@ -36,17 +36,11 @@ func (v *MegaStruct) Validate() error {
 	if v.Avatar == nil {
 		return errs.NewValidationError("Avatar", "required", "field is required")
 	}
-	if err = v.Payload.Validate(); err != nil {
-		return errs.NewValidationError("Payload", "nested", "err: %v", err)
-	}
 	if v.Status == "" {
 		return errs.NewValidationError("Status", "required", "field is required")
 	}
 	if err = MegaStruct_TagsValidator.Validate(v.Tags); err != nil {
 		return err
-	}
-	if err = v.Address.Validate(); err != nil {
-		return errs.NewValidationError("Address", "nested", "err: %v", err)
 	}
 	return err
 }

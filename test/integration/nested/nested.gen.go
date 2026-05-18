@@ -97,8 +97,10 @@ func (v *User) Validate() error {
 	if err = User_EmailValidator.Validate(v.Email); err != nil {
 		return err
 	}
-	if err = v.Address.Validate(); err != nil {
-		return errs.NewValidationError("Address", "nested", "err: %v", err)
+	if nestedErr := v.Address.Validate(); nestedErr != nil {
+		if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+			return errs.NewValidationError("Address", "nested", "err: %v", validationErr)
+		}
 	}
 	return err
 }
@@ -111,8 +113,24 @@ func (v *Company) Validate() error {
 	if err = Company_AddressesValidator.Validate(v.Addresses); err != nil {
 		return err
 	}
+	for _, item := range v.Addresses {
+		if nestedErr := item.Validate(); nestedErr != nil {
+			if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+				return errs.NewValidationError("Addresses", "element",
+					"err: %v", validationErr)
+			}
+		}
+	}
 	if err = Company_UsersValidator.Validate(v.Users); err != nil {
 		return err
+	}
+	for _, item := range v.Users {
+		if nestedErr := item.Validate(); nestedErr != nil {
+			if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+				return errs.NewValidationError("Users", "element",
+					"err: %v", validationErr)
+			}
+		}
 	}
 	return err
 }

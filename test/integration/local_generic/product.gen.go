@@ -56,8 +56,10 @@ func (v *Product) Validate() error {
 	for _, item := range v.Reviews {
 		if wrapper := elval.Unwrap[Review](item); wrapper.IsPresent() {
 			val, _ := wrapper.Value()
-			if err := val.Validate(); err != nil {
-				return errs.NewValidationError("Reviews", "element", "err: %v", err)
+			if nestedErr := val.Validate(); nestedErr != nil {
+				if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+					return errs.NewValidationError("Reviews", "element", "err: %v", validationErr)
+				}
 			}
 		}
 	}

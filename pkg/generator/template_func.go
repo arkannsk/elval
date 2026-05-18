@@ -49,4 +49,5 @@ var templateFucMap = template.FuncMap{
 	"openapiIsFile":           utils.IsFileOrStreamType,
 	"openapiFileSchema":       utils.FileSchema,
 	"unwrapGenericType":       utils.UnwrapGenericType,
+	"hasValidationDirectives": utils.HasValidationDirective,
 }
