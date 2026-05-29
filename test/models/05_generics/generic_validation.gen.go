@@ -23,13 +23,19 @@ var (
 
 func (v *UserRequest) Validate() error {
 	var err *errs.ValidationError
-	if !elval.Unwrap[string](v.ID).IsPresent() {
-		return errs.NewValidationError("ID", "required", "not present")
+	{
+		wrapper := elval.UnwrapGeneric[string](v.ID)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("ID", "required", "not present")
+		}
 	}
-	if wrapper := elval.Unwrap[int](v.Age); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserRequest_AgeValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[int](v.Age)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = UserRequest_AgeValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err

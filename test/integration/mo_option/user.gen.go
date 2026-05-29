@@ -57,43 +57,67 @@ var (
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-	if !elval.Unwrap[string](v.Name).IsPresent() {
-		return errs.NewValidationError("Name", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_NameValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Name)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Name", "required", "not present")
 		}
 	}
-	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return errs.NewValidationError("Email", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_EmailValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Name)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_NameValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
-	if wrapper := elval.Unwrap[int](v.Age); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_AgeValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Email", "required", "not present")
 		}
 	}
-	if wrapper := elval.Unwrap[string](v.Password); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_PasswordValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_EmailValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
-	if !elval.Unwrap[string](v.Tag).IsPresent() {
-		return errs.NewValidationError("Tag", "required", "not present")
+	{
+		wrapper := elval.UnwrapGeneric[int](v.Age)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_AgeValidator.Validate(val); err != nil {
+				return err
+			}
+		}
 	}
-	if wrapper := elval.Unwrap[string](v.Tag); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_TagValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Password)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_PasswordValidator.Validate(val); err != nil {
+				return err
+			}
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Tag)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Tag", "required", "not present")
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Tag)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_TagValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err

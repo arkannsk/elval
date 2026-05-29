@@ -39,10 +39,13 @@ func (v *Review) Validate() error {
 	if err = Review_CommentValidator.Validate(v.Comment); err != nil {
 		return err
 	}
-	if wrapper := elval.Unwrap[int](v.Rating); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = Review_RatingValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[int](v.Rating)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = Review_RatingValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err
@@ -54,7 +57,8 @@ func (v *Product) Validate() error {
 		return errs.NewValidationError("Name", "required", "field is required")
 	}
 	for _, item := range v.Reviews {
-		if wrapper := elval.Unwrap[Review](item); wrapper.IsPresent() {
+		wrapper := elval.UnwrapGeneric[Review](item)
+		if wrapper.IsPresent() {
 			val, _ := wrapper.Value()
 			if nestedErr := val.Validate(); nestedErr != nil {
 				if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {

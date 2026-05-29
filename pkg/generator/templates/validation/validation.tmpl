@@ -127,31 +127,32 @@
             {{- /* 🆕 Валидация элементов: генерируем всегда, если есть ЛЮБЫЕ директивы */}}
             {{- /* Даже если только "optional", нужно итерировать и валидировать вложенные структуры */}}
             {{- if gt (len $field.Directives) 0 }}
-                for _, item := range v.{{ $field.Name }} {
-                if wrapper := elval.Unwrap[{{ $inner.Name }}](item); wrapper.IsPresent() {
-                val, _ := wrapper.Value()
-                {{- if $inner.IsStruct }}
-                    if nestedErr := val.Validate(); nestedErr != nil {
-                    if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
-                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", validationErr)
-                    }
-                    }
-                {{- else }}
-                    {{- /* Элемент — примитив: проверяем, есть ли валидатор */}}
-                    {{- $hasElemValidator := false }}
-                    {{- range $field.Directives }}
-                        {{- if and (ne .Type "required") (ne .Type "optional") }}
-                            {{- $hasElemValidator = true }}
-                        {{- end }}
-                    {{- end }}
-                    {{- if $hasElemValidator }}
-                        if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
-                        return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", err)
-                        }
-                    {{- end }}
-                {{- end }}
-                }
-                }
+                            for _, item := range v.{{ $field.Name }} {
+                            wrapper := elval.UnwrapGeneric[{{ $inner.Name }}](item)
+                            if wrapper.IsPresent() {
+                            val, _ := wrapper.Value()
+                            {{- if $inner.IsStruct }}
+                                if nestedErr := val.Validate(); nestedErr != nil {
+                                if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+                                return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", validationErr)
+                                }
+                                }
+                            {{- else }}
+                                {{- /* Элемент — примитив: проверяем, есть ли валидатор */}}
+                                {{- $hasElemValidator := false }}
+                                {{- range $field.Directives }}
+                                    {{- if and (ne .Type "required") (ne .Type "optional") }}
+                                        {{- $hasElemValidator = true }}
+                                    {{- end }}
+                                {{- end }}
+                                {{- if $hasElemValidator }}
+                                    if err := {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
+                                    return errs.NewValidationError({{ printf "%q" $field.Name }}, "element", "err: %v", err)
+                                    }
+                                {{- end }}
+                            {{- end }}
+                            }
+                            }
             {{- end }}
 
             {{- /* ── Обычные слайсы: []T ── */}}
@@ -196,9 +197,12 @@
         {{- else if and $field.Type.IsGeneric (len $field.Type.GenericArgs) }}
             {{- $inner := firstArg $field.Type.GenericArgs }}
             {{- if hasDirective $field.Directives "required" }}
-                if !elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}).IsPresent() {
+            {
+                wrapper := elval.UnwrapGeneric[{{ $inner.Name }}](v.{{ $field.Name }})
+                if !wrapper.IsPresent() {
                 return errs.NewValidationError({{ printf "%q" $field.Name }}, "required", "not present")
                 }
+            }
             {{- end }}
             {{- $hasRealRules := false }}
             {{- range $field.Directives }}
@@ -207,14 +211,16 @@
                 {{- end }}
             {{- end }}
             {{- if $hasRealRules }}
-                if wrapper := elval.Unwrap[{{ $inner.Name }}](v.{{ $field.Name }}); wrapper.IsPresent() {
+            {
+                wrapper := elval.UnwrapGeneric[{{ $inner.Name }}](v.{{ $field.Name }})
+                if wrapper.IsPresent() {
                 val, _ := wrapper.Value()
                 if err = {{ $struct.Name }}_{{ $field.Name }}Validator.Validate(val); err != nil {
                 return err
                 }
                 }
+            }
             {{- end }}
-
             {{- /* ── Указатели на примитивы ── */}}
         {{- else if and $field.Type.IsPointer (not $field.Type.IsStruct) }}
             {{- if hasDirective $field.Directives "required" }}

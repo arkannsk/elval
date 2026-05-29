@@ -31,23 +31,35 @@ var ()
 
 func (v *UserProfile) Validate() error {
 	var err *errs.ValidationError
-	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return errs.NewValidationError("Email", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserProfile_EmailValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Email", "required", "not present")
 		}
 	}
-	if wrapper := elval.Unwrap[int](v.Age); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserProfile_AgeValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = UserProfile_EmailValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
-	if !elval.Unwrap[UserMeta](v.Metadata).IsPresent() {
-		return errs.NewValidationError("Metadata", "required", "not present")
+	{
+		wrapper := elval.UnwrapGeneric[int](v.Age)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = UserProfile_AgeValidator.Validate(val); err != nil {
+				return err
+			}
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[UserMeta](v.Metadata)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Metadata", "required", "not present")
+		}
 	}
 	return err
 }
