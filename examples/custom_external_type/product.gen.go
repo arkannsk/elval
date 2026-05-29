@@ -42,28 +42,43 @@ var (
 
 func (v *User) Validate() error {
 	var err *errs.ValidationError
-	if !elval.Unwrap[string](v.Name).IsPresent() {
-		return errs.NewValidationError("Name", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[string](v.Name); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_NameValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Name)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Name", "required", "not present")
 		}
 	}
-	if !elval.Unwrap[string](v.Email).IsPresent() {
-		return errs.NewValidationError("Email", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[string](v.Email); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_EmailValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Name)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_NameValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
-	if wrapper := elval.Unwrap[string](v.Phone); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = User_PhoneValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("Email", "required", "not present")
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Email)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_EmailValidator.Validate(val); err != nil {
+				return err
+			}
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[string](v.Phone)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = User_PhoneValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err

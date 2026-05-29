@@ -32,22 +32,34 @@ func (v *Event) Validate() error {
 	if v.Name == "" {
 		return errs.NewValidationError("Name", "required", "field is required")
 	}
-	if !elval.Unwrap[time.Time](v.StartDate).IsPresent() {
-		return errs.NewValidationError("StartDate", "required", "not present")
-	}
-	if wrapper := elval.Unwrap[time.Time](v.StartDate); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = Event_StartDateValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[time.Time](v.StartDate)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("StartDate", "required", "not present")
 		}
 	}
-	if !elval.Unwrap[time.Time](v.EndDate).IsPresent() {
-		return errs.NewValidationError("EndDate", "required", "not present")
+	{
+		wrapper := elval.UnwrapGeneric[time.Time](v.StartDate)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = Event_StartDateValidator.Validate(val); err != nil {
+				return err
+			}
+		}
 	}
-	if wrapper := elval.Unwrap[time.Time](v.EndDate); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = Event_EndDateValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[time.Time](v.EndDate)
+		if !wrapper.IsPresent() {
+			return errs.NewValidationError("EndDate", "required", "not present")
+		}
+	}
+	{
+		wrapper := elval.UnwrapGeneric[time.Time](v.EndDate)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = Event_EndDateValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err

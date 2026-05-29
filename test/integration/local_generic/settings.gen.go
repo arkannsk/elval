@@ -41,16 +41,22 @@ func (v *UserSettings) Validate() error {
 	if err = UserSettings_ThemeValidator.Validate((string)(v.Theme)); err != nil {
 		return err
 	}
-	if wrapper := elval.Unwrap[string](v.PrimaryColor); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserSettings_PrimaryColorValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.PrimaryColor)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = UserSettings_PrimaryColorValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
-	if wrapper := elval.Unwrap[string](v.NotificationEmail); wrapper.IsPresent() {
-		val, _ := wrapper.Value()
-		if err = UserSettings_NotificationEmailValidator.Validate(val); err != nil {
-			return err
+	{
+		wrapper := elval.UnwrapGeneric[string](v.NotificationEmail)
+		if wrapper.IsPresent() {
+			val, _ := wrapper.Value()
+			if err = UserSettings_NotificationEmailValidator.Validate(val); err != nil {
+				return err
+			}
 		}
 	}
 	return err
