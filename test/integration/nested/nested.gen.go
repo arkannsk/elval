@@ -102,6 +102,13 @@ func (v *User) Validate() error {
 			return errs.NewValidationError("Address", "nested", "err: %v", validationErr)
 		}
 	}
+	if v.BillingAddress != nil {
+		if nestedErr := v.BillingAddress.Validate(); nestedErr != nil {
+			if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {
+				return errs.NewValidationError("BillingAddress", "nested", "err: %v", validationErr)
+			}
+		}
+	}
 	return err
 }
 
