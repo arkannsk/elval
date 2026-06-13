@@ -252,7 +252,8 @@
             {{- end }}
 
             {{- /* 🆕 Вызываем Validate() только если у структуры есть директивы */}}
-            {{- if hasValidationDirectives $field.Type.Name $.Structs }}
+            {{- /* trimStar убирает префикс '*' для типов вида *Node → Node */}}
+            {{- if hasValidationDirectives (trimStar $field.Type.Name) $.Structs }}
                 if v.{{ $field.Name }} != nil {
                 if nestedErr := v.{{ $field.Name }}.Validate(); nestedErr != nil {
                 if validationErr, ok := nestedErr.(*errs.ValidationError); ok && validationErr != nil {

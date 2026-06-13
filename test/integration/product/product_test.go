@@ -16,7 +16,7 @@ func TestProductValidation(t *testing.T) {
 		{
 			name: "валидный продукт",
 			product: Product{
-				Status:   "active", // добавили
+				Status:   "active",
 				Quantity: 10,
 				Price:    99.99,
 				Age:      25,
