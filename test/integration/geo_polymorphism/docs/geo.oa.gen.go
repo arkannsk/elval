@@ -97,6 +97,11 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 		prop.Description = "The geometric shape"
 		prop.Title = "Geometry"
 
+		prop.OneOf = []*oa.Schema{
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PointDocs"},
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.PolygonDocs"},
+		}
+
 		schema.Properties["geometry"] = prop
 	}
 	{

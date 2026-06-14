@@ -131,15 +131,26 @@ func (v *Container) GlobalRef() string {
 
 func (v *OneOfExample) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
-		Ref: v.GlobalRef(),
-		OneOf: []*oa.Schema{
+		Type:       "object",
+		Properties: make(map[string]*oa.Schema, 1),
+		Required:   make([]string, 0, 1),
+		Ref:        v.GlobalRef(),
+	}
+	schema.Deps = []any{
+		new(StringValue),
+		new(NumberValue),
+	}
+	{
+		prop := &oa.Schema{}
+
+		prop.Description = "Flexible value"
+
+		prop.OneOf = []*oa.Schema{
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/06_polymorphism.StringValue"},
 			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/06_polymorphism.NumberValue"},
-		},
-		Deps: []any{
-			new(StringValue),
-			new(NumberValue),
-		},
+		}
+
+		schema.Properties["value"] = prop
 	}
 
 	return schema
