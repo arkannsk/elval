@@ -9,20 +9,15 @@ import (
 
 func (v *APIResponse) OaSchema() *oa.Schema {
 	schema := &oa.Schema{
-		Type:       "object",
-		Properties: make(map[string]*oa.Schema, 1),
-		Required:   make([]string, 0, 1),
-		Ref:        v.GlobalRef(),
-	}
-	{
-		prop := &oa.Schema{}
-
-		prop.OneOf = []*oa.Schema{
-			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs/user.User"},
-			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs/order.Order"},
-		}
-
-		schema.Properties["data"] = prop
+		Ref: v.GlobalRef(),
+		OneOf: []*oa.Schema{
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs.UserResponse"},
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs.OrderResponse"},
+		},
+		Deps: []any{
+			new(UserResponse),
+			new(OrderResponse),
+		},
 	}
 
 	return schema

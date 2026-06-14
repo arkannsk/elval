@@ -17,6 +17,10 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 10),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Deps = []any{
+		new(UserVariant),
+		new(AdminVariant),
+	}
 	{
 		prop := &oa.Schema{}
 
@@ -98,11 +102,6 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-
-		prop.OneOf = []*oa.Schema{
-			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/13_mixed.UserVariant"},
-			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/13_mixed.AdminVariant"},
-		}
 
 		schema.Properties["variant"] = prop
 	}

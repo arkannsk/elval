@@ -10,6 +10,8 @@ type FieldAnnotationResult struct {
 	OaIn        string         // "path", "query", "header", "cookie"
 	OaParamName string         // Имя параметра, если отличается от имени поля
 	OaFormat    string         // "binary" или "byte" (из @oa:file / @oa:stream)
+	OaOneOf     []string       // имена типов для oneOf
+	OaAnyOf     []string       // имена типов для anyOf
 	Remaining   []OaAnnotation // Остальные аннотации (description, format, enum и т.д.)
 }
 
@@ -37,6 +39,10 @@ func ProcessFieldAnnotations(annotations []OaAnnotation) FieldAnnotationResult {
 			if len(parts) >= 2 {
 				result.OaParamName = parts[1]
 			}
+		case "oneOf":
+			result.OaOneOf = parseList(ann.Value)
+		case "anyOf":
+			result.OaAnyOf = parseList(ann.Value)
 		default:
 			result.Remaining = append(result.Remaining, ann)
 		}

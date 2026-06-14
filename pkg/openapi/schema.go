@@ -33,6 +33,11 @@ type Schema struct {
 
 	Ref string `json:"$ref,omitempty"`
 
+	// Deps — экземпляры зависимых типов (oneOf/allOf/anyOf).
+	// Генерируется elval-gen, используется nooa для автоматической регистрации.
+	// Не сериализуется в OpenAPI.
+	Deps []any `json:"-"`
+
 	Nullable  bool `json:"nullable,omitempty"`
 	ReadOnly  bool `json:"readOnly,omitempty"`
 	WriteOnly bool `json:"writeOnly,omitempty"`
