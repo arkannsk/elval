@@ -143,6 +143,20 @@
                 {{- $ctx := dict "Field" $field "Pkg" $.Package "PkgPath" $.PackagePath "Module" $.Module }}
                 {{ template "openapi/field/annotations" $ctx }}
                 {{ template "openapi/field/description" $field }}
+                {{- if $field.OaOneOf }}
+                    prop.OneOf = []*oa.Schema{
+                    {{- range $typeName := $field.OaOneOf }}
+                        {Ref: "#/components/schemas/{{ buildGlobalRef $typeName $.PackagePath $.Module }}"},
+                    {{- end }}
+                    }
+                {{- end }}
+                {{- if $field.OaAnyOf }}
+                    prop.AnyOf = []*oa.Schema{
+                    {{- range $typeName := $field.OaAnyOf }}
+                        {Ref: "#/components/schemas/{{ buildGlobalRef $typeName $.PackagePath $.Module }}"},
+                    {{- end }}
+                    }
+                {{- end }}
 
                 schema.Properties[{{ $field.Name | toLower | printf "%q" }}] = prop
                 }

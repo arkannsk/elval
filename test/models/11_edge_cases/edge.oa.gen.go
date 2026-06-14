@@ -187,6 +187,11 @@ func (v *WithInterface) OaSchema() *oa.Schema {
 
 		prop.Description = "Flexible value"
 
+		prop.OneOf = []*oa.Schema{
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/11_edge_cases.StringEdgeValue"},
+			{Ref: "#/components/schemas/github.com/arkannsk/elval/test/models/11_edge_cases.NumberEdgeValue"},
+		}
+
 		schema.Properties["data"] = prop
 	}
 
