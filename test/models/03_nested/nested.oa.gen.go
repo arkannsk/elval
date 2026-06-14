@@ -88,7 +88,7 @@ func (v *UserWithAddress) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/Address"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.Address"
 
 		prop.Description = "Billing address"
 
@@ -96,7 +96,7 @@ func (v *UserWithAddress) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/*Address"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.Address"
 
 		prop.Description = "Shipping address (optional)"
 
@@ -131,7 +131,7 @@ func (v *RecursiveNode) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas//.RecursiveNode"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.RecursiveNode"
 
 		prop.Description = "Child nodes"
 
@@ -139,7 +139,7 @@ func (v *RecursiveNode) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/*RecursiveNode"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.RecursiveNode"
 
 		prop.Description = "Parent reference (nullable)"
 

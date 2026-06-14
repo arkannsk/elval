@@ -55,7 +55,7 @@ func (v *Cat) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/Pet"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_discriminator.Pet"
 
 		schema.Properties["pet"] = prop
 	}
@@ -85,7 +85,7 @@ func (v *Dog) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/Pet"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_discriminator.Pet"
 
 		schema.Properties["pet"] = prop
 	}

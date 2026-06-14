@@ -58,18 +58,18 @@
                 {{ template "set_primitive_type" (dict "TypeName" $name3 "Prefix" "prop.Items.Items.Items") }}
             {{- else }}
                 {{- /* Если на 3-м уровне структура, нужен Ref */}}
-                prop.Items.Items.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name3 $pkgPath $module }}"
+                prop.Items.Items.Items.Ref = "#/components/schemas/{{ globalRefFor $name3 "" "" $pkgPath $module }}"
             {{- end }}
         {{- else }}
             {{- /* Если на 2-м уровне структура, нужен Ref */}}
-            prop.Items.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name2 $pkgPath $module }}"
+            prop.Items.Items.Ref = "#/components/schemas/{{ globalRefFor $name2 "" "" $pkgPath $module }}"
         {{- end }}
     {{- else }}
         {{- /* Если на 1-м уровне структура, нужен Ref */}}
         {{- if $f.OaRewriteRef }}
             prop.Items.Ref = "#/components/schemas/{{ $f.OaRewriteRef }}"
         {{- else }}
-            prop.Items.Ref = "#/components/schemas/{{ buildGlobalRef $name $f.Type.PackagePath $f.Type.Module }}"
+            prop.Items.Ref = "#/components/schemas/{{ globalRefFor $name $f.Type.PackagePath $f.Type.Module $pkgPath $module }}"
         {{- end }}
     {{- end }}
 {{ end }}

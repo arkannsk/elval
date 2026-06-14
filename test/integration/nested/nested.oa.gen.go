@@ -80,13 +80,13 @@ func (v *User) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/Address"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Properties["address"] = prop
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/*Address"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Properties["billingaddress"] = prop
 	}
@@ -119,7 +119,7 @@ func (v *Company) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas//.Address"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Required = append(schema.Required, "addresses")
 		prop.Minimum = oa.Ptr[float64](1)
@@ -131,7 +131,7 @@ func (v *Company) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas//.User"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.User"
 
 		schema.Properties["users"] = prop
 	}

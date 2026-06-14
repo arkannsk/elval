@@ -63,7 +63,7 @@ func (v *Product) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas/Review"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/local_generic.Review"
 
 		schema.Properties["reviews"] = prop
 	}
