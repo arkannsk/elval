@@ -203,25 +203,53 @@ func SafeExample(val string) string {
 }
 
 // GlobalRefFor forms a global reference to a type.
+// It always returns the full global ref (module/pkg.Type) when possible,
+// falling back to the struct's package/module if the type's are not set.
+// Pointer prefixes (*) are stripped from the type name.
 func GlobalRefFor(typeName, typePkgPath, typeMod, structPkgPath, structMod string) string {
-	if typeMod != "" && typeMod != structMod {
-		return fmt.Sprintf("%s/%s.%s", typeMod, typePkgPath, typeName)
+	// Strip pointer prefix
+	typeName = strings.TrimPrefix(typeName, "*")
+
+	// Determine package and module to use
+	pkgPath := typePkgPath
+	mod := typeMod
+	if pkgPath == "" {
+		pkgPath = structPkgPath
 	}
-	if typePkgPath != "" && typePkgPath != structPkgPath {
-		return fmt.Sprintf("%s.%s", typePkgPath, typeName)
+	if mod == "" {
+		mod = structMod
+	}
+
+	// Build full global ref
+	if mod != "" {
+		return fmt.Sprintf("%s/%s.%s", mod, pkgPath, typeName)
+	}
+	if pkgPath != "" {
+		return fmt.Sprintf("%s.%s", pkgPath, typeName)
 	}
 	return typeName
 }
 
 // BuildGlobalRef forms a global reference to a type, considering the structure of the name.
+// Pointer prefixes (*) are stripped from the type name.
+// Returns the type name if both package path and module are empty.
 func BuildGlobalRef(typeName, pkgPath, module string) string {
+	// Strip pointer prefix
+	typeName = strings.TrimPrefix(typeName, "*")
+
 	if strings.Contains(typeName, "/") {
 		return fmt.Sprintf("%s/%s", module, typeName)
 	}
 	if strings.Contains(typeName, ".") {
 		return fmt.Sprintf("%s/%s/%s", module, pkgPath, typeName)
 	}
-	return fmt.Sprintf("%s/%s.%s", module, pkgPath, typeName)
+	if module != "" && pkgPath != "" {
+		return fmt.Sprintf("%s/%s.%s", module, pkgPath, typeName)
+	}
+	if pkgPath != "" {
+		return fmt.Sprintf("%s.%s", pkgPath, typeName)
+	}
+	return typeName
 }
 
 // SplitList splits a string by a separator and trims whitespace from each part.

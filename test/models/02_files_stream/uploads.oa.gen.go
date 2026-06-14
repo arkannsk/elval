@@ -94,7 +94,7 @@ func (v *CustomWithAnnotations) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/*CustomBuffer"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/02_files_stream.CustomBuffer"
 
 		prop.Description = "Base64 data from custom type"
 		prop.Format = "byte"

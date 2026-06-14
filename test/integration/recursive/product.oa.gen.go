@@ -26,7 +26,7 @@ func (v *Node) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/*Node"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/recursive.Node"
 
 		schema.Properties["next"] = prop
 	}

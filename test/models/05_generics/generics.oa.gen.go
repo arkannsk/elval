@@ -43,7 +43,7 @@ func (v *GenericStruct) OaSchema() *oa.Schema {
 
 		prop.Type = "array"
 		prop.Items = &oa.Schema{}
-		prop.Items.Ref = "#/components/schemas/Item"
+		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/05_generics.Item"
 
 		prop.Description = "Slice of optional items"
 

@@ -33,7 +33,7 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
-		prop.Ref = "#/components/schemas/UserMeta"
+		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/local_generic.UserMeta"
 
 		schema.Required = append(schema.Required, "metadata")
 
