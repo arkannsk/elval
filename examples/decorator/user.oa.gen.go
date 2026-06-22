@@ -29,6 +29,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "role")
+
 		prop.Enum = []any{"admin", "user", "guest"}
 
 		schema.Properties["role"] = prop

@@ -19,6 +19,7 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "email")
+
 		prop.Pattern = "^[a-z0-9._%+-]+"
 
 		schema.Properties["email"] = prop
@@ -33,6 +34,7 @@ func (v *UserProfile) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/local_generic.UserMeta"
 
 		schema.Required = append(schema.Required, "metadata")

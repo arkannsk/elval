@@ -23,6 +23,7 @@ func ProcessFieldAnnotations(annotations []OaAnnotation) FieldAnnotationResult {
 
 	for _, ann := range annotations {
 		switch ann.Type {
+		// TODO: OA ENUM
 		case "rewrite.ref":
 			result.RewriteRef = trimQuotes(ann.Value)
 		case "rewrite.type":

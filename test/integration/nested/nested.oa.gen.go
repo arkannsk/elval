@@ -20,6 +20,7 @@ func (v *Address) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "city")
+
 		prop.MinLength = oa.Ptr[int64](2)
 
 		schema.Properties["city"] = prop
@@ -30,6 +31,7 @@ func (v *Address) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "street")
+
 		prop.MinLength = oa.Ptr[int64](5)
 
 		schema.Properties["street"] = prop
@@ -64,6 +66,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "name")
+
 		prop.MinLength = oa.Ptr[int64](2)
 
 		schema.Properties["name"] = prop
@@ -74,18 +77,21 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "email")
+
 		prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
 		schema.Properties["email"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Properties["address"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Properties["billingaddress"] = prop
@@ -122,6 +128,7 @@ func (v *Company) OaSchema() *oa.Schema {
 		prop.Items.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/nested.Address"
 
 		schema.Required = append(schema.Required, "addresses")
+
 		prop.Minimum = oa.Ptr[float64](1)
 
 		schema.Properties["addresses"] = prop

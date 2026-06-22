@@ -30,6 +30,8 @@ func (v *ComplexRequest) OaSchema() *oa.Schema {
 	{
 		prop := &oa.Schema{}
 
+		prop.Type = "object"
+
 		prop.Description = "Metadata map"
 
 		schema.Properties["metadata"] = prop

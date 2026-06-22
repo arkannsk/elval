@@ -20,6 +20,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		prop.Description = "The full name of the user.\nIt should include first and last name.\nMax length is 50 characters."
+
 		prop.Title = "User Name"
 
 		schema.Properties["name"] = prop
@@ -39,6 +40,7 @@ func (v *IgnoreField) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "try to read this"
 	{
 		prop := &oa.Schema{}
 

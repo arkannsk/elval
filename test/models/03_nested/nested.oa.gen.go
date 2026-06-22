@@ -14,6 +14,7 @@ func (v *Address) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Postal address"
 	{
 		prop := &oa.Schema{}
 
@@ -68,6 +69,7 @@ func (v *UserWithAddress) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 4),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "User with nested address"
 	{
 		prop := &oa.Schema{}
 
@@ -88,6 +90,7 @@ func (v *UserWithAddress) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.Address"
 
 		prop.Description = "Billing address"
@@ -96,6 +99,7 @@ func (v *UserWithAddress) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.Address"
 
 		prop.Description = "Shipping address (optional)"
@@ -117,6 +121,7 @@ func (v *RecursiveNode) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Tree node with self-reference"
 	{
 		prop := &oa.Schema{}
 
@@ -139,6 +144,7 @@ func (v *RecursiveNode) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/models/03_nested.RecursiveNode"
 
 		prop.Description = "Parent reference (nullable)"
@@ -160,6 +166,7 @@ func (v *DeepNesting) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 1),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Deeply nested structure"
 	{
 		prop := &oa.Schema{}
 

@@ -2,37 +2,37 @@
     {{- range $directive := .Directives }}
         {{- if eq $directive.Type "required" }}
             schema.Required = append(schema.Required, "{{ $.Name | toLower }}")
-        {{- else if eq $directive.Type "min" }}
+        {{ else if eq $directive.Type "min" }}
             {{- if eq $.Type.Name "string" }}
                 prop.MinLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
             {{- else }}
                 prop.Minimum = oa.Ptr[float64]({{ index $directive.Params 0 }})
             {{- end }}
-        {{- else if eq $directive.Type "max" }}
+        {{ else if eq $directive.Type "max" }}
             {{- if eq $.Type.Name "string" }}
                 prop.MaxLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
             {{- else }}
                 prop.Maximum = oa.Ptr[float64]({{ index $directive.Params 0 }})
             {{- end }}
-        {{- else if eq $directive.Type "gt" }}
+        {{ else if eq $directive.Type "gt" }}
             {{- if ne $.Type.Name "string" }}
                 prop.Minimum = oa.Ptr[float64]({{ index $directive.Params 0 }})
                 prop.ExclusiveMinimum = true
             {{- end }}
-        {{- else if eq $directive.Type "gte" }}
+        {{ else if eq $directive.Type "gte" }}
             {{- if ne $.Type.Name "string" }}
                 prop.Minimum = oa.Ptr[float64]({{ index $directive.Params 0 }})
             {{- end }}
-        {{- else if eq $directive.Type "lt" }}
+        {{ else if eq $directive.Type "lt" }}
             {{- if ne $.Type.Name "string" }}
                 prop.Maximum = oa.Ptr[float64]({{ index $directive.Params 0 }})
                 prop.ExclusiveMaximum = true
             {{- end }}
-        {{- else if eq $directive.Type "lte" }}
+        {{ else if eq $directive.Type "lte" }}
             {{- if ne $.Type.Name "string" }}
                 prop.Maximum = oa.Ptr[float64]({{ index $directive.Params 0 }})
             {{- end }}
-        {{- else if eq $directive.Type "len" }}
+        {{ else if eq $directive.Type "len" }}
             {{- if eq $.Type.Name "string" }}
                 prop.MinLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
                 prop.MaxLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
@@ -40,7 +40,7 @@
                 prop.MinLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
                 prop.MaxLength = oa.Ptr[int64]({{ index $directive.Params 0 }})
             {{- end }}
-        {{- else if eq $directive.Type "pattern" }}
+        {{ else if eq $directive.Type "pattern" }}
             {{- $pattern := index $directive.Params 0 }}
             {{- if eq $pattern "email" }}
                 prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -53,7 +53,7 @@
             {{- else }}
                 prop.Pattern = {{ $pattern | printf "%q" }}
             {{- end }}
-        {{- else if eq $directive.Type "enum" }}
+        {{ else if eq $directive.Type "enum" }}
             prop.Enum = []any{ {{- range $i, $p := $directive.Params }}{{ if $i }}, {{ end }}{{ $p | printf "%q" }}{{ end }} }
         {{- end }}
     {{- end }}

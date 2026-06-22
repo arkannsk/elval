@@ -20,12 +20,14 @@ func (v *Node) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "value")
+
 		prop.MaxLength = oa.Ptr[int64](50)
 
 		schema.Properties["value"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/recursive.Node"
 
 		schema.Properties["next"] = prop

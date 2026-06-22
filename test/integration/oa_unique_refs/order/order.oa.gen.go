@@ -14,6 +14,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Информация о заказе"
 	{
 		prop := &oa.Schema{}
 
@@ -28,7 +29,7 @@ func (v *Order) OaSchema() *oa.Schema {
 
 		prop.Type = "number"
 
-		prop.Example = "2999.99"
+		prop.Example = 2999.99
 
 		schema.Properties["total"] = prop
 	}

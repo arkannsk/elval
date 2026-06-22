@@ -18,6 +18,7 @@ func (v *UserSettings) OaSchema() *oa.Schema {
 		prop := &oa.Schema{}
 
 		schema.Required = append(schema.Required, "theme")
+
 		prop.Enum = []any{"light", "dark", "custom"}
 
 		schema.Properties["theme"] = prop

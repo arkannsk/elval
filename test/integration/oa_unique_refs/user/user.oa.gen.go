@@ -14,6 +14,7 @@ func (v *User) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Полная информация о пользователе"
 	{
 		prop := &oa.Schema{}
 

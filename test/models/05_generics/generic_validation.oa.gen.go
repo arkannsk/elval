@@ -14,6 +14,7 @@ func (v *UserRequest) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Request with validated generic fields"
 	{
 		prop := &oa.Schema{}
 		prop.Type = "string"
@@ -29,6 +30,7 @@ func (v *UserRequest) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		prop.Minimum = oa.Ptr[float64](0)
+
 		prop.Maximum = oa.Ptr[float64](120)
 
 		prop.Description = "Age (optional int in Option)"

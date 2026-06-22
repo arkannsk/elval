@@ -16,6 +16,7 @@ func (v *CreateLocationRequest) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/geo_polymorphism/docs.FeatureDocs"
 
 		schema.Properties["feature"] = prop

@@ -20,10 +20,13 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "name")
+
 		prop.MinLength = oa.Ptr[int64](3)
+
 		prop.MaxLength = oa.Ptr[int64](50)
 
 		prop.Description = "Full name of the user"
+
 		prop.Title = "User Name"
 		prop.Example = "John Doe"
 
@@ -35,6 +38,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "email")
+
 		prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
 		prop.Format = "email"
@@ -47,6 +51,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		prop.Minimum = oa.Ptr[float64](18)
+
 		prop.Maximum = oa.Ptr[float64](120)
 
 		schema.Properties["age"] = prop
@@ -82,6 +87,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "status")
+
 		prop.Enum = []any{"active", "inactive", "archived"}
 
 		prop.Description = "Product status"
@@ -94,6 +100,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "number"
 
 		schema.Required = append(schema.Required, "price")
+
 		prop.Minimum = oa.Ptr[float64](0)
 		prop.ExclusiveMinimum = true
 
@@ -105,6 +112,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](1000)
 
 		schema.Properties["quantity"] = prop
@@ -115,6 +123,7 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "code")
+
 		prop.MinLength = oa.Ptr[int64](10)
 		prop.MaxLength = oa.Ptr[int64](10)
 
@@ -163,7 +172,9 @@ func (v *Order) OaSchema() *oa.Schema {
 		prop.Items.Type = "string"
 
 		schema.Required = append(schema.Required, "items")
+
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](100)
 
 		schema.Properties["items"] = prop

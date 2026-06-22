@@ -120,6 +120,7 @@
                         prop.Type = "string"
                         prop.Format = "date-time"
                     {{- else if $unwrapped.IsStruct }}
+                        prop.Type = "object"
                         {{- if $field.OaRewriteRef }}
                             prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
                         {{- else }}
@@ -127,6 +128,7 @@
                         {{- end }}
                     {{- end }}
                 {{- else if and $field.Type.IsStruct (not $field.Type.IsSlice) }}
+                    prop.Type = "object"
                     {{- if $field.OaRewriteRef }}
                         prop.Ref = "#/components/schemas/{{ $field.OaRewriteRef }}"
                     {{- else }}
