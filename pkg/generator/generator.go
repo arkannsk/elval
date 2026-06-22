@@ -137,6 +137,9 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 
 	// 2. Генерация OpenAPI файла
 	if g.generateOpenAPI && len(structsForOpenAPI) > 0 {
+		// Заполняем DiscriminatorPropertyName для дочерних структур
+		g.propagateDiscriminatorPropertyName(structsForOpenAPI)
+
 		data := struct {
 			Package         string
 			Structs         []parser.Struct
@@ -177,4 +180,29 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 	}
 
 	return nil
+}
+
+// propagateDiscriminatorPropertyName проходит по структурам, находит родителей с дискриминатором
+// и устанавливает DiscriminatorPropertyName для дочерних структур, указанных в маппинге.
+func (g *Generator) propagateDiscriminatorPropertyName(structs []parser.Struct) {
+	// Строим индекс: имя структуры -> указатель на структуру
+	index := make(map[string]*parser.Struct, len(structs))
+	for i := range structs {
+		index[structs[i].Name] = &structs[i]
+	}
+
+	// Для каждой структуры с дискриминатором заполняем дочерние
+	for i := range structs {
+		s := &structs[i]
+		if s.Discriminator == nil || len(s.Discriminator.Mapping) == 0 {
+			continue
+		}
+		propName := s.Discriminator.PropertyName
+		for _, childName := range s.Discriminator.Mapping {
+			child, ok := index[childName]
+			if ok && child.DiscriminatorPropertyName == "" {
+				child.DiscriminatorPropertyName = propName
+			}
+		}
+	}
 }

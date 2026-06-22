@@ -338,6 +338,7 @@ func (v *UserVariant) OaSchema() *oa.Schema {
 
 		schema.Properties["username"] = prop
 	}
+	schema.Required = append(schema.Required, "kind")
 
 	return schema
 }
@@ -367,6 +368,7 @@ func (v *AdminVariant) OaSchema() *oa.Schema {
 
 		schema.Properties["adminlevel"] = prop
 	}
+	schema.Required = append(schema.Required, "kind")
 
 	return schema
 }

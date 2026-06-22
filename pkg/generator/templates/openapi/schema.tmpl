@@ -164,6 +164,9 @@
                 }
             {{- end }}
         {{- end }}
+        {{- if .DiscriminatorPropertyName }}
+            schema.Required = append(schema.Required, {{ oaString .DiscriminatorPropertyName }})
+        {{- end }}
         {{ template "openapi/discriminator" . }}
 
         return schema

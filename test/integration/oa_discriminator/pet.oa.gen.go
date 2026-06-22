@@ -69,6 +69,7 @@ func (v *Cat) OaSchema() *oa.Schema {
 
 		schema.Properties["meows"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }
@@ -100,6 +101,7 @@ func (v *Dog) OaSchema() *oa.Schema {
 
 		schema.Properties["barkvolume"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }

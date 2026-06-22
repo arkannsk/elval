@@ -64,6 +64,7 @@ func (v *CircleShape) OaSchema() *oa.Schema {
 
 		schema.Properties["radius"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }
@@ -109,6 +110,7 @@ func (v *RectangleShape) OaSchema() *oa.Schema {
 
 		schema.Properties["height"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }

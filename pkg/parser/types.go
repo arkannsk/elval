@@ -93,11 +93,12 @@ type Struct struct {
 
 	RawOaAnnotations []ann.OaAnnotation
 
-	Discriminator *ann.OaDiscriminator `json:"-"` // не сериализуем, только для генерации
-	OaOneOf       []string             // имена типов: ["Cat", "Dog"]
-	OaOneOfRefs   []string             // прямые рефы: ["#/components/schemas/Cat"]
-	OaAnyOf       []string
-	OaAnyOfRefs   []string
+	Discriminator             *ann.OaDiscriminator `json:"-"` // не сериализуем, только для генерацию
+	DiscriminatorPropertyName string               // имя поля дискриминатора родителя (если эта структура — вариант дочерней)
+	OaOneOf                   []string             // имена типов: ["Cat", "Dog"]
+	OaOneOfRefs               []string             // прямые рефы: ["#/components/schemas/Cat"]
+	OaAnyOf                   []string
+	OaAnyOfRefs               []string
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации
