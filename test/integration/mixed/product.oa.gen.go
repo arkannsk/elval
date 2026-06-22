@@ -29,7 +29,9 @@ func (v *Product) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		schema.Required = append(schema.Required, "quantity")
+
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](100)
 
 		schema.Properties["quantity"] = prop

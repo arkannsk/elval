@@ -14,6 +14,7 @@ func (v *WithRewriteType) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 3),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Struct with type rewriting"
 	{
 		prop := &oa.Schema{}
 		prop.Type = "string"
@@ -54,8 +55,10 @@ func (v *WithRewriteRef) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Struct referencing external schema"
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/examples/07_rewrite.ExternalSchema"
 
 		prop.Description = "Reference to external schema"
@@ -64,6 +67,7 @@ func (v *WithRewriteRef) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/CommonMetadata"
 
 		prop.Description = "Reference to local stub"
@@ -107,6 +111,7 @@ func (v *CommonMetadata) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Reusable metadata schema"
 	{
 		prop := &oa.Schema{}
 

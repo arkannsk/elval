@@ -14,10 +14,15 @@ func (v *PointDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "A single geographic coordinate [lon, lat]"
 	{
 		prop := &oa.Schema{}
 
 		prop.Type = "string"
+
+		prop.Enum = []any{
+			"Point",
+		}
 
 		schema.Properties["type"] = prop
 	}
@@ -30,6 +35,7 @@ func (v *PointDocs) OaSchema() *oa.Schema {
 		prop.Items.Type = "number"
 
 		prop.Description = "[longitude, latitude]"
+
 		prop.Title = "Coordinates"
 		prop.Example = "[37.6173, 55.7558]"
 
@@ -50,10 +56,15 @@ func (v *PolygonDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "A closed geometric shape"
 	{
 		prop := &oa.Schema{}
 
 		prop.Type = "string"
+
+		prop.Enum = []any{
+			"Polygon",
+		}
 
 		schema.Properties["type"] = prop
 	}
@@ -68,6 +79,7 @@ func (v *PolygonDocs) OaSchema() *oa.Schema {
 		prop.Items.Items.Type = "number"
 
 		prop.Description = "Array of linear rings"
+
 		prop.Title = "Coordinates"
 
 		schema.Properties["coordinates"] = prop
@@ -87,6 +99,7 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 2),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "GeoJSON Feature with geometry and properties"
 	schema.Deps = []any{
 		new(PointDocs),
 		new(PolygonDocs),
@@ -95,6 +108,7 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 		prop := &oa.Schema{}
 
 		prop.Description = "The geometric shape"
+
 		prop.Title = "Geometry"
 
 		prop.OneOf = []*oa.Schema{
@@ -107,7 +121,10 @@ func (v *FeatureDocs) OaSchema() *oa.Schema {
 	{
 		prop := &oa.Schema{}
 
+		prop.Type = "object"
+
 		prop.Description = "Arbitrary properties"
+
 		prop.Title = "Properties"
 
 		schema.Properties["properties"] = prop

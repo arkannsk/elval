@@ -20,6 +20,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "status")
+
 		prop.Enum = []any{"pending", "processing", "shipped", "delivered", "cancelled"}
 
 		schema.Properties["status"] = prop
@@ -30,6 +31,7 @@ func (v *Order) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		schema.Required = append(schema.Required, "priority")
+
 		prop.Enum = []any{"1", "2", "3", "4", "5"}
 
 		schema.Properties["priority"] = prop
@@ -64,6 +66,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "role")
+
 		prop.Enum = []any{"admin", "moderator", "user"}
 
 		schema.Properties["role"] = prop
@@ -74,6 +77,7 @@ func (v *User) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		schema.Required = append(schema.Required, "level")
+
 		prop.Enum = []any{"1", "2", "3"}
 
 		schema.Properties["level"] = prop

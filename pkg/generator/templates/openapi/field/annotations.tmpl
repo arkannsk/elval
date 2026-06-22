@@ -12,11 +12,12 @@
     {{- range $oa := $field.OaAnnotations }}
         {{- if eq $oa.Type "title" }}
             prop.Title = {{ oaString $oa.Value }}
-        {{- else if eq $oa.Type "description" }}
+        {{ else if eq $oa.Type "description" }}
             prop.Description = {{ oaString $oa.Value }}
-        {{- else if eq $oa.Type "example" }}
-            prop.Example = {{ printf "%q" (trimQuotes $oa.Value) }}
-        {{- else if eq $oa.Type "format" }}
+        {{ else if eq $oa.Type "example" }}
+            {{- $oaType := ToOpenAPIType (trimStar $field.Type.Name) -}}
+            prop.Example = {{ toExampleValue (trimQuotes $oa.Value) $oaType }}
+        {{ else if eq $oa.Type "format" }}
             {{- if eq $oa.Value "email" }}
                 prop.Format = "email"
             {{- else if eq $oa.Value "phone" }}
@@ -27,7 +28,7 @@
                 prop.Format = {{ oaString $oa.Value }}
             {{- end }}
 
-        {{- else if eq $oa.Type "oneOf" }}
+        {{ else if eq $oa.Type "oneOf" }}
             {{- $clean := trimQuotes $oa.Value }}
             prop.OneOf = []*oa.Schema{
             {{- range $t := split $clean "," }}
@@ -37,7 +38,7 @@
             {{- end }}
             }
 
-        {{- else if eq $oa.Type "oneOf-ref" }}
+        {{ else if eq $oa.Type "oneOf-ref" }}
             {{- $clean := trimQuotes $oa.Value }}
             prop.OneOf = []*oa.Schema{
             {{- range $r := split $clean "," }}
@@ -46,7 +47,7 @@
             {{- end }}
             }
 
-        {{- else if eq $oa.Type "anyOf" }}
+        {{ else if eq $oa.Type "anyOf" }}
             {{- $clean := trimQuotes $oa.Value }}
             prop.AnyOf = []*oa.Schema{
             {{- range $t := split $clean "," }}
@@ -56,12 +57,27 @@
             {{- end }}
             }
 
-        {{- else if eq $oa.Type "anyOf-ref" }}
+        {{ else if eq $oa.Type "anyOf-ref" }}
             {{- $clean := trimQuotes $oa.Value }}
             prop.AnyOf = []*oa.Schema{
             {{- range $r := split $clean "," }}
                 {{- $ref := trimQuotes (trim $r) }}
                 {Ref: {{ printf "%q" $ref }}},
+            {{- end }}
+            }
+        {{ else if eq $oa.Type "enum" }}
+            {{- $enumStr := trimQuotes $oa.Value }}
+            {{- $oaType := ToOpenAPIType (trimStar $field.Type.Name) -}}
+            prop.Enum = []any{
+            {{- range $val := splitList $enumStr "," -}}
+                {{- $cleanVal := trimQuotes $val -}}
+                {{- if eq $oaType "string" }}
+                    {{ printf "%q" $cleanVal }},
+                {{- else if or (eq $oaType "integer") (eq $oaType "number") }}
+                    {{ $cleanVal }},
+                {{- else }}
+                    {{ printf "%q" $cleanVal }},
+                {{- end }}
             {{- end }}
             }
         {{- end }}

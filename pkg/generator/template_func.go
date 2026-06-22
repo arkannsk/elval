@@ -50,4 +50,5 @@ var templateFucMap = template.FuncMap{
 	"openapiFileSchema":       utils.FileSchema,
 	"unwrapGenericType":       utils.UnwrapGenericType,
 	"hasValidationDirectives": utils.HasValidationDirective,
+	"toExampleValue":          utils.ToExampleValue,
 }

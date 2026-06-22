@@ -20,7 +20,9 @@ func (v *Review) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "comment")
+
 		prop.MinLength = oa.Ptr[int64](3)
+
 		prop.MaxLength = oa.Ptr[int64](500)
 
 		schema.Properties["comment"] = prop
@@ -30,6 +32,7 @@ func (v *Review) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](5)
 
 		schema.Properties["rating"] = prop

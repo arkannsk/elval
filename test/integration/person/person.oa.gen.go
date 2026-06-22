@@ -20,7 +20,9 @@ func (v *Person) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "name")
+
 		prop.MinLength = oa.Ptr[int64](2)
+
 		prop.MaxLength = oa.Ptr[int64](100)
 
 		schema.Properties["name"] = prop
@@ -31,6 +33,7 @@ func (v *Person) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "email")
+
 		prop.Pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
 		schema.Properties["email"] = prop
@@ -41,7 +44,9 @@ func (v *Person) OaSchema() *oa.Schema {
 		prop.Type = "integer"
 
 		schema.Required = append(schema.Required, "age")
+
 		prop.Minimum = oa.Ptr[float64](18)
+
 		prop.Maximum = oa.Ptr[float64](120)
 
 		schema.Properties["age"] = prop
@@ -75,7 +80,9 @@ func (v *Person) OaSchema() *oa.Schema {
 		prop.Items.Type = "string"
 
 		schema.Required = append(schema.Required, "tags")
+
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](10)
 
 		schema.Properties["tags"] = prop

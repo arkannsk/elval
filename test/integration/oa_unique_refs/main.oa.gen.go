@@ -36,6 +36,7 @@ func (v *UserResponse) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs.user.User"
 
 		schema.Properties["user"] = prop
@@ -66,6 +67,7 @@ func (v *OrderResponse) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_unique_refs.order.Order"
 
 		schema.Properties["order"] = prop

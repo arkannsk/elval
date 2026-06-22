@@ -237,6 +237,16 @@ func (p *Parser) parseFieldsSecondPass(
 			// Используем сохраненные сырые аннотации структуры
 			p.annotationParser.ExtractDiscriminator(s, s.RawOaAnnotations)
 
+			// Извлекаем описание структуры из RawOaAnnotations
+			if s.Description == "" {
+				for _, ann := range s.RawOaAnnotations {
+					if ann.Type == "description" && ann.Value != "" {
+						s.Description = ann.Value
+						break
+					}
+				}
+			}
+
 			if s.Discriminator != nil && len(s.OaOneOf) > 0 {
 				for _, typeName := range s.OaOneOf {
 					if _, ok := s.Discriminator.Mapping[typeName]; !ok {

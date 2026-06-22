@@ -349,6 +349,44 @@ func CountBodyFields(fields []parser.Field) int {
 	return count
 }
 
+// ToExampleValue converts an example string to the correct Go literal representation
+// based on the OpenAPI field type. This ensures that booleans and numbers are not
+// quoted as strings in the generated OpenAPI documentation.
+func ToExampleValue(val string, oaType string) string {
+	val = strings.TrimSpace(val)
+
+	switch oaType {
+	case "boolean":
+		if strings.EqualFold(val, "true") {
+			return "true"
+		}
+		if strings.EqualFold(val, "false") {
+			return "false"
+		}
+		// fallback: try to parse as bool
+		if b, err := strconv.ParseBool(val); err == nil {
+			return strconv.FormatBool(b)
+		}
+		return fmt.Sprintf("%q", val)
+	case "integer":
+		if _, err := strconv.ParseInt(val, 10, 64); err == nil {
+			return val
+		}
+		if _, err := strconv.ParseUint(val, 10, 64); err == nil {
+			return val
+		}
+		return fmt.Sprintf("%q", val)
+	case "number":
+		if _, err := strconv.ParseFloat(val, 64); err == nil {
+			return val
+		}
+		return fmt.Sprintf("%q", val)
+	default:
+		// For string and other types, use quoted representation
+		return fmt.Sprintf("%q", val)
+	}
+}
+
 func HasValidationDirective(structName string, structs []parser.Struct) bool {
 	for _, s := range structs {
 		if s.Name == structName {

@@ -28,8 +28,7 @@ func ParseOaAnnotationsFromTexts(texts []string) []OaAnnotation {
 		return nil
 	}
 
-	re := regexp.MustCompile(PrefixOA + `[-:]([a-zA-Z0-9_.-]+)\s*(.*)`)
-
+	re := regexp.MustCompile(`^` + PrefixOA + `[-:]([a-zA-Z0-9_.-]+)\s*(.*)`)
 	var descriptions []string
 	var otherAnnotations []OaAnnotation
 

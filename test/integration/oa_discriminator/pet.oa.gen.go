@@ -55,6 +55,7 @@ func (v *Cat) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_discriminator.Pet"
 
 		schema.Properties["pet"] = prop
@@ -64,10 +65,11 @@ func (v *Cat) OaSchema() *oa.Schema {
 
 		prop.Type = "boolean"
 
-		prop.Example = "true"
+		prop.Example = true
 
 		schema.Properties["meows"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }
@@ -85,6 +87,7 @@ func (v *Dog) OaSchema() *oa.Schema {
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/test/integration/oa_discriminator.Pet"
 
 		schema.Properties["pet"] = prop
@@ -94,10 +97,11 @@ func (v *Dog) OaSchema() *oa.Schema {
 
 		prop.Type = "integer"
 
-		prop.Example = "5"
+		prop.Example = 5
 
 		schema.Properties["barkvolume"] = prop
 	}
+	schema.Required = append(schema.Required, "type")
 
 	return schema
 }

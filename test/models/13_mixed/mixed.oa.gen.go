@@ -17,6 +17,7 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		Required:   make([]string, 0, 10),
 		Ref:        v.GlobalRef(),
 	}
+	schema.Description = "Comprehensive example with all features"
 	schema.Deps = []any{
 		new(UserVariant),
 		new(AdminVariant),
@@ -27,7 +28,9 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "name")
+
 		prop.MinLength = oa.Ptr[int64](2)
+
 		prop.MaxLength = oa.Ptr[int64](50)
 
 		prop.Description = "User name"
@@ -60,6 +63,7 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		prop.Format = "byte"
 
 		prop.Description = "Base64 thumbnail"
+
 		prop.Format = "byte"
 
 		schema.Properties["thumbnail"] = prop
@@ -70,6 +74,11 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		prop.Type = "string"
 
 		schema.Required = append(schema.Required, "status")
+
+		prop.Enum = []any{
+			"active",
+			"inactive",
+		}
 
 		schema.Properties["status"] = prop
 	}
@@ -82,12 +91,14 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		prop.Items.Type = "string"
 
 		prop.Minimum = oa.Ptr[float64](1)
+
 		prop.Maximum = oa.Ptr[float64](10)
 
 		schema.Properties["tags"] = prop
 	}
 	{
 		prop := &oa.Schema{}
+		prop.Type = "object"
 		prop.Ref = "#/components/schemas/github.com/arkannsk/elval/examples/13_mixed.Address"
 
 		schema.Properties["address"] = prop
@@ -327,6 +338,7 @@ func (v *UserVariant) OaSchema() *oa.Schema {
 
 		schema.Properties["username"] = prop
 	}
+	schema.Required = append(schema.Required, "kind")
 
 	return schema
 }
@@ -356,6 +368,7 @@ func (v *AdminVariant) OaSchema() *oa.Schema {
 
 		schema.Properties["adminlevel"] = prop
 	}
+	schema.Required = append(schema.Required, "kind")
 
 	return schema
 }

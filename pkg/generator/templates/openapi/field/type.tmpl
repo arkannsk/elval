@@ -3,7 +3,13 @@
     {{- $pkg := .Pkg }}
     {{- $mod := .Module }}
 
-    {{- if $f.Type.IsSlice }}
+    {{- /* Определяем базовое имя типа, убирая * для указателей */}}
+    {{- $baseName := trimStar $f.Type.Name }}
+
+    {{- /* map[string]T -> объект без полей */}}
+    {{- if hasPrefix $baseName "map[" }}
+        prop.Type = "object"
+    {{- else if $f.Type.IsSlice }}
         prop.Type = "array"
         prop.Items = &oa.Schema{}
 
@@ -45,18 +51,18 @@
             {{- end }}
         {{- end }}
 
-    {{- else if eq $f.Type.Name "string" }}
+    {{- else if eq $baseName "string" }}
         prop.Type = "string"
-    {{- else if eq $f.Type.Name "int" "int8" "int16" "int32" "int64" }}
+    {{- else if eq $baseName "int" "int8" "int16" "int32" "int64" "uint" "uint8" "uint16" "uint32" "uint64" }}
         prop.Type = "integer"
-    {{- else if eq $f.Type.Name "float32" "float64" }}
+    {{- else if eq $baseName "float32" "float64" }}
         prop.Type = "number"
-    {{- else if eq $f.Type.Name "bool" }}
+    {{- else if eq $baseName "bool" }}
         prop.Type = "boolean"
-    {{- else if eq $f.Type.Name "time.Time" }}
+    {{- else if eq $baseName "time.Time" }}
         prop.Type = "string"
         prop.Format = "date-time"
-    {{- else if eq $f.Type.Name "any" "interface{}" }}
+    {{- else if eq $baseName "any" "interface{}" }}
         {{- /* any остаётся без типа, oneOf/anyOf добавятся из аннотаций */}}
     {{- end }}
 {{ end }}
