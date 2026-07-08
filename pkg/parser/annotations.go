@@ -79,3 +79,5 @@ func (a *structAdapter) GetOaAnyOf() []string                    { return a.s.Oa
 func (a *structAdapter) SetOaAnyOf(v []string)                   { a.s.OaAnyOf = v }
 func (a *structAdapter) GetOaAnyOfRefs() []string                { return a.s.OaAnyOfRefs }
 func (a *structAdapter) SetOaAnyOfRefs(v []string)               { a.s.OaAnyOfRefs = v }
+func (a *structAdapter) GetOaResponses() []ann.OaResponseAnnotation { return a.s.OaResponses }
+func (a *structAdapter) SetOaResponses(v []ann.OaResponseAnnotation) { a.s.OaResponses = v }

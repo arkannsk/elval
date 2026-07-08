@@ -27,7 +27,7 @@ func (v *UploadRequest) OaSchema() *oa.Schema {
 
 		prop.Type = "string"
 
-		schema.Properties["userid"] = prop
+		schema.Properties["user_id"] = prop
 	}
 
 	return schema

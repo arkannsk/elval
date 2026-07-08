@@ -214,24 +214,36 @@ func (p *Parser) parseFieldsSecondPass(
 					continue
 				}
 
-				s.HasCustomValidator = hasCustomDirectives
-				s.Fields = append(s.Fields, Field{
-					Name:          fieldName,
-					Type:          fieldType,
-					Directives:    validDirectives,
-					Decorators:    p.parseFieldDecorators(field),
-					Line:          loc.Line,
-					OaAnnotations: fAnot.Remaining,
-					IsEmbedded:    len(field.Names) == 0,
-					OaRewriteRef:  fAnot.RewriteRef,
-					OaRewriteType: fAnot.RewriteType,
-					IsIgnored:     false,
-					OaIn:          fAnot.OaIn,
-					OaParamName:   fAnot.OaParamName,
-					OaFormat:      fAnot.OaFormat,
-					OaOneOf:       fAnot.OaOneOf,
-					OaAnyOf:       fAnot.OaAnyOf,
-				})
+				// Извлекаем имя из тегов json/yaml/xml
+					serializedName := extractSerializedName(field, fieldName)
+
+					// Пропускаем поля с json:"-" (SerializedName пустой)
+					if serializedName == "" {
+						if p.verbose {
+							log.Printf("DEBUG: Skipping ignored field %s (json:\"-\") in struct %s", fieldName, s.Name)
+						}
+						continue
+					}
+
+					s.HasCustomValidator = hasCustomDirectives
+					s.Fields = append(s.Fields, Field{
+						Name:          fieldName,
+						Type:          fieldType,
+						Directives:    validDirectives,
+						Decorators:    p.parseFieldDecorators(field),
+						Line:          loc.Line,
+						OaAnnotations: fAnot.Remaining,
+						IsEmbedded:    len(field.Names) == 0,
+						OaRewriteRef:  fAnot.RewriteRef,
+						OaRewriteType: fAnot.RewriteType,
+						IsIgnored:     false,
+						OaIn:          fAnot.OaIn,
+						OaParamName:   fAnot.OaParamName,
+						OaFormat:      fAnot.OaFormat,
+						OaOneOf:       fAnot.OaOneOf,
+						OaAnyOf:       fAnot.OaAnyOf,
+						SerializedName: serializedName,
+					})
 			}
 
 			// Используем сохраненные сырые аннотации структуры

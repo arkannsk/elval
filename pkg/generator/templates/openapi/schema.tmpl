@@ -58,7 +58,7 @@
         {{- end }}
 
         {{- range $field := .Fields }}
-            {{- if eq $field.OaIn "" }}
+            {{- if and (eq $field.OaIn "") (ne $field.SerializedName "") }}
                 {
                 prop := &oa.Schema{}
                 {{- if eq $field.OaFormat "binary" }}
@@ -160,7 +160,7 @@
                     }
                 {{- end }}
 
-                schema.Properties[{{ $field.Name | toLower | printf "%q" }}] = prop
+                schema.Properties[{{ printf "%q" $field.SerializedName }}] = prop
                 }
             {{- end }}
         {{- end }}
@@ -185,4 +185,21 @@
     {{- end }}
     return {{ printf "%q" $ref }}
     }
+
+    {{- if .OaResponses }}
+        func (v *{{ .Name }}) OaResponses() map[int]*oa.Response {
+        responses := make(map[int]*oa.Response)
+        {{- range $resp := .OaResponses }}
+            responses[{{ $resp.StatusCode }}] = &oa.Response{
+            Description: v.GlobalRef(),
+            Content: map[string]*oa.MediaType{
+            {{- range $mt := $resp.MediaTypes }}
+                {{ printf "%q" $mt }}: {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+            {{- end }}
+            },
+            }
+        {{- end }}
+        return responses
+        }
+    {{- end }}
 {{ end }}

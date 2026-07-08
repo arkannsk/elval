@@ -125,7 +125,7 @@ func (v *MegaStruct) OaSchema() *oa.Schema {
 		prop := &oa.Schema{}
 		prop.Type = "string"
 
-		schema.Properties["customid"] = prop
+		schema.Properties["custom_id"] = prop
 	}
 
 	schema.Discriminator = &oa.Discriminator{
@@ -366,7 +366,7 @@ func (v *AdminVariant) OaSchema() *oa.Schema {
 
 		prop.Type = "integer"
 
-		schema.Properties["adminlevel"] = prop
+		schema.Properties["admin_level"] = prop
 	}
 	schema.Required = append(schema.Required, "kind")
 

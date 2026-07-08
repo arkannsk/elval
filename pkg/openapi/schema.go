@@ -65,6 +65,18 @@ const (
 	ParamCookie ParamType = "cookie"
 )
 
+// MediaType объект Media Type из OpenAPI 3.x
+type MediaType struct {
+	Schema *Schema `json:"schema,omitempty"`
+}
+
+// Response объект Response из OpenAPI 3.x
+type Response struct {
+	Description string                    `json:"description,omitempty"`
+	Content     map[string]*MediaType     `json:"content,omitempty"`
+	Headers     map[string]*Parameter     `json:"headers,omitempty"`
+}
+
 // Parameter описание параметра для OpenAPI
 type Parameter struct {
 	Name        string    `json:"name"`
