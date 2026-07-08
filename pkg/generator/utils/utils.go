@@ -338,11 +338,11 @@ func IsFieldRequired(field parser.Field) bool {
 }
 
 // CountBodyFields counts the number of fields that will be included in the OpenAPI Schema
-// (i.e., fields that are not HTTP parameters).
+// (i.e., fields that are not HTTP parameters and not ignored via json:"-").
 func CountBodyFields(fields []parser.Field) int {
 	count := 0
 	for _, f := range fields {
-		if f.OaIn == "" {
+		if f.OaIn == "" && f.SerializedName != "" {
 			count++
 		}
 	}

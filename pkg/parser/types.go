@@ -100,6 +100,7 @@ type Struct struct {
 	OaOneOfRefs               []string             // прямые рефы: ["#/components/schemas/Cat"]
 	OaAnyOf                   []string
 	OaAnyOfRefs               []string
+	OaResponses               []ann.OaResponseAnnotation
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации

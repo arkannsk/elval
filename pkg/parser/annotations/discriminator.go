@@ -1,6 +1,22 @@
 package annotations
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
+
+// OaResponseAnnotation результат парсинга @oa:response
+type OaResponseAnnotation struct {
+	StatusCode  int
+	Description string
+	MediaTypes  []string
+}
+
+// OaResponseTarget интерфейс для структуры с response аннотациями
+type OaResponseTarget interface {
+	GetOaResponses() []OaResponseAnnotation
+	SetOaResponses([]OaResponseAnnotation)
+}
 
 // OaDiscriminator структура для хранения информации о дискриминаторе
 type OaDiscriminator struct {
@@ -62,6 +78,52 @@ func ExtractDiscriminatorData(target DiscriminatorTarget, annotations []OaAnnota
 
 	if disc != nil && disc.PropertyName != "" {
 		target.SetDiscriminator(disc)
+	}
+
+	// Если target поддерживает response аннотации, обрабатываем их
+	if respTarget, ok := target.(OaResponseTarget); ok {
+		for _, ann := range annotations {
+			if ann.Type == "response" {
+				respTarget.SetOaResponses(append(respTarget.GetOaResponses(),
+					parseResponseAnnotation(ann.Value)))
+			}
+		}
+	}
+}
+
+// parseResponseAnnotation парсит значение аннотации @oa:response
+// Формат аннотации: @oa:response "200" "application/json,application/xml"
+// После trimQuotes в парсере значение становится:
+//   200" "application/json,application/xml
+// (trimQuotes удаляет только внешние кавычки)
+// Также поддерживается формат без кавычек:
+//   @oa:response 200 application/json,application/xml
+func parseResponseAnnotation(value string) OaResponseAnnotation {
+	// Разбираем значение, учитывая возможные кавычки
+	// value может быть: 200" "application/json,application/xml
+	// или: 200 application/json,application/xml
+
+	// Удаляем все кавычки для упрощения парсинга
+	cleaned := strings.ReplaceAll(value, `"`, "")
+	cleaned = strings.ReplaceAll(cleaned, `'`, "")
+
+	parts := strings.SplitN(strings.TrimSpace(cleaned), " ", 2)
+	statusCode := 0
+	if len(parts) > 0 {
+		statusCode, _ = strconv.Atoi(strings.TrimSpace(parts[0]))
+	}
+	mediaTypes := make([]string, 0)
+	if len(parts) > 1 {
+		for _, mt := range strings.Split(parts[1], ",") {
+			mt = strings.TrimSpace(mt)
+			if mt != "" {
+				mediaTypes = append(mediaTypes, mt)
+			}
+		}
+	}
+	return OaResponseAnnotation{
+		StatusCode: statusCode,
+		MediaTypes: mediaTypes,
 	}
 }
 

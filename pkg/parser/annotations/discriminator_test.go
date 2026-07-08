@@ -130,3 +130,57 @@ func TestParseList(t *testing.T) {
 		assert.Equal(t, tt.expected, result)
 	}
 }
+
+func TestParseResponseAnnotation(t *testing.T) {
+	tests := []struct {
+		name         string
+		value        string
+		statusCode   int
+		mediaTypes   []string
+	}{
+		{
+			name:       "standard format",
+			value:      `200" "application/json,application/xml`,
+			statusCode: 200,
+			mediaTypes: []string{"application/json", "application/xml"},
+		},
+		{
+			name:       "no quotes format",
+			value:      "200 application/json",
+			statusCode: 200,
+			mediaTypes: []string{"application/json"},
+		},
+		{
+			name:       "error response",
+			value:      `400" "application/json`,
+			statusCode: 400,
+			mediaTypes: []string{"application/json"},
+		},
+		{
+			name:       "single media type no quotes",
+			value:      "201 application/json",
+			statusCode: 201,
+			mediaTypes: []string{"application/json"},
+		},
+		{
+			name:       "only status code",
+			value:      "204",
+			statusCode: 204,
+			mediaTypes: []string{},
+		},
+		{
+			name:       "empty value",
+			value:      "",
+			statusCode: 0,
+			mediaTypes: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseResponseAnnotation(tt.value)
+			assert.Equal(t, tt.statusCode, result.StatusCode)
+			assert.Equal(t, tt.mediaTypes, result.MediaTypes)
+		})
+	}
+}

@@ -335,3 +335,55 @@ func findDirective(directives []ann.Directive, name string) *ann.Directive {
 	}
 	return nil
 }
+
+func TestParser_ParseStructTags(t *testing.T) {
+	code := `
+package main
+
+type TagModel struct {
+	UserID     string ` + "`json:\"user_id\"`" + `
+	FirstName  string ` + "`json:\"firstName\"`" + `
+	Email      string ` + "`json:\"email,omitempty\"`" + `
+	NoTag      string
+	Ignored    string ` + "`json:\"-\"`" + `
+	YamlOnly   string ` + "`yaml:\"user_name\"`" + `
+	JsonWins   string ` + "`json:\"full_name\" yaml:\"full-name\"`" + `
+}
+`
+
+	result := helperParseString(t, code)
+
+	require.NotEmpty(t, result.Structs)
+	model := result.Structs[0]
+	require.Len(t, model.Fields, 6) // Ignored field is skipped
+
+	// UserID -> json:"user_id"
+	userIDField := model.Fields[0]
+	assert.Equal(t, "UserID", userIDField.Name)
+	assert.Equal(t, "user_id", userIDField.SerializedName)
+
+	// FirstName -> json:"firstName"
+	firstNameField := model.Fields[1]
+	assert.Equal(t, "FirstName", firstNameField.Name)
+	assert.Equal(t, "firstName", firstNameField.SerializedName)
+
+	// Email -> json:"email,omitempty"
+	emailField := model.Fields[2]
+	assert.Equal(t, "Email", emailField.Name)
+	assert.Equal(t, "email", emailField.SerializedName)
+
+	// NoTag -> fallback to lowercase
+	noTagField := model.Fields[3]
+	assert.Equal(t, "NoTag", noTagField.Name)
+	assert.Equal(t, "notag", noTagField.SerializedName)
+
+	// YamlOnly -> yaml:"user_name"
+	yamlField := model.Fields[4]
+	assert.Equal(t, "YamlOnly", yamlField.Name)
+	assert.Equal(t, "user_name", yamlField.SerializedName)
+
+	// JsonWins -> json:"full_name" wins over yaml
+	jsonWinsField := model.Fields[5]
+	assert.Equal(t, "JsonWins", jsonWinsField.Name)
+	assert.Equal(t, "full_name", jsonWinsField.SerializedName)
+}
