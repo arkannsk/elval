@@ -214,11 +214,11 @@ func (p *Parser) parseFieldsSecondPass(
 					continue
 				}
 
-				// Извлекаем имя из тегов json/yaml/xml
-					serializedName := extractSerializedName(field, fieldName)
+				// Извлекаем имя из тегов json/yaml/xml и флаги наличия xml/yaml тегов
+					tagInfo := extractTagInfo(field, fieldName)
 
 					// Пропускаем поля с json:"-" (SerializedName пустой)
-					if serializedName == "" {
+					if tagInfo.SerializedName == "" {
 						if p.verbose {
 							log.Printf("DEBUG: Skipping ignored field %s (json:\"-\") in struct %s", fieldName, s.Name)
 						}
@@ -242,8 +242,20 @@ func (p *Parser) parseFieldsSecondPass(
 						OaFormat:      fAnot.OaFormat,
 						OaOneOf:       fAnot.OaOneOf,
 						OaAnyOf:       fAnot.OaAnyOf,
-						SerializedName: serializedName,
+						SerializedName: tagInfo.SerializedName,
+						HasXmlTag:     tagInfo.HasXmlTag,
+						HasYamlTag:    tagInfo.HasYamlTag,
 					})
+			}
+
+			// Собираем флаги наличия xml/yaml тегов на уровне структуры
+			for _, f := range s.Fields {
+				if f.HasXmlTag {
+					s.HasXmlTags = true
+				}
+				if f.HasYamlTag {
+					s.HasYamlTags = true
+				}
 			}
 
 			// Используем сохраненные сырые аннотации структуры
