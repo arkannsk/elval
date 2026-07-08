@@ -4,9 +4,8 @@
 [![License](https://img.shields.io/github/license/arkannsk/elval)](LICENSE)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-440_allocs%2Fop-brightgreen)](BENCHMARKS.md)
 
-[//]: # ([![Go Reference]&#40;https://pkg.go.dev/badge/github.com/arkannsk/elval.svg&#41;]&#40;https://pkg.go.dev/github.com/arkannsk/elval&#41;)
-
-[//]: # ([![Go Report Card]&#40;https://goreportcard.com/badge/github.com/arkannsk/elval&#41;]&#40;https://goreportcard.com/report/github.com/arkannsk/elval&#41;)
+[//]: # "[![Go Reference](https://pkg.go.dev/badge/github.com/arkannsk/elval.svg)](https://pkg.go.dev/github.com/arkannsk/elval)"
+[//]: # "[![Go Report Card](https://goreportcard.com/badge/github.com/arkannsk/elval)](https://goreportcard.com/report/github.com/arkannsk/elval)"
 
 **ElVal** is a code generation-based validator for Go that eliminates reflection overhead entirely. By generating
 type-safe validation code at build time, ElVal achieves **6x faster validation** with **zero memory allocations** at
@@ -17,50 +16,51 @@ external libraries (via stubs), polymorphism, custom type rewriting, and file/st
 
 ## Table of Contents
 
-* [ElVal — Lightning Fast Go Validator with Code Generation &amp; OpenAPI Support](#elval--lightning-fast-go-validator-with-code-generation--openapi-support)
-    * [Table of Contents](#table-of-contents)
-    * [Features](#features)
-    * [Quick Start](#quick-start)
-        * [1\. Define your struct with annotations](#1-define-your-struct-with-annotations)
-        * [2\. Generate validation code](#2-generate-validation-code)
-        * [3\. Use the generated Validate method](#3-use-the-generated-validate-method)
-    * [Commands](#commands)
-        * [generate — Generate validation code](#generate--generate-validation-code)
-        * [lint — Validate annotations](#lint--validate-annotations)
-        * [Go Generate Integration](#go-generate-integration)
-    * [Diagnostics &amp; Linting](#diagnostics--linting)
-        * [Output Format](#output-format)
-        * [Output Control Flags](#output-control-flags)
-        * [Example: go generate with diagnostics](#example-go-generate-with-diagnostics)
-    * [Annotations](#annotations)
-        * [Required &amp; Optional](#required--optional)
-        * [String Validators](#string-validators)
-        * [Numeric Validators](#numeric-validators)
-        * [Comparison Validators](#comparison-validators)
-        * [Enum Validators](#enum-validators)
-        * [Date Validators (time\.Time)](#date-validators-timetime)
-        * [Duration Validators (time\.Duration)](#duration-validators-timeduration)
-        * [Slice Validators](#slice-validators)
-        * [URL Validators](#url-validators)
-    * [File &amp; Stream Uploads](#file--stream-uploads)
-        * [Auto\-detection of Standard Types](#auto-detection-of-standard-types)
-        * [Custom Types: Explicit Annotations](#custom-types-explicit-annotations)
-        * [Ignoring Structs](#ignoring-structs)
-    * [Nested Structures](#nested-structures)
-    * [Custom Validators](#custom-validators)
-        * [Register validator](#register-validator)
-        * [Use in struct](#use-in-struct)
-    * [Decorators](#decorators)
-    * [OpenAPI](#openapi)
-        * [OpenAPI Annotations](#openapi-annotations)
-            * [External Types &amp; Stubs](#external-types--stubs)
-            * [Reference the Stub in your API Struct:](#reference-the-stub-in-your-api-struct)
-            * [Polymorphism (Discriminator &amp; OneOf):](#polymorphism-discriminator--oneof)
-            * [Type Rewriting](#type-rewriting)
-            * [File &amp; Stream Fields](#file--stream-fields)
-            * [Nested Structures &amp; Generics](#nested-structures--generics)
-            * [Structs Without Body Fields](#structs-without-body-fields)
-    * [Performance](#performance)
+- [ElVal — Lightning Fast Go Validator with Code Generation &amp; OpenAPI Support](#elval--lightning-fast-go-validator-with-code-generation--openapi-support)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Quick Start](#quick-start)
+    - [1\. Define your struct with annotations](#1-define-your-struct-with-annotations)
+    - [2\. Generate validation code](#2-generate-validation-code)
+    - [3\. Use the generated Validate method](#3-use-the-generated-validate-method)
+  - [Commands](#commands)
+    - [generate — Generate validation code](#generate--generate-validation-code)
+    - [lint — Validate annotations](#lint--validate-annotations)
+    - [Go Generate Integration](#go-generate-integration)
+  - [Diagnostics &amp; Linting](#diagnostics--linting)
+    - [Output Format](#output-format)
+    - [Output Control Flags](#output-control-flags)
+    - [Example: go generate with diagnostics](#example-go-generate-with-diagnostics)
+  - [Annotations](#annotations)
+    - [Required &amp; Optional](#required--optional)
+    - [String Validators](#string-validators)
+    - [Numeric Validators](#numeric-validators)
+    - [Comparison Validators](#comparison-validators)
+    - [Enum Validators](#enum-validators)
+    - [Date Validators (time\.Time)](#date-validators-timetime)
+    - [Duration Validators (time\.Duration)](#duration-validators-timeduration)
+    - [Slice Validators](#slice-validators)
+    - [URL Validators](#url-validators)
+  - [File &amp; Stream Uploads](#file--stream-uploads)
+    - [Auto\-detection of Standard Types](#auto-detection-of-standard-types)
+    - [Custom Types: Explicit Annotations](#custom-types-explicit-annotations)
+    - [Ignoring Structs](#ignoring-structs)
+  - [Nested Structures](#nested-structures)
+  - [Custom Validators](#custom-validators)
+    - [Register validator](#register-validator)
+    - [Use in struct](#use-in-struct)
+  - [Decorators](#decorators)
+  - [OpenAPI](#openapi)
+    - [OpenAPI Annotations](#openapi-annotations)
+      - [External Types &amp; Stubs](#external-types--stubs)
+      - [Reference the Stub in your API Struct:](#reference-the-stub-in-your-api-struct)
+      - [Polymorphism (Discriminator &amp; OneOf):](#polymorphism-discriminator--oneof)
+      - [Type Rewriting](#type-rewriting)
+      - [File &amp; Stream Fields](#file--stream-fields)
+      - [Nested Structures &amp; Generics](#nested-structures--generics)
+      - [Structs Without Body Fields](#structs-without-body-fields)
+    - [Response Content Types](#response-content-types)
+  - [Performance](#performance)
 
 ## Features
 
@@ -212,7 +212,7 @@ ElVal provides detailed diagnostics with precise locations, hints, and colored o
 ```
 
 | Component               | Description                          |
-|-------------------------|--------------------------------------|
+| ----------------------- | ------------------------------------ |
 | `[error]` / `[warning]` | Severity level (colored in terminal) |
 | `user.go:24:2`          | File:line:column location            |
 | `(validator)`           | Component that issued the diagnostic |
@@ -223,7 +223,7 @@ ElVal provides detailed diagnostics with precise locations, hints, and colored o
 ### Output Control Flags
 
 | Flag              | Description                                 |
-|-------------------|---------------------------------------------|
+| ----------------- | ------------------------------------------- |
 | `-v`, `--verbose` | Show all warnings and debug information     |
 | `--no-color`      | Disable colored output (for logs/pipes)     |
 | `-Werror`         | Treat warnings as errors (exit with code 1) |
@@ -259,14 +259,14 @@ exit status 1
 ### Required & Optional
 
 | Directive  | Description                            | Example                  |
-|------------|----------------------------------------|--------------------------|
+| ---------- | -------------------------------------- | ------------------------ |
 | `required` | Field is required                      | `@evl:validate required` |
 | `optional` | Field is optional (skips empty values) | `@evl:validate optional` |
 
 ### String Validators
 
 | Directive              | Description                   | Example                                |
-|------------------------|-------------------------------|----------------------------------------|
+| ---------------------- | ----------------------------- | -------------------------------------- |
 | `min:{n}`              | Minimum string length         | `@evl:validate min:3`                  |
 | `max:{n}`              | Maximum string length         | `@evl:validate max:50`                 |
 | `len:{n}`              | Exact string length           | `@evl:validate len:10`                 |
@@ -281,7 +281,7 @@ exit status 1
 ### Numeric Validators
 
 | Directive  | Description              | Example                  |
-|------------|--------------------------|--------------------------|
+| ---------- | ------------------------ | ------------------------ |
 | `min:{n}`  | Minimum value            | `@evl:validate min:18`   |
 | `max:{n}`  | Maximum value            | `@evl:validate max:99`   |
 | `gt:{n}`   | Greater than             | `@evl:validate gt:0`     |
@@ -293,20 +293,20 @@ exit status 1
 ### Comparison Validators
 
 | Directive     | Description                  | Example                       |
-|---------------|------------------------------|-------------------------------|
+| ------------- | ---------------------------- | ----------------------------- |
 | `eq:{value}`  | Equal to specified value     | `@evl:validate eq:"active"`   |
 | `neq:{value}` | Not equal to specified value | `@evl:validate neq:"deleted"` |
 
 ### Enum Validators
 
 | Directive            | Description             | Example                                      |
-|----------------------|-------------------------|----------------------------------------------|
+| -------------------- | ----------------------- | -------------------------------------------- |
 | `enum:{v1},{v2},...` | Value from allowed list | `@evl:validate enum:active,inactive,pending` |
 
 ### Date Validators (time.Time)
 
 | Directive       | Description           | Example                           |
-|-----------------|-----------------------|-----------------------------------|
+| --------------- | --------------------- | --------------------------------- |
 | `after:{date}`  | Date after specified  | `@evl:validate after:2020-01-01`  |
 | `before:{date}` | Date before specified | `@evl:validate before:2025-12-31` |
 | `not-zero`      | Non-zero date         | `@evl:validate not-zero`          |
@@ -314,7 +314,7 @@ exit status 1
 ### Duration Validators (time.Duration)
 
 | Directive        | Description       | Example                  |
-|------------------|-------------------|--------------------------|
+| ---------------- | ----------------- | ------------------------ |
 | `min:{duration}` | Minimum duration  | `@evl:validate min:1s`   |
 | `max:{duration}` | Maximum duration  | `@evl:validate max:24h`  |
 | `not-zero`       | Non-zero duration | `@evl:validate not-zero` |
@@ -322,7 +322,7 @@ exit status 1
 ### Slice Validators
 
 | Directive  | Description           | Example                  |
-|------------|-----------------------|--------------------------|
+| ---------- | --------------------- | ------------------------ |
 | `required` | Slice cannot be nil   | `@evl:validate required` |
 | `not-zero` | Slice cannot be empty | `@evl:validate not-zero` |
 | `min:{n}`  | Minimum slice size    | `@evl:validate min:1`    |
@@ -332,7 +332,7 @@ exit status 1
 ### URL Validators
 
 | Directive  | Description                | Example                  |
-|------------|----------------------------|--------------------------|
+| ---------- | -------------------------- | ------------------------ |
 | `url`      | Any valid URL              | `@evl:validate url`      |
 | `http_url` | HTTP or HTTPS URL          | `@evl:validate http_url` |
 | `dsn`      | Database connection string | `@evl:validate dsn`      |
@@ -345,7 +345,7 @@ with [OpenAPI 3.2.0 §4.14.7](https://spec.openapis.org/oas/v3.2.0.html#consider
 ### Auto-detection of Standard Types
 
 | Go Type          | OpenAPI Schema                 | Swagger UI             |
-|------------------|--------------------------------|------------------------|
+| ---------------- | ------------------------------ | ---------------------- |
 | `*os.File`       | `type: string, format: binary` | 📄 Choose file         |
 | `io.Reader`      | `type: string, format: binary` | 📄 Choose file         |
 | `io.ReadCloser`  | `type: string, format: binary` | 📄 Choose file         |
@@ -372,7 +372,7 @@ Thumbnail []byte // → format: byte
 If your type implements `io.Reader` but isn't a standard type, use semantic annotations:
 
 | Annotation        | Effect                         | Example                  |
-|-------------------|--------------------------------|--------------------------|
+| ----------------- | ------------------------------ | ------------------------ |
 | `@oa:file`        | `type: string, format: binary` | For files in `multipart` |
 | `@oa:stream`      | `type: string, format: binary` | For raw streams          |
 | `@oa:format:byte` | `type: string, format: byte`   | For base64 data          |
@@ -465,7 +465,7 @@ Count int
 Auto-populate fields from various sources:
 
 | Decorator              | Description                         | Example                              |
-|------------------------|-------------------------------------|--------------------------------------|
+| ---------------------- | ----------------------------------- | ------------------------------------ |
 | `ctx-get:{key}`        | Get value from context              | `@evl:decor ctx-get:user_id`         |
 | `httpctx-get:{header}` | Get value from HTTP header          | `@evl:decor httpctx-get:X-User-Role` |
 | `env-get:{var}`        | Get value from environment variable | `@evl:decor env-get:APP_ENV`         |
@@ -503,16 +503,17 @@ elval-gen -input . -openapi
 
 ### OpenAPI Annotations
 
-| Annotation                  | Description                      | Example                       |
-|-----------------------------|----------------------------------|-------------------------------|
-| `@oa:title`                 | Schema title                     | `@oa:title "User Name"`       |
-| `@oa:description`           | Schema description               | `@oa:description "Full name"` |
-| `@oa:example`               | Example value                    | `@oa:example "John"`          |
-| `@oa:format`                | OpenAPI format                   | `@oa:format email`            |
-| `@oa:file`                  | Mark field as file for multipart | `@oa:file`                    |
-| `@oa:stream`                | Mark field as raw stream         | `@oa:stream`                  |
-| `@oa:format:{binary\|byte}` | Explicitly set binary format     | `@oa:format:byte`             |
-| `@oa:ignore`                | Exclude struct/field from schema | `// @oa:ignore`               |
+| Annotation                       | Description                            | Example                                                 |
+| -------------------------------- | -------------------------------------- | ------------------------------------------------------- |
+| `@oa:title`                      | Schema title                           | `@oa:title "User Name"`                                 |
+| `@oa:description`                | Schema description                     | `@oa:description "Full name"`                           |
+| `@oa:example`                    | Example value                          | `@oa:example "John"`                                    |
+| `@oa:format`                     | OpenAPI format                         | `@oa:format email`                                      |
+| `@oa:file`                       | Mark field as file for multipart       | `@oa:file`                                              |
+| `@oa:stream`                     | Mark field as raw stream               | `@oa:stream`                                            |
+| `@oa:format:{binary\|byte}`      | Explicitly set binary format           | `@oa:format:byte`                                       |
+| `@oa:ignore`                     | Exclude struct/field from schema       | `// @oa:ignore`                                         |
+| `@oa:response "{code}" "{mime}"` | HTTP response with content media types | `@oa:response "200" "application/json,application/xml"` |
 
 #### External Types & Stubs
 
@@ -626,6 +627,7 @@ UploadRequest:
 
 > 🔄 **How it works with nooa/router**:  
 > When a spec consumer (`nooa`, Swagger UI, Postman) sees `format: binary`, it automatically:
+>
 > 1. Wraps `requestBody` in `multipart/form-data`
 > 2. Maps property name (`avatar`) → `Content-Disposition: name="avatar"`
 > 3. Handles size/MIME validation (if configured at runtime)
@@ -668,13 +670,106 @@ parameters:
     schema: { type: string }
 ```
 
+## Response Content Types
+
+Declare HTTP response status codes and content media types directly on your struct.
+ElVal generates an `OaResponses()` method returning `map[int]*oa.Response`, which downstream
+spec consumers (e.g., `nooa`, router frameworks) can use to build OpenAPI `responses` sections.
+
+### Basic Usage
+
+```go
+// @oa:description "Standard user response"
+// @oa:response "200" "application/json,application/xml"
+type UserResponse struct {
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Email string `json:"email"`
+}
+```
+
+**Generated Go code**:
+
+```go
+func (v *UserResponse) OaResponses() map[int]*oa.Response {
+    responses := make(map[int]*oa.Response)
+    responses[200] = &oa.Response{
+        Description: v.GlobalRef(),
+        Content: map[string]*oa.MediaType{
+            "application/json": {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+            "application/xml":  {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+        },
+    }
+    return responses
+}
+```
+
+### Multiple Response Codes
+
+A struct can have multiple `@oa:response` annotations for different status codes:
+
+```go
+// @oa:description "User creation response"
+// @oa:response "200" "application/json,application/xml"
+// @oa:response "201" "application/json"
+type CreateUserResponse struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+}
+```
+
+This generates:
+
+```go
+func (v *CreateUserResponse) OaResponses() map[int]*oa.Response {
+    responses := make(map[int]*oa.Response)
+    responses[200] = &oa.Response{
+        Description: v.GlobalRef(),
+        Content: map[string]*oa.MediaType{
+            "application/json": {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+            "application/xml":  {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+        },
+    }
+    responses[201] = &oa.Response{
+        Description: v.GlobalRef(),
+        Content: map[string]*oa.MediaType{
+            "application/json": {Schema: &oa.Schema{Ref: "#/components/schemas/" + v.GlobalRef()}},
+        },
+    }
+    return responses
+}
+```
+
+### No Content Responses
+
+For responses without a body (e.g., `204 No Content`), omit the media types:
+
+```go
+// @oa:description "Deletion confirmed"
+// @oa:response "204" ""
+type DeleteResponse struct {}
+```
+
+### Format Reference
+
+| Annotation Format                                       | Status Code | Media Types                           |
+| ------------------------------------------------------- | ----------- | ------------------------------------- |
+| `@oa:response "200" "application/json"`                 | `200`       | `application/json`                    |
+| `@oa:response "200" "application/json,application/xml"` | `200`       | `application/json`, `application/xml` |
+| `@oa:response "204" ""`                                 | `204`       | _(none — empty body)_                 |
+
+> 💡 **How it works with nooa/router:**
+> The `OaResponses()` map is consumed by OpenAPI spec builders to populate the `responses` section.
+> Each entry becomes a status-code-keyed response with `content` containing the declared media types,
+> each pointing to the struct's schema via `$ref`.
+
 ## Performance
 
 ```bash
 goos: linux
 goarch: amd64
 pkg: github.com/arkannsk/elval/test/benchmark
-cpu: AMD Ryzen 7 3700X 8-Core Processor             
+cpu: AMD Ryzen 7 3700X 8-Core Processor
 BenchmarkElvalManual-16                   183387              8545 ns/op            6188 B/op         82 allocs/op
 BenchmarkElvalGenerated-16               2627594               440.4 ns/op             0 B/op          0 allocs/op
 BenchmarkPlayground-16                    454696              2562 ns/op             389 B/op         14 allocs/op
