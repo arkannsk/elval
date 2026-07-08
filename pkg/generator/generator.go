@@ -169,10 +169,10 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 			return fmt.Errorf("ошибка форматирования OpenAPI: %w (debug: %s)", err, debugFile)
 		}
 
-		// 🆕 outputPath для OpenAPI
+		// outputPath для OpenAPI
 		outputPath := basePath + ".oa.gen.go"
 
-		// 🆕 Создаём директорию перед записью
+		// Создаём директорию перед записью
 		if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
 			return fmt.Errorf("failed to create output directory: %w", err)
 		}
@@ -236,10 +236,10 @@ func (g *Generator) normalizeResponseMediaTypes(structs []parser.Struct) {
 			}
 		}
 
-		// Если есть yaml теги, но нет application/x-yaml — добавляем
-		if s.HasYamlTags && !existingMediaTypes["application/x-yaml"] {
+		// Если есть yaml теги, но нет text/yaml — добавляем (RFC 9512)
+		if s.HasYamlTags && !existingMediaTypes["text/yaml"] {
 			for j := range s.OaResponses {
-				s.OaResponses[j].MediaTypes = append(s.OaResponses[j].MediaTypes, "application/x-yaml")
+				s.OaResponses[j].MediaTypes = append(s.OaResponses[j].MediaTypes, "text/yaml")
 			}
 		}
 	}
