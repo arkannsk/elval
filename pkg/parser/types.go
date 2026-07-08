@@ -74,9 +74,10 @@ type Field struct {
 	OaRewriteRef  string
 	OaRewriteType string
 
-	OaIn        string // "path", "query", "header", "cookie" или "" (body)
-	OaParamName string // Имя параметра в URL/Query/Header (если отличается от имени поля)
-	OaFormat    string
+	OaIn         string // "path", "query", "header", "cookie" или "" (body)
+	OaParamName  string // Имя параметра в URL/Query/Header (если отличается от имени поля)
+	OaFormat     string
+	SerializedName string // имя поля из тегов json/yaml/xml (для OpenAPI Properties ключа)
 }
 
 // Struct представляет структуру с полями для валидации
