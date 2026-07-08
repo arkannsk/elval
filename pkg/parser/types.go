@@ -78,6 +78,8 @@ type Field struct {
 	OaParamName  string // Имя параметра в URL/Query/Header (если отличается от имени поля)
 	OaFormat     string
 	SerializedName string // имя поля из тегов json/yaml/xml (для OpenAPI Properties ключа)
+	HasXmlTag     bool   // поле имеет xml тег
+	HasYamlTag    bool   // поле имеет yaml тег
 }
 
 // Struct представляет структуру с полями для валидации
@@ -101,6 +103,8 @@ type Struct struct {
 	OaAnyOf                   []string
 	OaAnyOfRefs               []string
 	OaResponses               []ann.OaResponseAnnotation
+	HasXmlTags                bool // у структуры есть поля с xml тегами
+	HasYamlTags               bool // у структуры есть поля с yaml тегами
 }
 
 // HasDirectives проверяет есть ли у структуры поля с аннотациями валидации

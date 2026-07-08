@@ -140,6 +140,9 @@ func (g *Generator) Generate(parseResult *parser.ParseResult, sourceFile string)
 		// Заполняем DiscriminatorPropertyName для дочерних структур
 		g.propagateDiscriminatorPropertyName(structsForOpenAPI)
 
+		// Автоматически добавляем недостающие media types на основе struct тегов
+		g.normalizeResponseMediaTypes(structsForOpenAPI)
+
 		data := struct {
 			Package         string
 			Structs         []parser.Struct
@@ -202,6 +205,41 @@ func (g *Generator) propagateDiscriminatorPropertyName(structs []parser.Struct) 
 			child, ok := index[childName]
 			if ok && child.DiscriminatorPropertyName == "" {
 				child.DiscriminatorPropertyName = propName
+			}
+		}
+	}
+}
+
+// normalizeResponseMediaTypes автоматически добавляет недостающие media types
+// в @oa:response аннотации на основе наличия xml/yaml тегов в полях структуры.
+// Если у структуры есть xml теги, но в @oa:response нет application/xml — добавляется.
+// Если есть yaml теги, но нет application/x-yaml — добавляется.
+func (g *Generator) normalizeResponseMediaTypes(structs []parser.Struct) {
+	for i := range structs {
+		s := &structs[i]
+		if len(s.OaResponses) == 0 {
+			continue
+		}
+
+		// Собираем все media types из всех response аннотаций
+		existingMediaTypes := make(map[string]bool)
+		for _, resp := range s.OaResponses {
+			for _, mt := range resp.MediaTypes {
+				existingMediaTypes[mt] = true
+			}
+		}
+
+		// Если есть xml теги, но нет application/xml — добавляем
+		if s.HasXmlTags && !existingMediaTypes["application/xml"] {
+			for j := range s.OaResponses {
+				s.OaResponses[j].MediaTypes = append(s.OaResponses[j].MediaTypes, "application/xml")
+			}
+		}
+
+		// Если есть yaml теги, но нет application/x-yaml — добавляем
+		if s.HasYamlTags && !existingMediaTypes["application/x-yaml"] {
+			for j := range s.OaResponses {
+				s.OaResponses[j].MediaTypes = append(s.OaResponses[j].MediaTypes, "application/x-yaml")
 			}
 		}
 	}

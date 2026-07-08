@@ -31,12 +31,19 @@ func isBuiltin(name string) bool {
 	return ok
 }
 
-// extractSerializedName извлекает имя поля из struct тегов (json, yaml, xml).
+// TagInfo содержит информацию о наличии struct тегов
+type TagInfo struct {
+	SerializedName string
+	HasXmlTag      bool
+	HasYamlTag     bool
+}
+
+// extractTagInfo извлекает имя поля и информацию о тегах из struct тегов (json, yaml, xml).
 // Приоритет: json > yaml > xml. Если тег не найден, возвращается lowercase Go-имя поля.
-// Тег "-" означает игнорирование поля.
-func extractSerializedName(field *ast.Field, goFieldName string) string {
+// Тег "-" означает игнорирование поля (SerializedName пустой).
+func extractTagInfo(field *ast.Field, goFieldName string) TagInfo {
 	if field.Tag == nil {
-		return strings.ToLower(goFieldName)
+		return TagInfo{SerializedName: strings.ToLower(goFieldName)}
 	}
 
 	tagStr := field.Tag.Value
@@ -46,22 +53,45 @@ func extractSerializedName(field *ast.Field, goFieldName string) string {
 	// Парсим теги: json, yaml, xml
 	tagMap := parseStructTags(tagStr)
 
+	// Проверяем наличие xml и yaml тегов (для автоматического определения media types)
+	hasXml := false
+	hasYaml := false
+	if val, ok := tagMap["xml"]; ok && val != "-" {
+		hasXml = true
+	}
+	if val, ok := tagMap["yaml"]; ok && val != "-" {
+		hasYaml = true
+	}
+
 	// Приоритет: json > yaml > xml
 	for _, tagName := range []string{"json", "yaml", "xml"} {
 		if val, ok := tagMap[tagName]; ok {
 			// Тег "-" означает игнорирование
 			if val == "-" {
-				return ""
+				return TagInfo{}
 			}
 			// Убираем опции (omitempty и т.д.)
 			parts := strings.Split(val, ",")
 			if parts[0] != "" && parts[0] != "-" {
-				return parts[0]
+				return TagInfo{
+					SerializedName: parts[0],
+					HasXmlTag:      hasXml,
+					HasYamlTag:     hasYaml,
+				}
 			}
 		}
 	}
 
-	return strings.ToLower(goFieldName)
+	return TagInfo{
+		SerializedName: strings.ToLower(goFieldName),
+		HasXmlTag:      hasXml,
+		HasYamlTag:     hasYaml,
+	}
+}
+
+// extractSerializedName — legacy wrapper для обратной совместимости
+func extractSerializedName(field *ast.Field, goFieldName string) string {
+	return extractTagInfo(field, goFieldName).SerializedName
 }
 
 // parseStructTags парсит строку struct тегов в map[tag_name]tag_value
