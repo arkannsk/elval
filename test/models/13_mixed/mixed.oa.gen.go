@@ -155,17 +155,19 @@ func (v *MegaStruct) OaParams() []*oa.Parameter {
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "IncludeDeleted",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("IncludeDeleted"),
+		Name:        "IncludeDeleted",
+		In:          oa.ParamQuery,
+		Description: "Include deleted",
+		Required:    false,
+		Schema:      v.getFieldSchema("IncludeDeleted"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "APIVersion",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("APIVersion"),
+		Name:        "APIVersion",
+		In:          oa.ParamHeader,
+		Description: "API version",
+		Required:    false,
+		Schema:      v.getFieldSchema("APIVersion"),
 	})
 	return params
 }

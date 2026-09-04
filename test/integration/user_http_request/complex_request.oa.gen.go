@@ -77,59 +77,67 @@ func (v *ComplexRequest) OaParams() []*oa.Parameter {
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "ids",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("IDs"),
+		Name:        "ids",
+		In:          oa.ParamQuery,
+		Description: "List of user IDs to fetch",
+		Required:    false,
+		Schema:      v.getFieldSchema("IDs"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "tags",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Tags"),
+		Name:        "tags",
+		In:          oa.ParamQuery,
+		Description: "Filter by tags",
+		Required:    false,
+		Schema:      v.getFieldSchema("Tags"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "active",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Active"),
+		Name:        "active",
+		In:          oa.ParamQuery,
+		Description: "Include only active users",
+		Required:    false,
+		Schema:      v.getFieldSchema("Active"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "created_after",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("CreatedAfter"),
+		Name:        "created_after",
+		In:          oa.ParamQuery,
+		Description: "Filter by creation time",
+		Required:    false,
+		Schema:      v.getFieldSchema("CreatedAfter"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "score",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Score"),
+		Name:        "score",
+		In:          oa.ParamQuery,
+		Description: "Filter by minimum score",
+		Required:    false,
+		Schema:      v.getFieldSchema("Score"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "X-Request-ID",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("RequestID"),
+		Name:        "X-Request-ID",
+		In:          oa.ParamHeader,
+		Description: "Unique request ID for tracing",
+		Required:    false,
+		Schema:      v.getFieldSchema("RequestID"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "X-Tenant-ID",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("TenantID"),
+		Name:        "X-Tenant-ID",
+		In:          oa.ParamHeader,
+		Description: "Tenant identifier",
+		Required:    false,
+		Schema:      v.getFieldSchema("TenantID"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "X-Rate-Limit",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("RateLimit"),
+		Name:        "X-Rate-Limit",
+		In:          oa.ParamHeader,
+		Description: "Custom rate limit override",
+		Required:    false,
+		Schema:      v.getFieldSchema("RateLimit"),
 	})
 	return params
 }

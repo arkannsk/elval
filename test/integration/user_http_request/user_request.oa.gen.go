@@ -44,17 +44,19 @@ func (v *GetUserRequest) OaParams() []*oa.Parameter {
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "fields",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Fields"),
+		Name:        "fields",
+		In:          oa.ParamQuery,
+		Description: "Comma-separated list of fields to include",
+		Required:    false,
+		Schema:      v.getFieldSchema("Fields"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "X-Request-ID",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("RequestID"),
+		Name:        "X-Request-ID",
+		In:          oa.ParamHeader,
+		Description: "Unique request identifier for tracing",
+		Required:    false,
+		Schema:      v.getFieldSchema("RequestID"),
 	})
 	return params
 }
