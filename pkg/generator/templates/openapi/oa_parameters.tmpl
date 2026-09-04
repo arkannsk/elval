@@ -43,6 +43,17 @@
                 {{- end }}
             {{- end }}
 
+            {{- /* @oa:description / @oa:example аннотации поля попадают в параметр */}}
+            {{- $desc := "" -}}
+            {{- $ex := "" -}}
+            {{- range $ann := $field.OaAnnotations -}}
+                {{- if eq $ann.Type "description" -}}
+                    {{- $desc = $ann.Value -}}
+                {{- else if eq $ann.Type "example" -}}
+                    {{- $ex = $ann.Value -}}
+                {{- end -}}
+            {{- end -}}
+
             params = append(params, &oa.Parameter{
             Name:     {{ printf "%q" $paramName }},
             {{- if eq $field.OaIn "path" }}
@@ -53,6 +64,12 @@
                 In:       oa.ParamHeader,
             {{- else if eq $field.OaIn "cookie" }}
                 In:       oa.ParamCookie,
+            {{- end }}
+            {{- if ne $desc "" }}
+            Description: {{ oaString $desc }},
+            {{- end }}
+            {{- if ne $ex "" }}
+            Example:    {{ toExampleValue (trimQuotes $ex) $oaType }},
             {{- end }}
             Required: {{ if eq $field.OaIn "path" }}true{{ else }}false{{ end }},
             Schema:   v.getFieldSchema({{ printf "%q" $field.Name }}),

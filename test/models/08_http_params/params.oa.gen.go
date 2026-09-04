@@ -40,31 +40,38 @@ func (v *QueryParams) OaParams() []*oa.Parameter {
 	params := []*oa.Parameter{}
 
 	params = append(params, &oa.Parameter{
-		Name:     "Query",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Query"),
+		Name:        "Query",
+		In:          oa.ParamQuery,
+		Description: "Search keyword",
+		Example:     "golang",
+		Required:    false,
+		Schema:      v.getFieldSchema("Query"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "Page",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Page"),
+		Name:        "Page",
+		In:          oa.ParamQuery,
+		Description: "Page number",
+		Example:     1,
+		Required:    false,
+		Schema:      v.getFieldSchema("Page"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "Limit",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Limit"),
+		Name:        "Limit",
+		In:          oa.ParamQuery,
+		Description: "Items per page",
+		Example:     20,
+		Required:    false,
+		Schema:      v.getFieldSchema("Limit"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "Status",
-		In:       oa.ParamQuery,
-		Required: false,
-		Schema:   v.getFieldSchema("Status"),
+		Name:        "Status",
+		In:          oa.ParamQuery,
+		Description: "Filter by status",
+		Required:    false,
+		Schema:      v.getFieldSchema("Status"),
 	})
 	return params
 }
@@ -177,17 +184,20 @@ func (v *PathParams) OaParams() []*oa.Parameter {
 	params := []*oa.Parameter{}
 
 	params = append(params, &oa.Parameter{
-		Name:     "userId",
-		In:       oa.ParamPath,
-		Required: true,
-		Schema:   v.getFieldSchema("UserID"),
+		Name:        "userId",
+		In:          oa.ParamPath,
+		Description: "User ID",
+		Example:     "usr_123",
+		Required:    true,
+		Schema:      v.getFieldSchema("UserID"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "resource_id",
-		In:       oa.ParamPath,
-		Required: true,
-		Schema:   v.getFieldSchema("ResourceID"),
+		Name:        "resource_id",
+		In:          oa.ParamPath,
+		Description: "Resource ID",
+		Required:    true,
+		Schema:      v.getFieldSchema("ResourceID"),
 	})
 	return params
 }
@@ -265,17 +275,19 @@ func (v *HeaderParams) OaParams() []*oa.Parameter {
 	params := []*oa.Parameter{}
 
 	params = append(params, &oa.Parameter{
-		Name:     "X-API-Key",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("APIKey"),
+		Name:        "X-API-Key",
+		In:          oa.ParamHeader,
+		Description: "API key",
+		Required:    false,
+		Schema:      v.getFieldSchema("APIKey"),
 	})
 
 	params = append(params, &oa.Parameter{
-		Name:     "request-id",
-		In:       oa.ParamHeader,
-		Required: false,
-		Schema:   v.getFieldSchema("RequestID"),
+		Name:        "request-id",
+		In:          oa.ParamHeader,
+		Description: "Request ID for tracing",
+		Required:    false,
+		Schema:      v.getFieldSchema("RequestID"),
 	})
 	return params
 }
